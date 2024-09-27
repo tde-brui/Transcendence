@@ -1,0 +1,108 @@
+/* src/components/UserProfile.css */
+.user-profile {
+	max-width: 500px;
+	margin: 50px auto;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	background-color: #fff;
+	font-family: Arial, sans-serif;
+	text-align: center;
+  }
+  
+  .profile-header {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	margin-bottom: 20px;
+  }
+  
+  .profile-picture {
+	position: relative;
+	margin-bottom: 15px;
+  }
+  
+  .profile-img {
+	width: 150px;
+	height: 150px;
+	border-radius: 50%;
+	border: 3px solid #ddd;
+  }
+  
+  .change-pic-btn {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	background-color: #3498db;
+	color: #fff;
+	border: none;
+	padding: 5px 10px;
+	border-radius: 50px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+  }
+  
+  .change-pic-btn:hover {
+	background-color: #2980b9;
+  }
+  
+  .username h2 {
+	margin: 10px 0;
+	font-size: 24px;
+	color: #333;
+  }
+  
+  .edit-username-btn {
+	background-color: #f39c12;
+	color: #fff;
+	border: none;
+	padding: 5px 10px;
+	border-radius: 5px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+  }
+  
+  .edit-username-btn:hover {
+	background-color: #e67e22;
+  }
+  
+  .profile-stats {
+	display: flex;
+	justify-content: space-around;
+	margin: 20px 0;
+  }
+  
+  .stat h3 {
+	margin: 0;
+	font-size: 30px;
+	color: #2ecc71;
+  }
+  
+  .stat p {
+	margin: 5px 0 0;
+	font-size: 16px;
+	color: #666;
+  }
+  
+  .profile-actions {
+	margin-top: 20px;
+  }
+  
+  .change-password-btn {
+	background-color: #e74c3c;
+	color: #fff;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 5px;
+	cursor: pointer;
+  }
+  
+  .change-password-btn:hover {
+	background-color: #c0392b;
+  }
+  
