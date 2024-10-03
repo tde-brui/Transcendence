@@ -1,13 +1,13 @@
 import React, { Component } from "react";
-import Pong3D from "./driedtest";
 
 class Home extends Component {
   render() {
     return (
-      <div>
-        <h3>SPA App - Home</h3>
-        <p>This is a paragraph on the HomePage of the SPA App.</p>
-		< Pong3D />
+      <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-lg">
+        <h3 className="text-3xl font-semibold text-blue-600 mb-4 text-center">PINGPONG HOME</h3>
+        <p className="text-gray-700">
+          This is a paragraph on the HomePage of the SPA App.
+        </p>
       </div>
     );
   }

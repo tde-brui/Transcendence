@@ -1,6 +1,4 @@
-// src/components/UserProfile.js
 import React, { useState } from 'react';
-import './UserProfile.css';
 import { FaCamera, FaUserEdit } from 'react-icons/fa';
 
 const UserProfile = () => {
@@ -17,35 +15,44 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="user-profile">
-      <div className="profile-header">
-        <div className="profile-picture">
-          <img src={profilePic} alt="Profile" className="profile-img" />
-          <button className="change-pic-btn" onClick={handleProfilePicChange}>
-            <FaCamera /> Change
+    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg">
+      <div className="flex items-center space-x-4">
+        <div className="relative">
+          <img src={profilePic} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
+          <button 
+            className="absolute bottom-0 right-0 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-600 transition"
+            onClick={handleProfilePicChange}
+          >
+            <FaCamera />
           </button>
         </div>
-        <div className="username">
-          <h2>{username}</h2>
-          <button className="edit-username-btn" onClick={() => alert('Username edit feature coming soon!')}>
-            <FaUserEdit /> Edit Username
+        <div>
+          <h2 className="text-2xl font-semibold text-emerald-500">{username}</h2>
+          <button 
+            className="flex items-center text-blue-500 hover:text-blue-700 transition mt-2"
+            onClick={() => alert('Username edit feature coming soon!')}
+          >
+            <FaUserEdit className="mr-2" /> Edit Username
           </button>
         </div>
       </div>
 
-      <div className="profile-stats">
-        <div className="stat">
-          <h3>{matchesPlayed}</h3>
-          <p>Matches Played</p>
+      <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="text-center">
+          <h3 className="text-xl font-bold">{matchesPlayed}</h3>
+          <p className="text-gray-500">Matches Played</p>
         </div>
-        <div className="stat">
-          <h3>{matchesWon}</h3>
-          <p>Matches Won</p>
+        <div className="text-center">
+          <h3 className="text-xl font-bold">{matchesWon}</h3>
+          <p className="text-gray-500">Matches Won</p>
         </div>
       </div>
 
-      <div className="profile-actions">
-        <button className="change-password-btn" onClick={() => alert('Change Password feature coming soon!')}>
+      <div className="mt-6">
+        <button 
+          className="w-full py-2 bg-slate-700 text-white font-bold rounded-md hover:bg-slate-800 transition"
+          onClick={() => alert('Change Password feature coming soon!')}
+        >
           Change Password
         </button>
       </div>
