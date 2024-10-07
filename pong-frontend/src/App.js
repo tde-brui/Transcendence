@@ -1,95 +1,86 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
+import { useSpring, animated } from '@react-spring/web';
+import PlayScreen from './components/PlayScreen';
+import SettingsScreen from './components/SettingsScreen';
+import AccountScreen from './components/AccountScreen';
+import ChatScreen from './components/ChatScreen';
+import './App.css';
 
-import React, { Component } from 'react';
-import { HashRouter, NavLink, Route, Routes } from 'react-router-dom';
-import Home from './components/Home';
-import UserProfile from './components/UserProfile'; // Assuming UserProfile is just a component for displaying the picture
-import Contact from './components/Contact';
-import { FaBars } from 'react-icons/fa'; // Use an icon or import an image
-import backgroundImage from './assets/BG.jpg';
+function MainScreen() {
+  const [hovered, setHovered] = React.useState(false);
+  const springProps = useSpring({
+    transform: hovered ? 'scale(1.2)' : 'scale(1)', // Scale up on hover
+    config: { tension: 300, friction: 10 }, // Animation speed and smoothness
+  });
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isMenuOpen: false, // State to toggle dropdown
-    };
-  }
-
-  // Function to toggle the menu
-  toggleMenu = () => {
-    this.setState({ isMenuOpen: !this.state.isMenuOpen });
-  };
-
-  render() {
-    const { isMenuOpen } = this.state;
-
-    return (
-      <HashRouter>
-        <div
-          className="App min-h-screen bg-cover bg-center relative"
-          style={{ backgroundImage: "url('./assets/BG.jpg')" }} // Background image
+  return (
+    <div className="h-screen w-screen flex flex-col justify-center">
+      {/* Title */}
+      <div className="h-screen w-screen flex items-center justify-center bg-gray-900">
+        <animated.div
+          className="z-10"
+          style={springProps}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
         >
-          {/* Title */}
-          <h1 className="text-4xl font-bold text-center my-8 text-blue-500 mt-0 pt-5">Pong</h1>
-
-          {/* Profile picture in the top-right */}
-          <div className="absolute top-4 right-4">
-            <button onClick={this.toggleMenu} className="focus:outline-none">
-              {/* Profile Picture (Icon or Image) */}
-              <FaBars className="text-4xl text-gray-600 hover:text-blue-500 transition duration-300" />
-            </button>
-
-            {/* Dropdown Menu */}
-            {isMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg">
-                <ul className="py-2">
-                  <li>
-                    <NavLink
-                      to="/"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      activeClassName="text-blue-500"
-                      onClick={this.toggleMenu} // Close menu on click
-                    >
-                      Home
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/userprofile"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      activeClassName="text-blue-500"
-                      onClick={this.toggleMenu} // Close menu on click
-                    >
-                      User
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/contact"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      activeClassName="text-blue-500"
-                      onClick={this.toggleMenu} // Close menu on click
-                    >
-                      Contact
-                    </NavLink>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* Main Content */}
-          <div className="content mx-auto mt-8 p-4 bg-white shadow-lg rounded-lg max-w-4xl">
-            <Routes>
-              <Route exact path="/" element={<Home />} />
-              <Route exact path="/userprofile" element={<UserProfile />} />
-              <Route exact path="/contact" element={<Contact />} />
-            </Routes>
-          </div>
-        </div>
-      </HashRouter>
-    );
-  }
+          <h1 className="text-9xl text-white font-gaming">Pong</h1>
+        </animated.div>
+      </div>
+      {/* Buttons */}
+      <div className="h-screen w-screen flex flex-col flex-start space-between z-10 space-x-6">
+        <Link to="/play" className="text-4xl text-white font-bold hover:text-red-900 p-3">
+          PLAY
+        </Link>
+        <Link to="/settings" className="text-4xl text-white font-bold hover:text-red-900 p-3">
+          SETTINGS
+        </Link>
+        <Link to="/account" className="text-4xl text-white font-bold hover:text-red-900 p-3">
+          ACCOUNT
+        </Link>
+        <Link to="/chat" className="text-4xl text-white font-bold hover:text-red-900 p-3">
+          CHAT
+        </Link>
+      </div>
+    </div>
+  );
 }
 
-export default App;
+function App() {
+  const location = useLocation(); // Moved here to be within Router context
+
+  const isMainScreen = location.pathname === '/';
+
+  return (
+    <div className="relative h-screen w-screen flex flex-col items-center justify-center text-center">
+      {/* Background Image */}
+      {isMainScreen && (
+        <img src="/BG.jpg" alt="background" className="absolute inset-0 w-full h-full object-cover z-0" />
+      )}
+
+      {/* Main Screen or Routes */}
+      {isMainScreen ? (
+        <MainScreen />
+      ) : (
+        <div className="z-10 w-full h-full">
+          <Routes>
+            <Route path="/play" element={<PlayScreen />} />
+            <Route path="/settings" element={<SettingsScreen />} />
+            <Route path="/account" element={<AccountScreen isLoggedIn={true} />} />
+            <Route path="/chat" element={<ChatScreen />} />
+          </Routes>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AppWrapper() {
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+}
+
+export default AppWrapper;

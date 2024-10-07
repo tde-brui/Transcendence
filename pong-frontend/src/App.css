@@ -1,0 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Add a custom class for the gaming font */
+.font-gaming {
+  font-family: 'Press Start 2P', cursive;
+}
