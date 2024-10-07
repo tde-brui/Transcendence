@@ -17,7 +17,7 @@
 - **Real-Time Communication**: Socket.IO
 
 ## Contributors
-- [Tijmen](https://github.com/tde-brui
+- [Tijmen](https://github.com/tde-brui)
 - [Stijn](https://github.com/StijnScheltinga)
 - [Tristan](https://github.com/TRSTN4)
 - [Daniel](https://github.com/dvan-kle)
