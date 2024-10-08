@@ -10,12 +10,12 @@ import './App.css';
 function MainScreen() {
   const [hovered, setHovered] = React.useState(false);
   const springProps = useSpring({
-    transform: hovered ? 'scale(1.2)' : 'scale(1)', // Scale up on hover
+    transform: hovered ? 'scale(1.2)' : 'scale(1)',// Scale up on hover
     config: { tension: 300, friction: 10 }, // Animation speed and smoothness
   });
 
   return (
-    <div className="h-screen w-screen flex flex-col justify-center">
+    <div className="h-screen w-screen flex flex-col justify-center items-center">
       {/* Title */}
       <div className="h-screen w-screen flex items-center justify-center bg-gray-900">
         <animated.div
@@ -29,16 +29,16 @@ function MainScreen() {
       </div>
       {/* Buttons */}
       <div className="h-screen w-screen flex flex-col flex-start space-between z-10 space-x-6">
-        <Link to="/play" className="text-4xl text-white font-bold hover:text-red-900 p-3">
+        <Link to="/play" className="text-4xl text-white font-bold p-3 custom-link">
           PLAY
         </Link>
-        <Link to="/settings" className="text-4xl text-white font-bold hover:text-red-900 p-3">
+        <Link to="/settings" className="text-4xl text-white font-bold p-3 custom-link">
           SETTINGS
         </Link>
-        <Link to="/account" className="text-4xl text-white font-bold hover:text-red-900 p-3">
+        <Link to="/account2" className="text-4xl text-white font-bold p-3 custom-link">
           ACCOUNT
         </Link>
-        <Link to="/chat" className="text-4xl text-white font-bold hover:text-red-900 p-3">
+        <Link to="/chat" className="text-4xl text-white font-bold p-3 custom-link">
           CHAT
         </Link>
       </div>
@@ -67,6 +67,7 @@ function App() {
             <Route path="/play" element={<PlayScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
             <Route path="/account" element={<AccountScreen isLoggedIn={true} />} />
+			<Route path="/account2" element={<AccountScreen isLoggedIn={false} />} />
             <Route path="/chat" element={<ChatScreen />} />
           </Routes>
         </div>
