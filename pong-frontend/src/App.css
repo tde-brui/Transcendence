@@ -1,20 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
 /* Add a custom class for the gaming font */
 .font-gaming {
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
 }
 
 .custom-link {
-	color: #fff;
-	text-decoration: none;
-	text-underline-offset: 0;
-	transition: color 0.1s ease-in-out, text-decoration 0.1s ease-in-out;
-  }
-  
-  .custom-link:hover {
-	color: #22d3ee;
-	text-decoration: underline #22d3ee 2.4px;
-	text-underline-offset: 10px;
-  }
-  
+  color: #fff;
+  text-decoration: none;
+  text-underline-offset: 0;
+  transition: color 0.1s ease-in-out, text-decoration 0.1s ease-in-out;
+}
+
+.custom-link:hover {
+  color: #22d3ee;
+  text-decoration: underline #22d3ee 2.4px;
+  text-underline-offset: 10px;
+}
