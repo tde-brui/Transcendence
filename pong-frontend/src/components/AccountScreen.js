@@ -41,8 +41,8 @@ function AccountScreen({ isLoggedIn }) {
                 </div>
 
                 <div className="border-b border-gray-700 pb-4">
-                  <h2 className="text-xl font-semibold">Membership</h2>
-                  <p className="text-gray-300">Premium Member</p>
+                  <h2 className="text-xl font-semibold">Wins</h2>
+                  <p className="text-gray-300">0</p>
                 </div>
               </div>
 
