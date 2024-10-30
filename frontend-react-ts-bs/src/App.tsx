@@ -7,10 +7,8 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useSpring, animated } from "@react-spring/web";
-import PlayScreen from "./components/PlayScreen";
 import SettingsScreen from "./components/SettingsScreen";
 import AccountScreen from "./components/AccountScreen";
-import ChatScreen from "./components/ChatScreen";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -75,7 +73,7 @@ function App() {
       ) : (
         <div className="z-10 w-100 h-100">
           <Routes>
-            <Route path="/play" element={<PlayScreen />} />
+            {/* <Route path="/play" element={<PlayScreen />} /> */}
             <Route path="/settings" element={<SettingsScreen />} />
             <Route
               path="/account"
@@ -85,7 +83,7 @@ function App() {
               path="/account2"
               element={<AccountScreen isLoggedIn={false} />}
             />
-            <Route path="/chat" element={<ChatScreen />} />
+            {/* <Route path="/chat" element={<ChatScreen />} /> */}
           </Routes>
         </div>
       )}
