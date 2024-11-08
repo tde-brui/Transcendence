@@ -12,6 +12,7 @@ import SettingsScreen from "./components/SettingsScreen";
 import AccountScreen from "./components/AccountScreen";
 import ChatScreen from "./components/ChatScreen";
 import "./App.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function MainScreen() {
   const [hovered, setHovered] = React.useState(false);
@@ -21,43 +22,31 @@ function MainScreen() {
   });
 
   return (
-    <div className="h-screen w-screen flex flex-col justify-center items-center">
+    <div className="d-flex flex-column justify-content-center align-items-center vh-100 vw-100">
       {/* Title */}
-      <div className="h-screen w-screen flex items-center justify-center bg-gray-900">
+      <div className="d-flex align-items-center justify-content-center bg-dark vh-100 vw-100">
         <animated.div
           className="z-10"
           style={springProps}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          <h1 className="text-9xl text-white font-gaming">Pong</h1>
+          <h1 className="display-1 text-white font-gaming">Pong</h1>
         </animated.div>
       </div>
       {/* Buttons */}
-      <div className="h-screen w-screen flex flex-col flex-start space-between z-10 space-x-6">
-        <Link
-          to="/play"
-          className="text-4xl text-white font-bold p-3 custom-link"
-        >
-          PLAY
+      <div className="d-flex flex-column align-items-center mt-3 z-10">
+        <Link to="/play" className="btn btn-lg btn-primary mb-3 disabled">
+          Play
         </Link>
-        <Link
-          to="/settings"
-          className="text-4xl text-white font-bold p-3 custom-link"
-        >
-          SETTINGS
+        <Link to="/settings" className="btn btn-lg btn-primary mb-3">
+          Settings
         </Link>
-        <Link
-          to="/account2"
-          className="text-4xl text-white font-bold p-3 custom-link"
-        >
-          ACCOUNT
+        <Link to="/account2" className="btn btn-lg btn-primary mb-3">
+          Account
         </Link>
-        <Link
-          to="/chat"
-          className="text-4xl text-white font-bold p-3 custom-link"
-        >
-          CHAT
+        <Link to="/chat" className="btn btn-lg btn-primary mb-3">
+          Chat
         </Link>
       </div>
     </div>
@@ -70,13 +59,13 @@ function App() {
   const isMainScreen = location.pathname === "/";
 
   return (
-    <div className="relative h-screen w-screen flex flex-col items-center justify-center text-center">
+    <div className="position-relative vh-100 vw-100 d-flex flex-column align-items-center justify-content-center text-center">
       {/* Background Image */}
       {isMainScreen && (
         <img
           src="/BG.jpg"
           alt="background"
-          className="absolute inset-0 w-full h-full object-cover z-0"
+          className="position-absolute top-0 start-0 w-100 h-100 object-fit-cover z-0"
         />
       )}
 
@@ -84,7 +73,7 @@ function App() {
       {isMainScreen ? (
         <MainScreen />
       ) : (
-        <div className="z-10 w-full h-full">
+        <div className="z-10 w-100 h-100">
           <Routes>
             <Route path="/play" element={<PlayScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />

@@ -43,7 +43,7 @@ function MainScreen() {
         <Link to="/account2" className="btn btn-lg btn-primary mb-3">
           Account
         </Link>
-        <Link to="/chat" className="btn btn-lg btn-primary mb-3">
+        <Link to="/chat" className="btn btn-lg btn-danger mb-3">
           Chat
         </Link>
       </div>

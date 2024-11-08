@@ -25,15 +25,18 @@ async function getAccessToken() {
 
 async function getUsersInCursus() {
     const token = await getAccessToken();
-    const response = await axios.get('https://api.intra.42.fr/v2/users/dvan-kle', {
+    const response = await axios.get('https://api.intra.42.fr/v2/campus', {
         headers: { Authorization: `Bearer ${token}` },
     });
     const usersInCursus = response.data;
-	// const userID = usersInCursus.id;
-	// const login = usersInCursus.login;
+	const userID = usersInCursus.id;
+	const login = usersInCursus.login;
+	const email = usersInCursus.email;
 	// console.log('User ID:', userID);
 	// console.log('Login:', login);
+	// console.log('Email:', email);
     console.log(usersInCursus);
+	// console.log(response);
 }
 
 getUsersInCursus();
