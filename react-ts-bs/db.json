@@ -6,7 +6,7 @@
 		"email": "dvan-kle@",
 		"password": "$2b$10$1234567890abcdef1234567890abcdef",
 		"displayName": "Daniel",
-		"avatar": "/images/dvan-kle.jpeg",
+		"avatar": "/images/logo192.png",
 		"friends": [2],
 		"onlineStatus": "online",
 		"matchHistory": [
@@ -19,7 +19,7 @@
 		"email": "tvan-bee@student.codam.nl",
 		"password": "$2b$10$abcdef1234567890abcdef1234567890",
 		"displayName": "Tristan",
-		"avatar": "/images/tvan-bee.jpeg",
+		"avatar": "/images/logo192.png",
 		"friends": [1],
 		"onlineStatus": "offline",
 		"matchHistory": [
