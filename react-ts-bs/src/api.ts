@@ -40,7 +40,7 @@ export type MatchHistory = {
 	backupCodes: string[];
   };
   
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'http://localhost:5002';
   
   /**
    * Fetches a user by their ID.
