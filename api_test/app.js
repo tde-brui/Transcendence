@@ -25,7 +25,7 @@ async function getAccessToken() {
 
 async function getUsersInCursus() {
     const token = await getAccessToken();
-    const response = await axios.get('https://api.intra.42.fr/v2/campus', {
+    const response = await axios.get('https://api.intra.42.fr/v2/users/tde-brui', {
         headers: { Authorization: `Bearer ${token}` },
     });
     const usersInCursus = response.data;
