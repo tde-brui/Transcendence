@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { User } from './api'; // Assuming User type is defined in api.ts
 import { returnName } from './userService';
-import './UserProfile.css'; // Optional: for custom styling if needed
+import './css/UserProfile.css'; // Optional: for custom styling if needed
 
 type UserProfileProps = {
   userId: number;
@@ -17,7 +17,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`http://localhost:5001/users/${userId}`);
+        const response = await fetch(`http://localhost:5002/users/${userId}`);
         if (!response.ok) throw new Error("Failed to fetch user data1");
         const userData = await response.json();
         setUser(userData);
@@ -51,7 +51,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   if (!user) return <div className="text-center mt-5">Loading...</div>;
 
   return (
-    <div className="container mt-5">
+    <div className="container d-flex align-items-center justify-content-center">
       <div className="card profile-card mx-auto">
         <div className="card-header profile-header text-center">
           <img
