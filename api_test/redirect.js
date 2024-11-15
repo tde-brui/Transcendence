@@ -35,7 +35,9 @@ app.get('/callback', async (req, res) => {
       },
     });
 
-    console.log("id:", userResponse.id);
+    console.log("id:", userResponse.data.id);
+	console.log("login:", userResponse.data.login);
+	console.log("email:", userResponse.data.email);
     // Handle user data (display, save to session, etc.)
     res.json(userResponse.data);
   } catch (error) {
