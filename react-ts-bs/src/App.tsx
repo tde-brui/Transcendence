@@ -44,9 +44,9 @@ function App() {
         }}
       >
       {/* <Home userId={2} /> */}
-      {/* <LandingPage onLogin={() => setLoggedIn(true)} /> */}
+      <LandingPage onLogin={() => setLoggedIn(true)} />
       {/* <UserProfile userId={2} /> */}
-      <Register />
+      {/* <Register /> */}
       </div>
       
   );

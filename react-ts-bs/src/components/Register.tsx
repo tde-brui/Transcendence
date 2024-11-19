@@ -61,6 +61,7 @@ const RegisterPage: React.FC = () => {
               <label htmlFor="username" className="form-label">
                 Username
               </label>
+              <span className="input-group-text" id="inputGroupPrepend">@</span>
               <input
                 type="text"
                 id="username"

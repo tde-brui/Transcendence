@@ -11,9 +11,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   return (
     <div className="d-flex flex-column align-items-center justify-content-center vh-100">
       <h1 className="text-white fst-italic playfair-text mb-4">WELCOME TO PONG</h1>
-      <div className='d-flex'>
+      <div className="d-flex align-items-center space-between">
       <button type="button" className="btn btn-primary glass-button" onClick={onLogin}>
-        Login with <img src="/42.png" alt="42 Logo" className="ms-2 logo-42" />
+        Login
       </button>
       <button type="button" className="btn btn-primary glass-button">
         Login with <img src="/42.png" alt="42 Logo" className="ms-2 logo-42" />
