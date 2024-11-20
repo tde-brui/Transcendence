@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class RestApiConfig(AppConfig):
+class UsersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'REST_api'
+    name = 'users'
