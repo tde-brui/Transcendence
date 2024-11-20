@@ -40,13 +40,13 @@ export type MatchHistory = {
 	backupCodes: string[];
   };
   
-  const API_BASE_URL = 'http://localhost:5002';
+  const API_BASE_URL = 'http://10.11.6.4:8000';
   
   /**
    * Fetches a user by their ID.
    */
   export async function fetchUser(userId: number): Promise<User> {
-	const response = await fetch(`${API_BASE_URL}/users/${userId}`);
+	const response = await fetch(`${API_BASE_URL}/users/${userId}/`);
 	if (!response.ok) throw new Error('Failed to fetch user');
 	return response.json();
   }
@@ -55,7 +55,7 @@ export type MatchHistory = {
    * Fetches all users.
    */
   export async function fetchAllUsers(): Promise<User[]> {
-	const response = await fetch(`${API_BASE_URL}/users`);
+	const response = await fetch(`${API_BASE_URL}/users/`);
 	if (!response.ok) throw new Error('Failed to fetch users');
 	return response.json();
   }

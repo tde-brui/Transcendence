@@ -1,58 +1,84 @@
 {
-	"users": [
-	  {
-		"id": 1,
-		"username": "dvan-kle",
-		"email": "dvan-kle@",
-		"password": "$2b$10$1234567890abcdef1234567890abcdef",
-		"displayName": "Daniel",
-		"avatar": "/images/logo192.png",
-		"friends": [2],
-		"onlineStatus": "online",
-		"matchHistory": [
-		  { "opponentId": 2, "date": "2024-11-12", "result": "win" }
-		]
-	  },
-	  {
-		"id": 2,
-		"username": "tvan-bee",
-		"email": "tvan-bee@student.codam.nl",
-		"password": "$2b$10$abcdef1234567890abcdef1234567890",
-		"displayName": "Tristan",
-		"avatar": "/images/logo192.png",
-		"friends": [1],
-		"onlineStatus": "offline",
-		"matchHistory": [
-		  { "opponentId": 1, "date": "2024-11-12", "result": "loss" }
-		]
-	  }
-	],
-	"sessions": [
-	  {
-		"userId": 1,
-		"jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-		"expiresAt": "2024-12-01T12:00:00Z"
-	  }
-	],
-	"authRequests": [
-	  {
-		"userId": 1,
-		"provider": "42",
-		"authToken": "auth_token_value",
-		"createdAt": "2024-11-13T10:30:00Z"
-	  }
-	],
-	"twoFactorAuth": [
-	  {
-		"userId": 1,
-		"method": "app",
-		"isEnabled": true,
-		"secret": "base32secretkey",
-		"backupCodes": [
-		  "12345678",
-		  "87654321"
-		]
-	  }
-	]
-  }
-  
+  "users": [
+    {
+      "id": "1",
+      "username": "dvan-kle",
+      "email": "dvan-kle@",
+      "password": "$2b$10$1234567890abcdef1234567890abcdef",
+      "displayName": "Daniel",
+      "avatar": "/images/logo192.png",
+      "friends": [
+        2
+      ],
+      "onlineStatus": "online",
+      "matchHistory": [
+        {
+          "opponentId": 2,
+          "date": "2024-11-12",
+          "result": "win"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "username": "tvan-bee",
+      "email": "tvan-bee@student.codam.nl",
+      "password": "$2b$10$abcdef1234567890abcdef1234567890",
+      "displayName": "Tristan",
+      "avatar": "/images/logo192.png",
+      "friends": [
+        1
+      ],
+      "onlineStatus": "offline",
+      "matchHistory": [
+        {
+          "opponentId": 1,
+          "date": "2024-11-12",
+          "result": "loss"
+        }
+      ]
+    },
+    {
+      "id": "362a",
+      "username": "danielvanlkeef",
+      "email": "test",
+      "password": "test"
+    },
+    {
+      "id": "cf26",
+      "username": "daniel",
+      "email": "gmail@gmail.com",
+      "password": "test"
+    }
+  ],
+  "sessions": [
+    {
+      "userId": 1,
+      "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "expiresAt": "2024-12-01T12:00:00Z",
+      "id": "f6ed"
+    }
+  ],
+  "authRequests": [
+    {
+      "userId": 1,
+      "provider": "42",
+      "authToken": "auth_token_value",
+      "createdAt": "2024-11-13T10:30:00Z",
+      "id": "0048"
+    }
+  ],
+  "twoFactorAuth": [
+    {
+      "userId": 1,
+      "method": "app",
+      "isEnabled": true,
+      "secret": "base32secretkey",
+      "backupCodes": [
+        "12345678",
+        "87654321"
+      ],
+      "id": "638b"
+    }
+  ]
+}

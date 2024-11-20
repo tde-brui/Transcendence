@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import "./css/UserProfile.css";
+import axios from "axios";
+import './css/UserProfile.css';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -9,112 +10,161 @@ const RegisterPage: React.FC = () => {
     confirmPassword: "",
   });
 
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ ...formData, [name]: value });
+
+    // Validation logic
+    if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      setFormErrors({
+        ...formErrors,
+        email: emailRegex.test(value) ? "" : "Invalid email address",
+      });
+    }
+
+    if (name === "password") {
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+      setFormErrors({
+        ...formErrors,
+        password: passwordRegex.test(value)
+          ? ""
+          : "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, and a number.",
+      });
+    }
+
+    if (name === "confirmPassword") {
+      setFormErrors({
+        ...formErrors,
+        confirmPassword:
+          value !== formData.password ? "Passwords do not match" : "",
+      });
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+    if (
+      formErrors.email ||
+      formErrors.password ||
+      formErrors.confirmPassword ||
+      !formData.username ||
+      !formData.email ||
+      !formData.password
+    ) {
+      alert("Please fix the errors before submitting.");
       return;
     }
 
+    // Exclude confirmPassword from the data to be sent
+    const { confirmPassword, ...dataToSend } = formData;
+
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
     try {
-      const response = await fetch("http://localhost:5002/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to register");
-
-      setSuccess("Registration successful! You can now log in.");
-      setFormData({ username: "", email: "", password: "", confirmPassword: "" });
-    } catch (err) {
-      setError((err as Error).message);
+      console.log(dataToSend);
+      await axios.post("http://10.11.6.4:8000/users/", dataToSend, config);
+      alert("Registration successful!");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("An error occurred during registration.");
     }
   };
 
   return (
-    <div className="container d-flex align-items-center justify-content-center">
+    <div className="container d-flex align-items-center justify-content-center vh-100">
       <div className="card profile-card mx-auto">
         <div className="card-header profile-header text-center">
           <h4 className="profile-title text-white">Register</h4>
         </div>
         <div className="card-body profile-body">
-          {error && <div className="alert alert-danger">{error}</div>}
-          {success && <div className="alert alert-success">{success}</div>}
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="username" className="form-label">
-                Username
-              </label>
-              <span className="input-group-text" id="inputGroupPrepend">@</span>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                className="form-control"
-                value={formData.username}
-                onChange={handleInputChange}
-                required
-              />
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="form-group">
+              <label htmlFor="username"></label>
+              <div className="input-group mb-3">
+                <div className="input-group-prepend">
+                  <span className="input-group-text">@</span>
+                </div>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="username"
+                  name="username"
+                  placeholder="Username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             </div>
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label">
-                Email
-              </label>
+
+            <div className="form-group">
+              <label htmlFor="email"></label>
               <input
                 type="email"
+                className={`form-control ${formErrors.email ? "is-invalid" : ""}`}
                 id="email"
                 name="email"
-                className="form-control"
+                placeholder="Email"
                 value={formData.email}
-                onChange={handleInputChange}
+                onChange={handleChange}
                 required
               />
+              {formErrors.email && (
+                <div className="invalid-feedback">{formErrors.email}</div>
+              )}
             </div>
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label">
-                Password
-              </label>
+
+            <div className="form-group">
+              <label htmlFor="password"></label>
               <input
                 type="password"
+                className={`form-control ${formErrors.password ? "is-invalid" : ""}`}
                 id="password"
                 name="password"
-                className="form-control"
+                placeholder="Password"
                 value={formData.password}
-                onChange={handleInputChange}
+                onChange={handleChange}
                 required
               />
+              {formErrors.password && (
+                <div className="invalid-feedback">{formErrors.password}</div>
+              )}
             </div>
-            <div className="mb-3">
-              <label htmlFor="confirmPassword" className="form-label">
-                Confirm Password
-              </label>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword"></label>
               <input
                 type="password"
+                className={`form-control ${
+                  formErrors.confirmPassword ? "is-invalid" : ""
+                }`}
                 id="confirmPassword"
                 name="confirmPassword"
-                className="form-control"
+                placeholder="Confirm Password"
                 value={formData.confirmPassword}
-                onChange={handleInputChange}
+                onChange={handleChange}
                 required
               />
+              {formErrors.confirmPassword && (
+                <div className="invalid-feedback">
+                  {formErrors.confirmPassword}
+                </div>
+              )}
             </div>
-            <button type="submit" className="btn btn-primary w-100">
+
+            <button type="submit" className="btn btn-primary btn-block mt-2">
               Register
             </button>
           </form>

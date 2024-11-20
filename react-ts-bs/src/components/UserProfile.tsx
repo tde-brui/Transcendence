@@ -17,7 +17,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`http://localhost:5002/users/${userId}`);
+        const response = await fetch(`http://10.11.6.4:8000/users/${userId}/`);
         if (!response.ok) throw new Error("Failed to fetch user data1");
         const userData = await response.json();
         setUser(userData);
