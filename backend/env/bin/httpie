@@ -1,4 +1,4 @@
-#!/home/sschelti/projects/Transcendence/backend/env/bin/python3
+#!/home/tde-brui/Projects/Transcendence/backend/env/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
