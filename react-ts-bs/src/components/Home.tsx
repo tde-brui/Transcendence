@@ -2,6 +2,7 @@ import React from 'react';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import { returnName } from './userService';
+import { NotLoggedIn } from './notLoggedin';
 import { User } from './api';
 
 type UserProfileProps = {
@@ -9,6 +10,8 @@ type UserProfileProps = {
   };
 
 const Home:  React.FC<UserProfileProps> = ({ userId }) => {
+
+	NotLoggedIn(userId);
     const [user, setUser] = useState<User | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>({});
@@ -16,7 +19,7 @@ const Home:  React.FC<UserProfileProps> = ({ userId }) => {
     useEffect(() => {
         const fetchUser = async () => {
           try {
-            const response = await fetch(`http://localhost:5002/users/${userId}`);
+            const response = await fetch(`http://localhost:8000/users/${userId}`);
             if (!response.ok) throw new Error("Failed to fetch user data1");
             const userData = await response.json();
             setUser(userData);
@@ -50,14 +53,14 @@ const Home:  React.FC<UserProfileProps> = ({ userId }) => {
   return (
     <div className="container">
       <div className="d-flex flex-column align-items-center justify-content-center vh-100">
-        <h1 className="text-white fst-italic playfair-text text-uppercase mb-4">WELCOME {user.displayName} </h1>
+        <h1 className="text-white fst-italic playfair-text text-uppercase mb-4">WELCOME {user.username} </h1>
         <Container>
         <Navbar bg="transparent" variant="dark" expand="lg" className="w-100 fs-4">
             <Nav className="mx-auto text-center glass-nav">
-            <Nav.Link href="#play" className="glass-nav-item">PLAY</Nav.Link>
-            <Nav.Link href="#chat" className="glass-nav-item">CHAT</Nav.Link>
+            <Nav.Link href="play" className="glass-nav-item">PLAY</Nav.Link>
+            <Nav.Link href="chat" className="glass-nav-item">CHAT</Nav.Link>
             <Nav.Link href="account" className="glass-nav-item">ACCOUNT</Nav.Link>
-            <Nav.Link href="#settings" className="glass-nav-item">SETTINGS</Nav.Link>
+            <Nav.Link href="settings" className="glass-nav-item">SETTINGS</Nav.Link>
             </Nav>
         </Navbar>
         </Container>

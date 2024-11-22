@@ -4,12 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { User } from './api'; // Assuming User type is defined in api.ts
 import { returnName } from './userService';
 import './css/UserProfile.css'; // Optional: for custom styling if needed
+import { NotLoggedIn } from './notLoggedin';
 
 type UserProfileProps = {
   userId: number;
 };
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
+
+	NotLoggedIn(userId);
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>({});
@@ -17,7 +20,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`http://10.11.6.4:8000/users/${userId}/`);
+        const response = await fetch(`http://localhost:8000/users/${userId}/`);
         if (!response.ok) throw new Error("Failed to fetch user data1");
         const userData = await response.json();
         setUser(userData);

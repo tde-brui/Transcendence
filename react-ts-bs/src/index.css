@@ -45,9 +45,27 @@ code {
 .glass-button:active {
   border: 4px solid #ffffff;
   background: radial-gradient(780px at 37.8% 100.3%, rgb(19, 55, 115) 2.2%, rgb(32, 7, 80) 20.2%, rgb(27, 88, 111) 58.6%, rgb(115, 88, 44) 75%, rgb(99, 19, 90) 89.6%, rgb(12, 51, 76) 96.1%);
-
-
 }
+
+.glass-button-sc {
+	background: rgb(2,0,36);
+	background: radial-gradient(780px at 37.8% 100.3%, rgb(61, 91, 143) 2.2%, rgb(32, 7, 80) 20.2%, rgb(27, 88, 111) 58.6%, rgb(115, 88, 44) 75%, rgb(99, 19, 90) 89.6%, rgb(12, 51, 76) 96.1%);
+	border: 0px;
+	color: #d6d6d6; /* Text color */
+	font-weight: bold; /* Makes the text bold */
+	font-size: 1.25rem; /* Increases the font size */
+	padding: 12px 24px; /* Increases padding for a larger button */
+	transition: all 0.3s ease;
+  }
+
+.glass-button-sc:hover {
+	background: rgb(2,0,36);
+	background: radial-gradient(780px at 37.8% 100.3%, rgb(61, 91, 143) 2.2%, rgb(32, 7, 80) 20.2%, rgb(27, 88, 111) 58.6%, rgb(115, 88, 44) 75%, rgb(99, 19, 90) 89.6%, rgb(12, 51, 76) 96.1%);	border: 1px solid #ffffff; /* Optional: subtle border */
+	color: #d6d6d6; /* Text color */
+	font-weight: bold; /* Makes the text bold */
+	font-size: 1.6rem; /* Increases the font size */
+	padding: 12px 24px; /* Increases padding for a larger button */
+  }
 
 .glass-nav {
   background: rgb(2,0,36);

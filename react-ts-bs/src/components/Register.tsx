@@ -31,7 +31,7 @@ const RegisterPage: React.FC = () => {
 
     if (name === "password") {
       const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
       setFormErrors({
         ...formErrors,
         password: passwordRegex.test(value)
@@ -74,7 +74,7 @@ const RegisterPage: React.FC = () => {
 
     try {
       console.log(dataToSend);
-      await axios.post("http://10.11.6.4:8000/users/", dataToSend, config);
+      await axios.post("http://localhost:8000/users/register/", dataToSend, config);
       alert("Registration successful!");
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -92,7 +92,7 @@ const RegisterPage: React.FC = () => {
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
               <label htmlFor="username"></label>
-              <div className="input-group mb-3">
+              <div className="input-group">
                 <div className="input-group-prepend">
                   <span className="input-group-text">@</span>
                 </div>
