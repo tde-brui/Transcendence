@@ -1,9 +1,10 @@
 import React from 'react';
-import { Navbar, Nav, Container } from 'react-bootstrap';
+import { Navbar, Nav } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import { returnName } from '../components/userService';
 import { NotLoggedIn } from '../components/notLoggedin';
 import { User } from '../components/api';
+import '../index.css';
 
 type UserProfileProps = {
     userId: number;
@@ -53,8 +54,7 @@ const Home:  React.FC<UserProfileProps> = ({ userId }) => {
   return (
     <div className="container">
       <div className="d-flex flex-column align-items-center justify-content-center vh-100">
-        <h1 className="text-white fst-italic playfair-text text-uppercase mb-4">WELCOME {user.username} </h1>
-        <Container>
+        <h1 className="fst-italic playfair-text text-uppercase mb-4">WELCOME {user.username} </h1>
         <Navbar bg="transparent" variant="dark" expand="lg" className="w-100 fs-4">
             <Nav className="mx-auto text-center glass-nav">
             <Nav.Link href="play" className="glass-nav-item">PLAY</Nav.Link>
@@ -63,8 +63,6 @@ const Home:  React.FC<UserProfileProps> = ({ userId }) => {
             <Nav.Link href="settings" className="glass-nav-item">SETTINGS</Nav.Link>
             </Nav>
         </Navbar>
-        </Container>
-
       </div>
     </div>
   );

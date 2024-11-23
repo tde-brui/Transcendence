@@ -75,7 +75,7 @@ const RegisterPage: React.FC = () => {
 
     try {
       console.log(dataToSend);
-      await axios.post("http://localhost:8000/users/register/", dataToSend, config);
+      await axios.post("http://localhost:8000/users/register", dataToSend, config);
       alert("Registration successful!");
     } catch (error) {
       console.error("Error submitting form:", error);

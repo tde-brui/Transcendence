@@ -1,7 +1,9 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bokor&display=swap');
 
 body {
   margin: 0;
@@ -19,6 +21,16 @@ code {
 .playfair-text {
   font-family: 'Playfair Display', serif;
   font-size: 6rem;
+  color:#ffffff;
+  transition: all 4s ease;
+}
+
+.playfair-text:hover {
+  font-family: 'Bokor';
+  font-size: 19rem;
+  font-weight: 800;
+  color: #ff0000;
+  transition: all 2s ease;
 }
 
 .glass-button {
@@ -73,11 +85,13 @@ code {
   border: 0px;
   border-radius: 35px;
   color: #d6d6d6; /* Text color */
-  font-weight: bold; /* Makes the text bold */
+  font-family: 'Rubik', sans-serif;
+  font-weight: 500; /* Makes the text bold */
   font-size: 1.3rem; /* Increases the font size */
   padding: 12px 24px; /* Increases padding for a larger button */
   filter: drop-shadow(0.1rem 0.1rem 0.2rem #212121);
   transition: all 3s ease-in-out;
+  margin: 0;
 }
 
 .glass-nav-item:hover {

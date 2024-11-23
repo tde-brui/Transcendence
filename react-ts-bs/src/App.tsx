@@ -9,6 +9,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { useAuth } from "./components/AuthContext";
 import NotFoundPage from "./error_pages/404NotFound";
 import OTPBoxed from "./components/OTPBoxed";
+import Authenticate42 from "./pages/Authenticate42";
+
 
 function App() {
   const userId = useAuth().userId;
@@ -20,9 +22,9 @@ function App() {
           <Route path="/" element={<Home userId={userId} />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/account" element={<UserProfile userId={userId} />} />
+          <Route path="/account" element={<UserProfile userId={2} />} />
           <Route path="*" element={<NotFoundPage />} />
-          <Route path="/test" element={<OTPBoxed userId={2} />} />
+          <Route path="/test" element={<Authenticate42 />} />
           <Route path="/test2" element={<OTPBoxed userId={3} />} />
         </Routes>
       </Router>

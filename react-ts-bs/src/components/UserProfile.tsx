@@ -28,7 +28,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     };
 
     fetchUser();
-  }, [userId]);
+  }, [userId]); 
 
   // Fetch opponent names
   useEffect(() => {
@@ -90,6 +90,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
               <li className="list-group-item text-center">No matches yet</li>
             )}
           </ul>
+        </div>
+        <div className="card-footer profile-footer d-flex justify-content-between fst-">
+          <button className="btn btn-primary">Change details</button>
+          <button className='btn btn-danger'>Log out</button>
         </div>
       </div>
     </div>

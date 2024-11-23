@@ -102,11 +102,11 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
     <div className="container d-flex align-items-center justify-content-center vh-100">
       <div className="card profile-card mx-auto">
         <div className="card-header profile-header text-center">
-          <h4 className="profile-title text-white">Enter OTP</h4>
+          <h4 className="profile-title text-white">Enter code</h4>
         </div>
         <div className="card-body profile-body">
-          <p className="text-center mb-4">
-            A code has been sent to <strong>{maskedEmail}</strong>.
+          <p className="text-center mb-4 h6">
+          An email has been sent to the email address <strong>{maskedEmail}</strong>. Enter the code to log in.
           </p>
           <form onSubmit={handleSubmit} noValidate>
             <div className="otp-container">
