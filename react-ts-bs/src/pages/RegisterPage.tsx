@@ -75,7 +75,9 @@ const RegisterPage: React.FC = () => {
 
     try {
       console.log(dataToSend);
-      await axios.post("http://localhost:8000/users/register", dataToSend, config);
+      const response = await axios.post("http://localhost:8000/users/register/", dataToSend, config);
+      console.log("Response data:");
+      console.error(response.data);
       alert("Registration successful!");
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -109,7 +111,6 @@ const RegisterPage: React.FC = () => {
                 />
               </div>
             </div>
-
             <div className="form-group">
               <label htmlFor="email"></label>
               <input
@@ -164,7 +165,6 @@ const RegisterPage: React.FC = () => {
                 </div>
               )}
             </div>
-
             <button type="submit" className="btn btn-primary btn-block mt-2">
               Register
             </button>
