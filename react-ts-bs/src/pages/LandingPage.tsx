@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './css/Utils.css';
+import '../css/Utils.css';
 
 const LandingPage: React.FC = () => {
   return (

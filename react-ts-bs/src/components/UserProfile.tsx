@@ -1,9 +1,7 @@
-// src/UserProfile.tsx
-
 import React, { useEffect, useState } from 'react';
-import { User } from './api'; // Assuming User type is defined in api.ts
+import { User } from './api';
 import { returnName } from './userService';
-import './css/UserProfile.css'; // Optional: for custom styling if needed
+import '../css/UserProfile.css';
 import { NotLoggedIn } from './notLoggedin';
 
 type UserProfileProps = {

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
-import { returnName } from './userService';
-import { NotLoggedIn } from './notLoggedin';
-import { User } from './api';
+import { returnName } from '../components/userService';
+import { NotLoggedIn } from '../components/notLoggedin';
+import { User } from '../components/api';
 
 type UserProfileProps = {
     userId: number;

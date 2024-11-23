@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useAuth} from "./AuthContext";
-import { useNavigate } from "react-router-dom";
-import OTPBoxed from "./OTPBoxed";
-import './css/UserProfile.css';
+import { useAuth} from "../components/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import OTPBoxed from "../components/OTPBoxed";
+import '../css/UserProfile.css';
 
 const LoginPage: React.FC = () => {
 	const { setUserId } = useAuth();
@@ -137,7 +137,7 @@ const LoginPage: React.FC = () => {
 			  </div>
 			  <div className="card-footer text-center">
 				<p className="small">
-				  Don't have an account? <a href="/register">Register</a>
+				  Don't have an account? <Link to="/register">Register</Link>
 				</p>
 			  </div>
 			</div>

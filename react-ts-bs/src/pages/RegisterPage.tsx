@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
-import './css/UserProfile.css';
+import '../css/UserProfile.css';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -171,7 +172,7 @@ const RegisterPage: React.FC = () => {
         </div>
         <div className="card-footer text-center">
           <p className="small">
-            Already have an account? <a href="/login">Log in</a>
+            Already have an account? <Link to="/login">Login</Link>
           </p>
         </div>
       </div>
