@@ -12,17 +12,25 @@ from django.conf import settings
 from rest_framework import status
 
 # Create your views here.
-@csrf_exempt
-def user_list(request):
-	#list all users
-	# if 	request.method == 'GET':
-	# 	users = PongUser.objects.all()
-	# 	serializer = UserSerializer(users, many=True)
-	# 	return JsonResponse(serializer.data, safe=False)
+# @csrf_exempt
+# def user_list(request):
+# 	list all users
+# 	if 	request.method == 'GET':
+# 		users = PongUser.objects.all()
+# 		serializer = UserSerializer(users, many=True)
+# 		return JsonResponse(serializer.data, safe=False)
 	
-	if request.method == 'POST':
-		data = JSONParser().parse(request)
-		serializer = UserSerializer(data=data)
+# 	if request.method == 'POST':
+# 		data = JSONParser().parse(request)
+# 		serializer = UserSerializer(data=data)
+# 		if serializer.is_valid():
+# 			serializer.save()
+# 			return JsonResponse(serializer.data, status=201)
+# 		return JsonResponse(serializer.errors, status=400)
+
+class user_register(APIView):
+	def post(self, request, *args, **kwargs):
+		serializer = UserSerializer(data=request.data)
 		if serializer.is_valid():
 			serializer.save()
 			return JsonResponse(serializer.data, status=201)
@@ -35,11 +43,9 @@ class user_login(APIView):
 		if serializer.is_valid():
 			username = serializer.validated_data['username']
 			password = serializer.validated_data['password']
-			two_factor_enabled = serializer.validated_data['two_factor_enabled']
-			email = serializer.validated_data.get('email')
-			user = authenticate(request, username=username, password=password, email=email, two_factor_enabled=True)
+			user = authenticate(request, username=username, password=password)
 			if user:
-				if user:
+				if user.two_factor_enabled:
 					otp = OTP.generate_code(user)
 					send_otp_email(user, otp)
 					return Response({

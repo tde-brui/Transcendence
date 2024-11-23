@@ -7,7 +7,6 @@ import random
 class PongUser(AbstractUser):
 	id = models.IntegerField(primary_key=True)
 	two_factor_enabled = models.BooleanField(default=False)
-	email = models.EmailField(unique=True)
 
 	def __str__(self):
 		return self.username

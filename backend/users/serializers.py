@@ -6,19 +6,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = PongUser
-		fields = ['id', 'username', 'email', 'password']
+		fields = ['id', 'username', 'email', 'password', 'two_factor_enabled']
 	
 	def create(self, validated_data):
 			# Create a new user with hashed password
 			user = PongUser.objects.create_user(
 				username=validated_data['username'],
 				email=validated_data['email'],
-				password=validated_data['password']
+				password=validated_data['password'],
+				two_factor_enabled=validated_data['two_factor_enabled']
 			)
 			return user
 
 class LoginSerializer(serializers.Serializer):
 	username = serializers.CharField()
 	password = serializers.CharField(write_only=True)
-	two_factor_enabled = serializers.BooleanField(default=False)
-	email = serializers.EmailField(required=False)
