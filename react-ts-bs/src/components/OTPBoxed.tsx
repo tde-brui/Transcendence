@@ -75,10 +75,9 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
         user_id: userId,
         otp_code: fullOtp,
       });
-
+	  console.error("response:", response);
       if (response.status === 200) {
-        // alert("OTP verified successfully!");
-		navigate('/');
+        navigate("/");
       } else {
         throw new Error("OTP verification failed.");
       }

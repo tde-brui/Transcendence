@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { returnName } from '../components/userService';
 import { NotLoggedIn } from '../components/notLoggedin';
 import { User } from '../components/api';
+import { Link } from 'react-router-dom';
+import axiosInstance from '../components/AxiosInstance';
 import '../index.css';
 
 type UserProfileProps = {
@@ -12,7 +14,7 @@ type UserProfileProps = {
 
 const Home:  React.FC<UserProfileProps> = ({ userId }) => {
 
-	NotLoggedIn(userId);
+	// NotLoggedIn(userId);
     const [user, setUser] = useState<User | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>({});
@@ -63,6 +65,7 @@ const Home:  React.FC<UserProfileProps> = ({ userId }) => {
             <Nav.Link href="settings" className="glass-nav-item">SETTINGS</Nav.Link>
             </Nav>
         </Navbar>
+		<Link to="/status" className="btn btn-primary">CHECK AUTH</Link>
       </div>
     </div>
   );

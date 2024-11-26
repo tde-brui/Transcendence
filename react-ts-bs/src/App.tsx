@@ -10,6 +10,9 @@ import { useAuth } from "./components/AuthContext";
 import NotFoundPage from "./error_pages/404NotFound";
 import OTPBoxed from "./components/OTPBoxed";
 import Authenticate42 from "./pages/Authenticate42";
+import TestCookie from "./pages/TestCookie";
+import ProtectedRoute from "./components/ProtectedRoute";
+import CookieTest from "./pages/RandomCookie";
 
 
 function App() {
@@ -19,13 +22,16 @@ function App() {
       <Router>
         <Routes>
           <Route path="/hello" element={<LandingPage />} />
-          <Route path="/" element={<Home userId={userId} />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/account" element={<UserProfile userId={2} />} />
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/test" element={<Authenticate42 />} />
-          <Route path="/test2" element={<OTPBoxed userId={3} />} />
+		  <Route path="/status" element={<TestCookie />} />
+          <Route path="/test2" element={<CookieTest/>} />
+        	<Route path="/" element={<Home userId={userId} />} />
+		  <Route element={<ProtectedRoute />} >
+          	<Route path="/account" element={<UserProfile userId={2} />} />
+		  </Route>
         </Routes>
       </Router>
     </div>

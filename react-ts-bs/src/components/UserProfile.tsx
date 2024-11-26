@@ -10,7 +10,7 @@ type UserProfileProps = {
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
 
-	NotLoggedIn(userId);
+	// NotLoggedIn(userId);
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>({});

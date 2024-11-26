@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useAuth } from "../components/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import OTPBoxed from "../components/OTPBoxed";
 import '../css/UserProfile.css';
+import axiosInstance from "../components/AxiosInstance";
 
 const LoginPage: React.FC = () => {
   const { setUserId } = useAuth();
@@ -59,15 +59,14 @@ const LoginPage: React.FC = () => {
         },
       };
 
-      const response = await axios.post("http://localhost:8000/users/login/", formData, config);
-
+      const response = await axiosInstance.post("/users/login/", formData, config);
+	  console.warn("RESPONSE HEADER AFTER LOGIN:", response);
       if (response.status === 200 && response.data?.user_id) {
-        const userId = response.data.user_id;
-        setUserId(userId); // Set the userId in AuthContext
+        setUserId(response.data.user_id);
         setAlertMessage("Login successful!");
         setAlertType("success");
-        setTimeout(() => navigate("/"), 2000); // Navigate after 2 seconds
-      } else if (response.status === 202 && response.data?.user_id) {
+        // setTimeout(() => navigate("/"), 2000);
+      } else if (response.status === 202 && response.data?.user_id) {	
         const userId = response.data.user_id;
         setUserId(userId);
         setOtpUserId(userId);

@@ -1,35 +1,73 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode} from "react";
+import axios from './AxiosInstance';
 
-// Define the shape of the context
+// Define AuthContext types
 interface AuthContextType {
-  userId: number; // -1 when not logged in, or the actual user ID
-  setUserId: (id: number) => void; // Function to update userId
+  isAuthenticated: boolean;
+  userId: number;
+  login: (token: string) => void;
+  logout: () => void;
+  setUserId: (id: number) => void;
 }
+
+interface AuthProviderProps {
+	children: ReactNode; // Allow any valid React children
+  }
 
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Props for the AuthProvider
-interface AuthProviderProps {
-  children: ReactNode; // Allow any valid React children
-}
-
-// Create the provider
+// Provider component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [userId, setUserId] = useState<number>(-1); // Default to -1 when not logged in
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // Check authentication status on app load
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await axios.get("users/auth/verify/"); 
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error("User not authenticated:", error);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
+  // Login function
+  const login = (token: string) => {
+    setIsAuthenticated(true);
+    // The server should handle setting cookies during login
+  };
+
+  // Logout function
+  const logout = async () => {
+    try {
+      await axios.post("/auth/logout/");
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const [userId, setUserId] = useState<number>(-1);
 
   return (
-    <AuthContext.Provider value={{ userId, setUserId }}>
+    <AuthContext.Provider value={{ isAuthenticated, userId, login, logout, setUserId }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook to use the AuthContext
+// Custom hook for accessing AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

@@ -1,14 +1,21 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useAuth } from "../components/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import OTPBoxed from "../components/OTPBoxed";
 import axios from "axios";
 import '../css/UserProfile.css';
 
 const RegisterPage: React.FC = () => {
+
+const { setUserId } = useAuth();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
+    two_factor_enabled: false,
   });
 
   const [formErrors, setFormErrors] = useState({
@@ -17,9 +24,15 @@ const RegisterPage: React.FC = () => {
     confirmPassword: "",
   });
 
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [otpUserId, setOtpUserId] = useState<number | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value, // Handle checkbox
+    });
 
     // Validation logic
     if (name === "email") {
@@ -37,7 +50,7 @@ const RegisterPage: React.FC = () => {
         ...formErrors,
         password: passwordRegex.test(value)
           ? ""
-          : "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, and a number.",
+          : "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number and a special character",
       });
     }
 
@@ -76,9 +89,17 @@ const RegisterPage: React.FC = () => {
     try {
       console.log(dataToSend);
       const response = await axios.post("http://localhost:8000/users/register/", dataToSend, config);
-      console.log("Response data:");
-      console.error(response.data);
-      alert("Registration successful!");
+      if (response.status === 200 && response.data?.user_id) {
+		setUserId(response.data.user_id);
+		setTimeout(() => navigate("/"), 2000);
+	  }
+	  else if (response.status === 202 && response.data?.user_id)
+		{
+		const userId = response.data.user_id;
+        setUserId(userId);
+        setOtpUserId(userId);
+        setIsOtpSent(true);
+	  }
     } catch (error) {
       console.error("Error submitting form:", error);
       alert("An error occurred during registration.");
@@ -87,6 +108,7 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div className="container d-flex align-items-center justify-content-center vh-100">
+		{!isOtpSent ? (
       <div className="card profile-card mx-auto">
         <div className="card-header profile-header text-center">
           <h4 className="profile-title text-white">Register</h4>
@@ -165,7 +187,22 @@ const RegisterPage: React.FC = () => {
                 </div>
               )}
             </div>
-            <button type="submit" className="btn btn-primary btn-block mt-2">
+
+            <div className="d-flex mt-3 justify-content-center">
+              <input
+                type="checkbox"
+                className="form-check-input checkmark"
+                id="two_factor_enabled"
+                name="two_factor_enabled"
+                checked={formData.two_factor_enabled}
+                onChange={handleChange}
+              />
+              <label className="form-check-label ps-2 text-secondary" htmlFor="two_factor_enabled">
+                Enable 2FA
+              </label>
+            </div>
+
+            <button type="submit" className="btn btn-primary btn-block mt-3">
               Register
             </button>
           </form>
@@ -176,7 +213,14 @@ const RegisterPage: React.FC = () => {
           </p>
         </div>
       </div>
-    </div>
+			) : (
+		otpUserId !== null && (
+		  <OTPBoxed
+			userId={otpUserId}
+		  />
+		)
+	)}
+	</div>
   );
 };
 

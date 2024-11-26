@@ -15,7 +15,7 @@ app.get('/login', (req, res) => {
 
 app.get('/callback', async (req, res) => {
   const authorizationCode = req.query.code;
-
+	
   try {
     // Exchange authorization code for access token
     const tokenResponse = await axios.post('https://api.intra.42.fr/oauth/token', {
