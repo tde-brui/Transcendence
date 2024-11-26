@@ -5,7 +5,6 @@ from django.utils import timezone
 import random
 
 class PongUser(AbstractUser):
-	id = models.IntegerField(primary_key=True)
 	two_factor_enabled = models.BooleanField(default=False)
 
 	def __str__(self):

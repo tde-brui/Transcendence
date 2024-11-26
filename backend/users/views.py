@@ -33,35 +33,50 @@ class user_register(APIView):
 		serializer = UserSerializer(data=request.data)
 		if serializer.is_valid():
 			serializer.save()
-			return JsonResponse(serializer.data, status=201)
-		return JsonResponse(serializer.errors, status=400)
+			user = authenticate_user(request, serializer)
+			return return_JWT(user)
 
 class user_login(APIView):
 	#logs a user in
 	def post(self, request, *args, **kwargs):
 		serializer = LoginSerializer(data=request.data)
 		if serializer.is_valid():
-			username = serializer.validated_data['username']
-			password = serializer.validated_data['password']
-			user = authenticate(request, username=username, password=password)
-			if user:
-				if user.two_factor_enabled:
-					otp = OTP.generate_code(user)
-					send_otp_email(user, otp)
-					return Response({
-						'user_id': user.id,
-						'message': "Sent OTP code to email",
-						}, status=status.HTTP_202_ACCEPTED)
-				
-				refresh = RefreshToken.for_user(user) 
-				return Response({
-					'user_id': user.id,
-					'refresh': str(refresh),
-					'access': str(refresh.access_token),
-				}, status=status.HTTP_200_OK)
-			else:
-				return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+			user = authenticate_user(request, serializer)
+			return return_JWT(user)
+
+def authenticate_user(request, serializer):
+	username = serializer.validated_data['username']
+	password = serializer.validated_data['password']
+	user = authenticate(request, username=username, password=password)
+	return user
+
+def return_JWT(user):
+	if user:
+		if user.two_factor_enabled:
+			otp = OTP.generate_code(user)
+			send_otp_email(user, otp)
+			return Response({
+				'user_id': user.id,
+				'message': "Sent OTP code to email",
+				}, status=status.HTTP_202_ACCEPTED)
+		refresh = RefreshToken.for_user(user)
+
+		response = Response({
+			'user_id': user.id,
+			'message': "Logged in successfully",
+		}, status=status.HTTP_200_OK)
+
+		response.set_cookie(
+			'access_token',
+			str(refresh.access_token),
+			max_age=3600, # 1 hour
+			httponly=True,
+			# secure=True,  # HTTPS only, doesnt work when testing locally
+			samesite='Lax',
+		)
+		return response
+	else:
+		return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 def send_otp_email(user, otp):
 	subject = "Your OTP code"
@@ -81,17 +96,39 @@ class verify_otp(APIView):
 			if otp and not otp.is_expired():
 				refresh = RefreshToken.for_user(user)
 				otp.delete()
-				return Response({
+
+				response = Response({
 					'user_id': user.id,
-					'refresh': str(refresh),
-					'access': str(refresh.access_token),
+					'message': "Logged in successfully",
 				}, status=status.HTTP_200_OK)
+
+				response.set_cookie(
+					'access_token',
+					str(refresh.access_token),
+					max_age=3600, # 1 hour
+					httponly=True,
+					# secure=True, # HTTPS only, doesnt work when testing locally
+					samesite='Lax'
+				)
+				return response
 			else:
 				return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
 		except PongUser.DoesNotExist:
 			return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-		
+
+class check_token(APIView):
+	def get(self, request, *args, **kwargs):
+	#check for token in request cookies
+		access_token = request.COOKIES.get('access_token')
+		if not access_token:
+			return Response({"error": "No token provided"}, status=status.HTTP_401_UNAUTHORIZED)
+		try:
+			RefreshToken(access_token)
+		except:
+			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+		return Response({"message": "Valid token"}, status=status.HTTP_200_OK)
+
 @csrf_exempt
 def user_detail(request, pk):
 	"""
