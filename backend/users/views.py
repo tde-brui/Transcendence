@@ -5,7 +5,7 @@ from .models import PongUser, OTP
 from .serializers import UserSerializer, LoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework.views import APIView
 from django.core.mail import send_mail
 from django.conf import settings
@@ -74,6 +74,14 @@ def return_JWT(user):
 			# secure=True,  # HTTPS only, doesnt work when testing locally
 			samesite='Lax',
 		)
+		response.set_cookie(
+			'user_id',
+			str(user.id),
+			max_age=3600, # 1 hour
+			httponly=False,
+			# secure=True, # HTTPS only, doesnt work when testing locally
+			samesite='Lax'
+		)
 		return response
 	else:
 		return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -110,6 +118,14 @@ class verify_otp(APIView):
 					# secure=True, # HTTPS only, doesnt work when testing locally
 					samesite='Lax'
 				)
+				response.set_cookie(
+					'user_id',
+					str(user.id),
+					max_age=3600, # 1 hour
+					httponly=True,
+					# secure=True, # HTTPS only, doesnt work when testing locally
+					samesite='Lax'
+				)
 				return response
 			else:
 				return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
@@ -124,10 +140,23 @@ class check_token(APIView):
 		if not access_token:
 			return Response({"error": "No token provided"}, status=status.HTTP_401_UNAUTHORIZED)
 		try:
-			RefreshToken(access_token)
-		except:
-			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+			AccessToken(access_token)
+		except Exception as e:
+    			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 		return Response({"message": "Valid token"}, status=status.HTTP_200_OK)
+
+class get_logged_in_user(APIView):
+	def get(self, request):
+		token = request.COOKIES.get('access_token')
+		if not token:
+			return Response({"error": "No access token provided"}, status=401)
+		try:
+			decoded_token = AccessToken(token)
+			user_id = decoded_token['user_id']
+			# You can fetch more user data from the database if needed
+			return Response({"user_id": user_id})
+		except Exception as e:
+			return Response({"error": "Invalid token"}, status=401)
 
 @csrf_exempt
 def user_detail(request, pk):
