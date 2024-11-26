@@ -6,6 +6,7 @@ import '../css/UserProfile.css';
 import axiosInstance from "../components/AxiosInstance";
 
 const LoginPage: React.FC = () => {
+  const { login } = useAuth();
   const { setUserId } = useAuth();
   const navigate = useNavigate();
 
@@ -62,10 +63,11 @@ const LoginPage: React.FC = () => {
       const response = await axiosInstance.post("/users/login/", formData, config);
 	  console.warn("RESPONSE HEADER AFTER LOGIN:", response);
       if (response.status === 200 && response.data?.user_id) {
+        login(response.data.acces_token);
         setUserId(response.data.user_id);
         setAlertMessage("Login successful!");
         setAlertType("success");
-        // setTimeout(() => navigate("/"), 2000);
+        setTimeout(() => navigate("/"), 1000);
       } else if (response.status === 202 && response.data?.user_id) {	
         const userId = response.data.user_id;
         setUserId(userId);
@@ -154,13 +156,7 @@ const LoginPage: React.FC = () => {
             </p>
           </div>
         </div>
-      ) : (
-        otpUserId !== null && (
-          <OTPBoxed
-            userId={otpUserId}
-          />
-        )
-      )}
+      ) : ( otpUserId !== null && ( <OTPBoxed userId={otpUserId}/>) )}
     </div>
   );
 };

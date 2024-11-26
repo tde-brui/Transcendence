@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export const NotLoggedIn = (userId: number) => {
+export const NotLoggedIn = (userId: number, isAuthChecked: boolean) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (userId === -1) {
+    if (isAuthChecked && userId === -1) {
       navigate('/hello');
     }
-  }, [userId, navigate]);
+  }, [userId, isAuthChecked, navigate]);
 };

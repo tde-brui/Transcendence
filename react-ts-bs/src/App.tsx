@@ -12,11 +12,13 @@ import OTPBoxed from "./components/OTPBoxed";
 import Authenticate42 from "./pages/Authenticate42";
 import TestCookie from "./pages/TestCookie";
 import ProtectedRoute from "./components/ProtectedRoute";
-import CookieTest from "./pages/RandomCookie";
 
 
 function App() {
   const userId = useAuth().userId;
+  const { isAuthChecked } = useAuth();
+
+ 
   return (
     <div className="App" style={{ backgroundImage: 'url(./BG.jpg)'}}>
       <Router>
@@ -26,9 +28,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/test" element={<Authenticate42 />} />
-		  <Route path="/status" element={<TestCookie />} />
-          <Route path="/test2" element={<CookieTest/>} />
-        	<Route path="/" element={<Home userId={userId} />} />
+        	<Route path="/" element={<Home userId={userId} isAuthChecked={isAuthChecked} />} />
 		  <Route element={<ProtectedRoute />} >
           	<Route path="/account" element={<UserProfile userId={2} />} />
 		  </Route>

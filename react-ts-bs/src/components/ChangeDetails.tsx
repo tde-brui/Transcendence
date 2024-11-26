@@ -95,3 +95,4 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({ userId, user, onSave, onC
 };
 
 export default ChangeDetails;
+ 

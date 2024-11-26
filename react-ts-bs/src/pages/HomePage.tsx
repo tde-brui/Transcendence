@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navbar, Nav } from 'react-bootstrap';
-import { useEffect, useState } from 'react';
 import { returnName } from '../components/userService';
 import { NotLoggedIn } from '../components/notLoggedin';
 import { User } from '../components/api';
@@ -9,63 +8,68 @@ import axiosInstance from '../components/AxiosInstance';
 import '../index.css';
 
 type UserProfileProps = {
-    userId: number;
-  };
+  userId: number;
+  isAuthChecked: boolean;
+};
 
-const Home:  React.FC<UserProfileProps> = ({ userId }) => {
+const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
+  NotLoggedIn(userId, isAuthChecked);
+  console.log(userId);
 
-	// NotLoggedIn(userId);
-    const [user, setUser] = useState<User | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>({});
+  const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>({});
 
-    useEffect(() => {
-        const fetchUser = async () => {
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axiosInstance.get<User>(`/users/${userId}`);
+        setUser(response.data);
+      } catch (error) {
+        console.error("Failed to fetch user data", error);
+        setError((error as Error).message);
+      }
+    };
+
+    fetchUser();
+  }, [userId]);
+
+  useEffect(() => {
+    const fetchOpponentNames = async () => {
+      if (!user?.matchHistory) return;
+
+      const opponentNamesMap: { [key: number]: string } = {};
+      for (const match of user.matchHistory) {
+        if (!opponentNames[match.opponentId]) {
           try {
-            const response = await fetch(`http://localhost:8000/users/${userId}`);
-            if (!response.ok) throw new Error("Failed to fetch user data1");
-            const userData = await response.json();
-            setUser(userData);
+            const username = await returnName(match.opponentId);
+            opponentNamesMap[match.opponentId] = username;
           } catch (error) {
-            setError((error as Error).message);
+            console.error(`Failed to fetch opponent name for ID ${match.opponentId}`, error);
           }
-        };
-    
-        fetchUser();
-      }, [userId]);
+        }
+      }
+      setOpponentNames((prev) => ({ ...prev, ...opponentNamesMap }));
+    };
 
-      useEffect(() => {
-        const fetchOpponentNames = async () => {
-          if (!user?.matchHistory) return;
-    
-          const opponentNamesMap: { [key: number]: string } = {};
-          for (const match of user.matchHistory) {
-            if (!opponentNames[match.opponentId]) {
-              const username = await returnName(match.opponentId);
-              opponentNamesMap[match.opponentId] = username;
-            }
-          }
-          setOpponentNames((prev) => ({ ...prev, ...opponentNamesMap }));
-        };
-    
-        fetchOpponentNames();
-      }, [user, opponentNames]);
+    fetchOpponentNames();
+  }, [user, opponentNames]);
 
-    if (error) return <div className="alert alert-danger">{error}</div>;
-    if (!user) return <div className="text-center mt-5">Loading...</div>;
+  // if (error) return <div className="alert alert-danger">{error}</div>;
+  if (!user) return <div className="text-center mt-5">Loading...</div>;
+
   return (
     <div className="container">
       <div className="d-flex flex-column align-items-center justify-content-center vh-100">
-        <h1 className="fst-italic playfair-text text-uppercase mb-4">WELCOME {user.username} </h1>
+        <h1 className="fst-italic playfair-text text-uppercase mb-4">WELCOME {user.username}</h1>
         <Navbar bg="transparent" variant="dark" expand="lg" className="w-100 fs-4">
-            <Nav className="mx-auto text-center glass-nav">
+          <Nav className="mx-auto text-center glass-nav">
             <Nav.Link href="play" className="glass-nav-item">PLAY</Nav.Link>
             <Nav.Link href="chat" className="glass-nav-item">CHAT</Nav.Link>
             <Nav.Link href="account" className="glass-nav-item">ACCOUNT</Nav.Link>
             <Nav.Link href="settings" className="glass-nav-item">SETTINGS</Nav.Link>
-            </Nav>
+          </Nav>
         </Navbar>
-		<Link to="/status" className="btn btn-primary">CHECK AUTH</Link>
       </div>
     </div>
   );
