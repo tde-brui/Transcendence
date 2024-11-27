@@ -20,18 +20,19 @@ function App() {
 
  
   return (
-    <div className="App" style={{ backgroundImage: 'url(./BG.jpg)'}}>
+    // <div className="App" style={{ backgroundImage: 'url(./BG.jpg)'}}>
+	<div className="App">
       <Router>
         <Routes>
           <Route path="/hello" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<LoginPage userId={userId} isAuthChecked={isAuthChecked}/>} />
+          <Route path="/register" element={<Register userId={userId} isAuthChecked={isAuthChecked} />} />
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/test" element={<Authenticate42 />} />
         	<Route path="/" element={<Home userId={userId} isAuthChecked={isAuthChecked} />} />
-		  <Route element={<ProtectedRoute />} >
-          	<Route path="/account" element={<UserProfile userId={2} />} />
-		  </Route>
+		  {/* <Route element={<ProtectedRoute />} > */}
+          	<Route path="/account" element={<UserProfile userId={userId} />} />
+		  {/* </Route> */}
         </Routes>
       </Router>
     </div>

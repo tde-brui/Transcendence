@@ -66,7 +66,7 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
           <Nav className="mx-auto text-center glass-nav">
             <Nav.Link href="play" className="glass-nav-item">PLAY</Nav.Link>
             <Nav.Link href="chat" className="glass-nav-item">CHAT</Nav.Link>
-            <Nav.Link href="account" className="glass-nav-item">ACCOUNT</Nav.Link>
+            <Nav.Link href="/account" className="glass-nav-item">ACCOUNT</Nav.Link>
             <Nav.Link href="settings" className="glass-nav-item">SETTINGS</Nav.Link>
           </Nav>
         </Navbar>

@@ -4,8 +4,17 @@ import { Link, useNavigate } from "react-router-dom";
 import OTPBoxed from "../components/OTPBoxed";
 import '../css/UserProfile.css';
 import axiosInstance from "../components/AxiosInstance";
+import { IsLoggedIn } from "../components/isLoggedIn";
 
-const LoginPage: React.FC = () => {
+
+type UserProfileProps = {
+	userId: number;
+	isAuthChecked: boolean;
+  };
+
+const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
+
+//   IsLoggedIn(userId, isAuthChecked);
   const { login } = useAuth();
   const { setUserId } = useAuth();
   const navigate = useNavigate();
@@ -67,7 +76,7 @@ const LoginPage: React.FC = () => {
         setUserId(response.data.user_id);
         setAlertMessage("Login successful!");
         setAlertType("success");
-        setTimeout(() => navigate("/"), 1000);
+        // setTimeout(() => navigate("/"), 1000);
       } else if (response.status === 202 && response.data?.user_id) {	
         const userId = response.data.user_id;
         setUserId(userId);
