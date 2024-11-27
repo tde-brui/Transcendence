@@ -1,6 +1,5 @@
+
 # [New Subject!](https://cdn.intra.42.fr/pdf/pdf/133398/en.subject.pdf)
-
-
 
 # Transcendence
 
@@ -25,4 +24,3 @@
 - [Stijn](https://github.com/StijnScheltinga)
 - [Tristan](https://github.com/TRSTN4)
 - [Daniel](https://github.com/dvan-kle)
-
