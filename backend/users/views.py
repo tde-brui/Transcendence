@@ -1,4 +1,4 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import Http404
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from .models import PongUser, OTP
@@ -133,32 +133,6 @@ class get_logged_in_user(APIView):
 			return Response({"user_id": user_id})
 		except Exception as e:
 			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-
-# @api_view(['GET', 'PUT', 'DELETE'])
-# def user_detail(request, pk):
-# 	"""
-# 	Retrieve, update or delete a code snippet.
-# 	"""
-# 	try:
-# 		user = PongUser.objects.get(pk=pk)
-# 	except PongUser.DoesNotExist:
-# 		return Response(status=status.HTTP_404_NOT_FOUND)
-
-# 	if request.method == 'GET':
-# 		serializer = UserSerializer(user)
-# 		return Response(serializer.data)
-
-# 	elif request.method == 'PUT':
-# 		data = JSONParser().parse(request)
-# 		serializer = UserSerializer(user, data=data)
-# 		if serializer.is_valid():
-# 			serializer.save()
-# 			return Response(serializer.data)
-# 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# 	elif request.method == 'DELETE':
-# 		user.delete()
-# 		return Response(status=status.HTTP_204_NO_CONTENT)
 	
 class user_detail(APIView):
 
@@ -166,4 +140,24 @@ class user_detail(APIView):
 		try:
 			return PongUser.objects.get(pk=pk)
 		except PongUser.DoesNotExist:
-			raise status.HTTP_404_NOT_FOUND
+			raise Http404
+	
+	#retrieve user details
+	def get(self, request, pk, format=None):
+		user = self.get_object(pk)
+		serializer = UserSerializer(user)
+		return Response(serializer.data)
+	
+	#update certain parts of the user model, also used after registering
+	def patch(self, request, pk, format=None):
+		user = self.get_object(pk)
+		serializer = UserSerializer(user, data=request.data, partial=True)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_200_OK)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	
+	def delete(self, request, pk, format=None):
+		user = self.get_object(pk)
+		user.delete()
+		return Response(status=status.HTTP_204_NO_CONTENT)
