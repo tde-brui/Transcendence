@@ -10,29 +10,38 @@ import { useAuth } from "./components/AuthContext";
 import NotFoundPage from "./error_pages/404NotFound";
 import OTPBoxed from "./components/OTPBoxed";
 import Authenticate42 from "./pages/Authenticate42";
-import TestCookie from "./pages/TestCookie";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import ChatPage from "./pages/ChatPage";
 
 function App() {
   const userId = useAuth().userId;
   const { isAuthChecked } = useAuth();
 
- 
   return (
     // <div className="App" style={{ backgroundImage: 'url(./BG.jpg)'}}>
-	<div className="App">
+    <div className="App">
       <Router>
         <Routes>
           <Route path="/hello" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage userId={userId} isAuthChecked={isAuthChecked}/>} />
-          <Route path="/register" element={<Register userId={userId} isAuthChecked={isAuthChecked} />} />
+          <Route
+            path="/login"
+            element={
+              <LoginPage userId={userId} isAuthChecked={isAuthChecked} />
+            }
+          />
+          <Route
+            path="/register"
+            element={<Register userId={userId} isAuthChecked={isAuthChecked} />}
+          />
           <Route path="*" element={<NotFoundPage />} />
-          <Route path="/test" element={<Authenticate42 />} />
-        	<Route path="/" element={<Home userId={userId} isAuthChecked={isAuthChecked} />} />
-		  {/* <Route element={<ProtectedRoute />} > */}
-          	<Route path="/account" element={<UserProfile userId={userId} />} />
-		  {/* </Route> */}
+          <Route path="/test" element={<ChatPage />} />
+          <Route
+            path="/"
+            element={<Home userId={userId} isAuthChecked={isAuthChecked} />}
+          />
+          {/* <Route element={<ProtectedRoute />} > */}
+          <Route path="/account" element={<UserProfile userId={2} />} />
+          {/* </Route> */}
         </Routes>
       </Router>
     </div>
