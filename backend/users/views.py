@@ -10,23 +10,7 @@ from rest_framework.views import APIView
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import status
-
-# Create your views here.
-# @csrf_exempt
-# def user_list(request):
-# 	list all users
-# 	if 	request.method == 'GET':
-# 		users = PongUser.objects.all()
-# 		serializer = UserSerializer(users, many=True)
-# 		return JsonResponse(serializer.data, safe=False)
-	
-# 	if request.method == 'POST':
-# 		data = JSONParser().parse(request)
-# 		serializer = UserSerializer(data=data)
-# 		if serializer.is_valid():
-# 			serializer.save()
-# 			return JsonResponse(serializer.data, status=201)
-# 		return JsonResponse(serializer.errors, status=400)
+from rest_framework.decorators import api_view
 
 class user_register(APIView):
 	def post(self, request, *args, **kwargs):
@@ -118,14 +102,6 @@ class verify_otp(APIView):
 					# secure=True, # HTTPS only, doesnt work when testing locally
 					samesite='Lax'
 				)
-				response.set_cookie(
-					'user_id',
-					str(user.id),
-					max_age=3600, # 1 hour
-					httponly=True,
-					# secure=True, # HTTPS only, doesnt work when testing locally
-					samesite='Lax'
-				)
 				return response
 			else:
 				return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
@@ -149,37 +125,45 @@ class get_logged_in_user(APIView):
 	def get(self, request):
 		token = request.COOKIES.get('access_token')
 		if not token:
-			return Response({"error": "No access token provided"}, status=401)
+			return Response({"error": "No access token provided"}, status=status.HTTP_401_UNAUTHORIZED)
 		try:
 			decoded_token = AccessToken(token)
 			user_id = decoded_token['user_id']
 			# You can fetch more user data from the database if needed
 			return Response({"user_id": user_id})
 		except Exception as e:
-			return Response({"error": "Invalid token"}, status=401)
+			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 
-@csrf_exempt
-def user_detail(request, pk):
-	"""
-	Retrieve, update or delete a code snippet.
-	"""
-	try:
-		user = PongUser.objects.get(pk=pk)
-	except PongUser.DoesNotExist:
-		return HttpResponse(status=404)
+# @api_view(['GET', 'PUT', 'DELETE'])
+# def user_detail(request, pk):
+# 	"""
+# 	Retrieve, update or delete a code snippet.
+# 	"""
+# 	try:
+# 		user = PongUser.objects.get(pk=pk)
+# 	except PongUser.DoesNotExist:
+# 		return Response(status=status.HTTP_404_NOT_FOUND)
 
-	if request.method == 'GET':
-		serializer = UserSerializer(user)
-		return JsonResponse(serializer.data)
+# 	if request.method == 'GET':
+# 		serializer = UserSerializer(user)
+# 		return Response(serializer.data)
 
-	elif request.method == 'PUT':
-		data = JSONParser().parse(request)
-		serializer = UserSerializer(user, data=data)
-		if serializer.is_valid():
-			serializer.save()
-			return JsonResponse(serializer.data)
-		return JsonResponse(serializer.errors, status=400)
+# 	elif request.method == 'PUT':
+# 		data = JSONParser().parse(request)
+# 		serializer = UserSerializer(user, data=data)
+# 		if serializer.is_valid():
+# 			serializer.save()
+# 			return Response(serializer.data)
+# 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-	elif request.method == 'DELETE':
-		user.delete()
-		return HttpResponse(status=204)
+# 	elif request.method == 'DELETE':
+# 		user.delete()
+# 		return Response(status=status.HTTP_204_NO_CONTENT)
+	
+class user_detail(APIView):
+
+	def get_object(self, pk):
+		try:
+			return PongUser.objects.get(pk=pk)
+		except PongUser.DoesNotExist:
+			raise status.HTTP_404_NOT_FOUND
