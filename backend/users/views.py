@@ -142,7 +142,7 @@ class check_token(APIView):
 		try:
 			AccessToken(access_token)
 		except Exception as e:
-    			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+				return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 		return Response({"message": "Valid token"}, status=status.HTTP_200_OK)
 
 class get_logged_in_user(APIView):
