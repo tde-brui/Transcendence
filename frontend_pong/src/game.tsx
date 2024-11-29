@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-const WS_URL = 'ws://10.15.186.10:8000/ws/pong/';
+const WS_URL = 'ws://localhost:8000/ws/pong/';
 
 export const PingPongCanvas: React.FC = () => {
   const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
