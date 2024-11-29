@@ -35,12 +35,15 @@ ALLOWED_HOSTS = [
 	'localhost',
 	'10.11.6.4',
 	'127.0.0.1',
+	'0.0.0.0'
 ]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+	'channels',
+	'pong',
 	'corsheaders',
 	'users',
 	'rest_framework',
@@ -51,6 +54,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 
 MIDDLEWARE = [
 	'corsheaders.middleware.CorsMiddleware',
