@@ -6,7 +6,11 @@ import random
 
 class PongUser(AbstractUser):
 	two_factor_enabled = models.BooleanField(default=False)
-
+	display_name = models.CharField(blank=True, max_length=100)
+	friends = models.ManyToManyField("self", blank=True)
+	avatar = models.ImageField(upload_to="avatars/", blank=True)
+	online_status = False
+	
 	def __str__(self):
 		return self.username
 	

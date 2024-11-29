@@ -6,7 +6,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = PongUser
-		fields = ['id', 'username', 'email', 'password', 'two_factor_enabled']
+		fields = ['id', 'username', 'email', 'password', 'two_factor_enabled', 'friends', 'avatar']
+	
+	def validate_avatar(self, value):
+		# Check if file is too large
+		if value.size > 2 * 1024 * 1024:  # 2 MB limit
+			raise serializers.ValidationError("Avatar file size must be less than 2MB.")
+		return value
+
 	
 	def create(self, validated_data):
 			# Create a new user with hashed password
@@ -14,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
 				username=validated_data['username'],
 				email=validated_data['email'],
 				password=validated_data['password'],
-				two_factor_enabled=validated_data['two_factor_enabled']
+				two_factor_enabled=validated_data['two_factor_enabled'],
 			)
 			return user
 

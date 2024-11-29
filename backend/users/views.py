@@ -9,8 +9,13 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework.views import APIView
 from django.core.mail import send_mail
 from django.conf import settings
-from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework import status, viewsets, generics
+
+class get_users(APIView):
+	def get(self, request, *args, **kwargs):
+		users = PongUser.objects.all()
+		serializer = UserSerializer(users, many=True)
+		return Response(serializer.data, status=status.HTTP_200_OK)
 
 class user_register(APIView):
 	def post(self, request, *args, **kwargs):
@@ -133,31 +138,11 @@ class get_logged_in_user(APIView):
 			return Response({"user_id": user_id})
 		except Exception as e:
 			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-	
-class user_detail(APIView):
 
-	def get_object(self, pk):
-		try:
-			return PongUser.objects.get(pk=pk)
-		except PongUser.DoesNotExist:
-			raise Http404
-	
-	#retrieve user details
-	def get(self, request, pk, format=None):
-		user = self.get_object(pk)
-		serializer = UserSerializer(user)
-		return Response(serializer.data)
-	
-	#update certain parts of the user model, also used after registering
-	def patch(self, request, pk, format=None):
-		user = self.get_object(pk)
-		serializer = UserSerializer(user, data=request.data, partial=True)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data, status=status.HTTP_200_OK)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-	
-	def delete(self, request, pk, format=None):
-		user = self.get_object(pk)
-		user.delete()
-		return Response(status=status.HTTP_204_NO_CONTENT)
+# class user_detail(viewsets.ModelViewSet):
+# 	queryset = PongUser.objects.all()
+# 	serializer_class = UserSerializer
+
+class user_detail(viewsets.ModelViewSet):
+	queryset = PongUser.objects.all()
+	serializer_class = UserSerializer
