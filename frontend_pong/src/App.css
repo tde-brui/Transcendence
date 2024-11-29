@@ -1,0 +1,133 @@
+/* Basic styling for the app container */
+.App {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #282c34;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.reset-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.reset-button {
+  padding: 10px 20px;
+  margin-top: 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.reset-button:hover {
+  background-color: #0056b3;
+}
+
+.countdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 64px; /* Adjust font size as needed */
+  font-weight: bold;
+  color: red; /* Change color if needed */
+  z-index: 10; /* Ensure it appears above other elements */
+  pointer-events: none; /* Prevent interaction */
+}
+
+.game-over {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: 48px;
+  color: green; /* Change color as needed */
+  z-index: 10;
+}
+
+.reset-button:hover {
+  background-color: #45a049;
+}
+
+
+/* Wrapper for the game field */
+.overlap-group-wrapper {
+  position: relative;
+  width: 924px;
+  height: 556px;
+  border: 5px solid white;
+  background-color: black;
+}
+
+/* Game field container */
+.overlap-group {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Paddle styles */
+.paddle-a,
+.paddle-b {
+  position: absolute;
+  width: 10px;
+  height: 100px;
+  background-color: white;
+}
+
+.paddle-a {
+  left: 0; /* Paddle A on the left */
+}
+
+.paddle-b {
+  right: 0; /* Paddle B on the right */
+}
+
+/* Ball styling */
+.ball {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: white;
+}
+
+/* Scoreboard container */
+.overlap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+}
+
+.scoreboard {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 5px;
+  background-color: white;
+}
+
+.score {
+  font-size: 24px;
+  font-weight: bold;
+}
