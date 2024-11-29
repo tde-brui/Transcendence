@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error("User not authenticated:", error);
+        // console.error("User not authenticated:", error);
         setIsAuthenticated(false);
         setUserId(-1);
       } finally {

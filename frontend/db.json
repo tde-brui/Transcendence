@@ -4,11 +4,11 @@
 		"id": "1",
 		"username": "daniel",
 		"email": "daniel@vkleef.nl",
-		"displayName": "Daniel",
+		"firstName": "Daniel",
 		"avatar": "/images/tvan-bee.jpeg",
 		"friends": [2, 3, 5, 4, 6],
 		"onlineStatus": "online",
-		"two_factor_enabled": true,
+		"twoFactorEnabled": true,
 		"matchHistory": [
 		  {
 			"opponentId": "2",

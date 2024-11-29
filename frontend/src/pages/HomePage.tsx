@@ -26,7 +26,7 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
         const response = await axiosInstance.get<User>(`/users/${userId}`);
         setUser(response.data);
       } catch (error) {
-        console.error("Failed to fetch user data", error);
+        // console.error("Failed to fetch user data", error);
         setError((error as Error).message);
       }
     };
@@ -55,7 +55,7 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
     fetchOpponentNames();
   }, [user, opponentNames]);
 
-  // if (error) return <div className="alert alert-danger">{error}</div>;
+//   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!user) return <div className="text-center mt-5">Loading...</div>;
 
   return (

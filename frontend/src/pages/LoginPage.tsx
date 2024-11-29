@@ -76,7 +76,7 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
         setUserId(response.data.user_id);
         setAlertMessage("Login successful!");
         setAlertType("success");
-        // setTimeout(() => navigate("/"), 1000);
+        setTimeout(() => navigate("/"), 500);
       } else if (response.status === 202 && response.data?.user_id) {	
         const userId = response.data.user_id;
         setUserId(userId);

@@ -12,6 +12,7 @@ import OTPBoxed from "./components/OTPBoxed";
 import Authenticate42 from "./pages/Authenticate42";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ChatPage from "./pages/ChatPage";
+import UserProfileWrapper from "./components/UserProfileWrapper";
 
 function App() {
   const userId = useAuth().userId;
@@ -42,6 +43,7 @@ function App() {
           {/* <Route element={<ProtectedRoute />} > */}
           <Route path="/account" element={<UserProfile userId={2} />} />
           {/* </Route> */}
+		  <Route path="/users/:username" element={<UserProfileWrapper />} />
         </Routes>
       </Router>
     </div>

@@ -21,55 +21,70 @@ const RegisterPage: React.FC<UserProfileProps> = ({
 
   const [formData, setFormData] = useState({
     username: "",
+	firstName: "",
     email: "",
     password: "",
     confirmPassword: "",
-    two_factor_enabled: false,
+    twoFactorEnabled: false,
   });
 
   const [formErrors, setFormErrors] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
+	email: "",
+	password: "",
+	confirmPassword: "",
+	firstName: "",
   });
+  
 
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otpUserId, setOtpUserId] = useState<number | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value, // Handle checkbox
-    });
-
-    if (name === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      setFormErrors({
-        ...formErrors,
-        email: emailRegex.test(value) ? "" : "Invalid email address",
-      });
-    }
-
-    if (name === "password") {
-      const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-      setFormErrors({
-        ...formErrors,
-        password: passwordRegex.test(value)
-          ? ""
-          : "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number and a special character",
-      });
-    }
-
-    if (name === "confirmPassword") {
-      setFormErrors({
-        ...formErrors,
-        confirmPassword:
-          value !== formData.password ? "Passwords do not match" : "",
-      });
-    }
+	const { name, value, type, checked } = e.target;
+	setFormData({
+	  ...formData,
+	  [name]: type === "checkbox" ? checked : value, // Handle checkbox
+	});
+  
+	if (name === "email") {
+	  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	  setFormErrors({
+		...formErrors,
+		email: emailRegex.test(value) ? "" : "Invalid email address",
+	  });
+	}
+  
+	if (name === "password") {
+	  const passwordRegex =
+		/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+	  setFormErrors({
+		...formErrors,
+		password: passwordRegex.test(value)
+		  ? ""
+		  : "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character",
+	  });
+	}
+  
+	if (name === "confirmPassword") {
+	  setFormErrors({
+		...formErrors,
+		confirmPassword:
+		  value !== formData.password ? "Passwords do not match" : "",
+	  });
+	}
+  
+	if (name === "firstName") {
+	  const firstNameRegex = /^[A-Z][a-z]*$/; // First letter capital, rest lowercase
+	  setFormErrors({
+		...formErrors,
+		firstName: firstNameRegex.test(value)
+		  ? ""
+		  : "First name must start with a capital letter and only contain lowercase letters afterward",
+	  });
+	}
   };
+  
+  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -144,6 +159,22 @@ const RegisterPage: React.FC<UserProfileProps> = ({
                   />
                 </div>
               </div>
+			  <div className="form-group">
+				<label htmlFor="firstName"></label>
+				<input
+					type="text"
+					className={`form-control ${formErrors.firstName ? "is-invalid" : ""}`}
+					id="firstName"
+					name="firstName"
+					placeholder="First Name"
+					value={formData.firstName}
+					onChange={handleChange}
+					required
+				/>
+				{formErrors.firstName && (
+					<div className="invalid-feedback">{formErrors.firstName}</div>
+				)}
+				</div>
               <div className="form-group">
                 <label htmlFor="email"></label>
                 <input
@@ -207,14 +238,14 @@ const RegisterPage: React.FC<UserProfileProps> = ({
                 <input
                   type="checkbox"
                   className="form-check-input checkmark"
-                  id="two_factor_enabled"
-                  name="two_factor_enabled"
-                  checked={formData.two_factor_enabled}
+                  id="twoFactorEnabled"
+                  name="twoFactorEnabled"
+                  checked={formData.twoFactorEnabled}
                   onChange={handleChange}
                 />
                 <label
                   className="form-check-label ps-2 text-secondary"
-                  htmlFor="two_factor_enabled"
+                  htmlFor="twoFactorEnabled"
                 >
                   Enable 2FA
                 </label>

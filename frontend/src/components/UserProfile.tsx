@@ -3,23 +3,42 @@ import { User } from './api';
 import { returnName } from './userService';
 import '../css/UserProfile.css';
 import { NotLoggedIn } from './notLoggedin';
+import axiosInstance from './AxiosInstance';
 
 type UserProfileProps = {
   userId: number;
 };
 
-const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
+const getCurrentUser = async (): Promise<number | null> => {
+  try {
+    const response = await axiosInstance.get('/users/me/');
+    return response.data.user_id;
+  } catch (error) {
+    console.error("Failed to fetch current user:", error);
+    return null;
+  }
+};
 
-	// NotLoggedIn(userId);
+const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>({});
+  const [currentUser, setCurrentUser] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const userId = await getCurrentUser();
+      setCurrentUser(userId);
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await fetch(`http://localhost:8000/users/${userId}/`);
-        if (!response.ok) throw new Error("Failed to fetch user data1");
+        if (!response.ok) throw new Error("Failed to fetch user data");
         const userData = await response.json();
         setUser(userData);
       } catch (error) {
@@ -28,9 +47,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     };
 
     fetchUser();
-  }, [userId]); 
+  }, [userId]);
 
-  // Fetch opponent names
   useEffect(() => {
     const fetchOpponentNames = async () => {
       if (!user?.matchHistory) return;
@@ -49,7 +67,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   }, [user, opponentNames]);
 
   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!user) return <div className="text-center mt-5">Loading...</div>;
+  if (!user || currentUser === null) return <div className="text-center mt-5">Loading...</div>;
+	// if (!user) return <div className="text-center mt-5">Loading...</div>;
 
   return (
     <div className="container d-flex align-items-center justify-content-center">
@@ -91,10 +110,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
             )}
           </ul>
         </div>
-        <div className="card-footer profile-footer d-flex justify-content-between fst-">
-          <button className="btn btn-primary">Change details</button>
-          <button className='btn btn-danger'>Log out</button>
-        </div>
+        {currentUser === userId && (
+          	<div className="card-footer profile-footer d-flex justify-content-between">
+            <button className="btn btn-primary">Change details</button>
+            <button className="btn btn-danger">Log out</button>
+          </div>
+        )}
       </div>
     </div>
   );
