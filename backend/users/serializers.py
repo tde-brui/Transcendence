@@ -6,7 +6,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = PongUser
-		fields = ['id', 'username', 'email', 'password', 'two_factor_enabled', 'friends', 'avatar']
+		fields = ['id', 'username', 'email', 'password', 'twoFactorEnabled', 'firstName', 'friends', 'avatar']
 	
 	def validate_avatar(self, value):
 		# Check if file is too large
@@ -21,7 +21,8 @@ class UserSerializer(serializers.ModelSerializer):
 				username=validated_data['username'],
 				email=validated_data['email'],
 				password=validated_data['password'],
-				two_factor_enabled=validated_data['two_factor_enabled'],
+				twoFactorEnabled=validated_data['twoFactorEnabled'],
+				firstName=validated_data['firstName']
 			)
 			return user
 

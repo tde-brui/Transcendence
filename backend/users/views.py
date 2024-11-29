@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import status, viewsets, generics
+from django.shortcuts import get_object_or_404
 
 class get_users(APIView):
 	def get(self, request, *args, **kwargs):
@@ -139,6 +140,15 @@ class get_logged_in_user(APIView):
 		except Exception as e:
 			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 
-class UserViewSet(viewsets.ModelViewSet):
-	queryset = PongUser.objects.all()
-	serializer_class = UserSerializer
+class user_detail(APIView):
+	def get(self, request, pk, *args, **kwargs):
+		user = get_object_or_404(PongUser, pk=pk)
+		serializer = UserSerializer(user)
+		return Response(serializer.data, status=status.HTTP_200_OK)
+	def patch(self, request, pk, *args, **kwargs):
+		user = get_object_or_404(PongUser, pk=pk)
+		serializer = UserSerializer(user, data=request.data, partial=True)  # Partial update
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_200_OK)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

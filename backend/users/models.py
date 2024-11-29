@@ -5,11 +5,12 @@ from django.utils import timezone
 import random
 
 class PongUser(AbstractUser):
-	two_factor_enabled = models.BooleanField(default=False)
-	display_name = models.CharField(blank=True, max_length=100)
+	twoFactorEnabled = models.BooleanField(default=False)
+	firstName = models.CharField(blank=True, max_length=100)
+	avatar = models.ImageField(upload_to="avatars/", default="avatars/default.png")
 	friends = models.ManyToManyField("self", blank=True)
-	avatar = models.ImageField(upload_to="avatars/", blank=True)
-	online_status = False
+	onlineStatus = models.BooleanField(default=False)
+	# match_history = models.CharField(blank=True)
 	
 	def __str__(self):
 		return self.username

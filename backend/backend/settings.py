@@ -158,5 +158,3 @@ EMAIL_HOST_PASSWORD = "skdo zrbx kvfz qpnn"
 #settings for storing user pictures
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-print(MEDIA_ROOT)
