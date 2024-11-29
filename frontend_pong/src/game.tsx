@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
-// WebSocket URL
 const WS_URL = 'ws://10.15.186.10:8000/ws/pong/';
-// const WS_URL = 'ws://localhost:8080';
 
 export const PingPongCanvas: React.FC = () => {
   const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
@@ -11,63 +10,94 @@ export const PingPongCanvas: React.FC = () => {
   const [score, setScore] = useState<{ a: number; b: number }>({ a: 0, b: 0 });
   const [gamePaused, setGamePaused] = useState<boolean>(true);
   const [gameOver, setGameOver] = useState<boolean>(false);
+  const [playersConnected, setPlayersConnected] = useState<number>(0);
+  const [assignedPaddle, setAssignedPaddle] = useState<'a' | 'b' | null>(null);
+
   const websocketRef = useRef<WebSocket | null>(null);
 
-  // Initialize WebSocket
+  const uniqueKey = useRef<string>(sessionStorage.getItem('uniqueKey') || uuidv4());
+
   useEffect(() => {
-    const websocket = new WebSocket(WS_URL);
-    websocketRef.current = websocket;
+	  if (!sessionStorage.getItem('uniqueKey')) {
+		  sessionStorage.setItem('uniqueKey', uniqueKey.current);
+	  }
+  }, []);  
 
-    websocket.onopen = () => console.log('WebSocket connected');
-    
-    websocket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+  useEffect(() => {
+    const connectWebSocket = () => {
+		// Correct usage of uniqueKey
+		const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey.current}`);
+		console.log(uniqueKey.current);
 
-      // Update game state from server
-      if (data.type === 'update') {
-        setPaddleAPosition(data.paddles.a);
-        setPaddleBPosition(data.paddles.b);
-        setBallPosition(data.ball);
-        setScore(data.score);
-      }
+      websocketRef.current = websocket;
 
-      if (data.type === 'gameOver') {
-        setGameOver(true);
-        setGamePaused(true);
-      }
+      websocket.onopen = () => console.log('WebSocket connected');
+      websocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'assignPaddle') {
+          setAssignedPaddle(data.paddle);
+        }
+
+        if (data.type === 'playersConnected') {
+          setPlayersConnected(data.count);
+          setGamePaused(data.count < 2);
+        }
+
+        if (data.type === 'update') {
+          setPaddleAPosition(data.paddles.a);
+          setPaddleBPosition(data.paddles.b);
+          setBallPosition(data.ball);
+          setScore(data.score);
+        }
+
+        if (data.type === 'gameOver') {
+          setGameOver(true);
+          setGamePaused(true);
+        }
+      };
+
+      websocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+	  websocket.onclose = (event) => {
+		if (event.code !== 1000) {
+			console.log(`WebSocket disconnected unexpectedly. Retrying in 5 seconds...`);
+			setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
+		}
+		};	
     };
 
-    websocket.onclose = () => console.log('WebSocket disconnected');
+    connectWebSocket();
 
     return () => {
-      websocket.close();
+      if (websocketRef.current) {
+        websocketRef.current.close();
+      }
     };
   }, []);
 
-  // Handle key presses for paddle movement
+  const handleKeyPress = (event: KeyboardEvent) => {
+    if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
+      console.error('WebSocket is not open');
+      return;
+    }
+
+    if (assignedPaddle === 'a' && (event.key === 'w' || event.key === 's')) {
+      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
+    } else if (assignedPaddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
+    }
+  };
+
   useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
-        console.error("WebSocket is not open");
-        return;
-      }
-
-      // Send paddle movement to the server
-      const validKeys = ['ArrowUp', 'ArrowDown', 'w', 's'];
-      if (validKeys.includes(event.key)) {
-        console.log(`Key pressed: ${event.key}`);
-        websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
-      }
-    };
-
-    // Add event listener
     window.addEventListener('keydown', handleKeyPress);
 
-    // Clean up the event listener
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, []); // Empty dependency array to ensure it's only added once
+  }, [assignedPaddle]);
 
   return (
     <div className="pong">
@@ -81,9 +111,20 @@ export const PingPongCanvas: React.FC = () => {
             <div className="score">{score.a} - {score.b}</div>
           </div>
         </div>
+        {gamePaused && (
+          <div className="game-paused">
+            <h2>{playersConnected < 2 ? 'Waiting for another player...' : 'Game Paused'}</h2>
+            <p>Players connected: {playersConnected}/2</p>
+          </div>
+        )}
         {gameOver && (
           <div className="game-over">
             <h2>{score.a > score.b ? 'Player A wins!' : 'Player B wins!'}</h2>
+          </div>
+        )}
+        {assignedPaddle && (
+          <div className="player-info">
+            <h3>You are controlling Paddle {assignedPaddle.toUpperCase()}</h3>
           </div>
         )}
       </div>
