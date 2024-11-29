@@ -9,4 +9,7 @@ urlpatterns = [
 	path('auth/verify/', views.check_token.as_view()),
 	path('me/', views.get_logged_in_user.as_view()),
 	path('<int:pk>/', views.user_detail),
+
+	path('42_login/', views.user_42_login),
+	path('42_callback/', views.user_42_callback),
 ]
