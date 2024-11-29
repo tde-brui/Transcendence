@@ -139,10 +139,6 @@ class get_logged_in_user(APIView):
 		except Exception as e:
 			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 
-# class user_detail(viewsets.ModelViewSet):
-# 	queryset = PongUser.objects.all()
-# 	serializer_class = UserSerializer
-
-class user_detail(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
 	queryset = PongUser.objects.all()
 	serializer_class = UserSerializer
