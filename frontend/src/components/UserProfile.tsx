@@ -28,7 +28,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const userId = await getCurrentUser();
-      setCurrentUser(userId);
+      setCurrentUser(1);
     };
 
     fetchCurrentUser();
@@ -50,25 +50,25 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   }, [userId]);
 
   useEffect(() => {
-    const fetchOpponentNames = async () => {
-      if (!user?.matchHistory) return;
-
-      const opponentNamesMap: { [key: number]: string } = {};
-      for (const match of user.matchHistory) {
-        if (!opponentNames[match.opponentId]) {
-          const username = await returnName(match.opponentId);
-          opponentNamesMap[match.opponentId] = username;
-        }
-      }
-      setOpponentNames((prev) => ({ ...prev, ...opponentNamesMap }));
-    };
-
-    fetchOpponentNames();
-  }, [user, opponentNames]);
-
+	const fetchOpponentNames = async () => {
+	  if (!user?.matchHistory) return;
+  
+	  const opponentNamesMap: { [key: number]: string } = {};
+	  for (const match of user.matchHistory) {
+		if (!opponentNames[match.opponentId]) {
+		  const username = await returnName(match.opponentId);
+		  opponentNamesMap[match.opponentId] = username;
+		}
+	  }
+	  setOpponentNames((prev) => ({ ...prev, ...opponentNamesMap }));
+	};
+  
+	fetchOpponentNames();
+  }, [user]);
+  
   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!user || currentUser === null) return <div className="text-center mt-5">Loading...</div>;
-	// if (!user) return <div className="text-center mt-5">Loading...</div>;
+  if (!user) return <div className="text-center mt-5">User not loaded</div>;
+  if (currentUser === null) return <div className="text-center mt-5">Currentuser not loaded</div>;
 
   return (
     <div className="container d-flex align-items-center justify-content-center">

@@ -35,7 +35,7 @@ code {
   border: 0px;
   color: #d6d6d6; /* Text color */
   font-weight: bold; /* Makes the text bold */
-  font-size: 1.6rem; /* Increases the font size */
+  font-size: 1.25rem; /* Increases the font size */
   padding: 12px 24px; /* Increases padding for a larger button */
   transition: all 0.3s ease;
 }
@@ -46,7 +46,7 @@ code {
   border: 1px solid #ffffff; /* Optional: subtle border */
   color: #d6d6d6; /* Text color */
   font-weight: bold; /* Makes the text bold */
-  font-size: 1.8rem; /* Increases the font size */
+  font-size: 1.6rem; /* Increases the font size */
   padding: 12px 24px; /* Increases padding for a larger button */
 }
 

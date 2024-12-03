@@ -13,6 +13,7 @@ import Authenticate42 from "./pages/Authenticate42";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ChatPage from "./pages/ChatPage";
 import UserProfileWrapper from "./components/UserProfileWrapper";
+import CallBack from "./pages/CallBack";
 
 function App() {
   const userId = useAuth().userId;
@@ -34,6 +35,8 @@ function App() {
             path="/register"
             element={<Register userId={userId} isAuthChecked={isAuthChecked} />}
           />
+		  <Route path="/42-login" element={<Authenticate42 />} />
+		  <Route path="/42-callback" element={<CallBack />} />
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/test" element={<ChatPage />} />
           <Route

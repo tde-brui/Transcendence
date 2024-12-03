@@ -47,6 +47,7 @@
     ]
   },
   "devDependencies": {
-    "json-server": "^1.0.0-beta.3"
+    "json-server": "^1.0.0-beta.3",
+	"nth-check": ">=2.0.1"
   }
 }
