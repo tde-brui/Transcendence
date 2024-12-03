@@ -26,6 +26,8 @@ AUTHORIZATION_URL = os.getenv('AUTHORIZATION_URL')
 TOKEN_URL = "https://api.intra.42.fr/oauth/token"
 USER_URL = "https://api.intra.42.fr/v2/me"
 
+FRONTEND_URL = "http://localhost:3000"
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -60,6 +62,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
 
 MIDDLEWARE = [
 	'corsheaders.middleware.CorsMiddleware',

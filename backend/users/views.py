@@ -86,33 +86,17 @@ def user_42_callback(request):
 					'twoFactorEnabled': False,
 				})
 		except IntegrityError:
-			return JsonResponse({"error": "User with this username or OAuth ID already exists, please create a user via the standard register page"}, status=400)
+			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-login?error=42_user_exists")
 		if user.twoFactorEnabled:
 			otp = OTP.generate_code(user)
 			send_otp_email(user, otp)
-			return Response({
-				'user_id': user.id,
-				'message': "Sent OTP code to email",
-				}, status=status.HTTP_202_ACCEPTED)
+			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-login?message=Sent OTP code to email")
 		
 		refresh = RefreshToken.for_user(user)
-		response = JsonResponse({
-			'user_id': user.id,
-			'message': "Logged in successfully",
-		}, status=status.HTTP_200_OK)
-
-		response.set_cookie(
-			'access_token',
-			str(refresh.access_token),
-			max_age=3600, # 1 hour
-			httponly=True,
-			# secure=True, # HTTPS only, doesnt work when testing locally
-		)
-	
-		return response
+		return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-login?user_id={user.id}&access_token={str(refresh.access_token)}")
 	
 	except requests.exceptions.RequestException as e:
-		return JsonResponse({"error": "Failed to fetch user data"}, status=500)
+		return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-login?error=42_login_failed")
 	
 
 def authenticate_user(request, serializer):
