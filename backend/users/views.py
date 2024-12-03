@@ -12,6 +12,7 @@ from django.conf import settings
 from rest_framework import status
 from django.http import HttpResponseRedirect
 from rest_framework.renderers import JSONRenderer
+from django.db import IntegrityError
 import requests
 
 # Create your views here.
@@ -52,9 +53,13 @@ def user_42_login(request):
 	return HttpResponseRedirect(authorization_url)
 
 def user_42_callback(request):
+	# Get the authorization code from the query string
 	authorization_code = request.GET.get('code')
+
 	if not authorization_code:
 		return JsonResponse({"error": "No authorization code provided"}, status=400)
+
+	# Exchange the authorization code for an access token from the 42 API
 	try:
 		token_response = requests.post(settings.TOKEN_URL, data={
 			'grant_type': 'authorization_code',
@@ -71,19 +76,17 @@ def user_42_callback(request):
 		user_response.raise_for_status()
 		user_data = user_response.json()
 
-		user, created = PongUser.objects.get_or_create(
-			username=user_data['login'],
-			defaults={
-				'username': user_data['login'],
-				'email': user_data['email'],
-				'firstName': user_data['first_name'],
-				'twoFactorEnabled': False,
-
-			})
-		
-		if created:
-			user.save()
-
+		try:
+			user, created = PongUser.objects.get_or_create(
+				oauth_id=user_data['id'],
+				defaults={
+					'username': user_data['login'],
+					'email': user_data['email'],
+					'firstName': user_data['first_name'],
+					'twoFactorEnabled': False,
+				})
+		except IntegrityError:
+			return JsonResponse({"error": "User with this username or OAuth ID already exists, please create a user via the standard register page"}, status=400)
 		if user.twoFactorEnabled:
 			otp = OTP.generate_code(user)
 			send_otp_email(user, otp)
