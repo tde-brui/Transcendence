@@ -86,17 +86,25 @@ def user_42_callback(request):
 					'twoFactorEnabled': False,
 				})
 		except IntegrityError:
-			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-login?error=42_user_exists")
+			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?error=42_user_exists")
 		if user.twoFactorEnabled:
 			otp = OTP.generate_code(user)
 			send_otp_email(user, otp)
-			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-login?message=Sent OTP code to email")
+			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?message=Sent OTP code to email")
 		
 		refresh = RefreshToken.for_user(user)
-		return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-login?user_id={user.id}&access_token={str(refresh.access_token)}")
-	
+		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?user_id={user.id}")
+		response.set_cookie(
+			'access_token',
+			str(refresh.access_token),
+			max_age=3600, # 1 hour
+			httponly=True,
+			# secure=True,  # HTTPS only, doesnt work when testing locally
+			samesite='Lax',
+		)
+		return response	
 	except requests.exceptions.RequestException as e:
-		return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-login?error=42_login_failed")
+		return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?error=42_login_failed")
 	
 
 def authenticate_user(request, serializer):
