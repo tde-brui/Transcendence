@@ -14,6 +14,48 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
+# settings.py
+
+import os
+import sys
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': ('%(asctime)s [%(process)d] [%(levelname)s] '
+                       'pathname=%(pathname)s lineno=%(lineno)s '
+                       'funcname=%(funcName)s %(message)s'),
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'simple': {'format': '%(levelname)s %(message)s'},
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',  # Set to 'DEBUG' to capture all types of logs
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'stream': sys.stdout,  # Ensure logs are output to stdout
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG',  # Set to 'DEBUG' to capture detailed logs
+        },
+        'channels': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'pong': {  # Replace with your app name
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
+
 load_dotenv()
 
 email_password = os.getenv('EMAIL_PASSWORD')
@@ -42,6 +84,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+	'daphne',
 	'channels',
 	'pong',
 	'corsheaders',
@@ -164,3 +207,5 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'transcendence4000@gmail.com'
 EMAIL_HOST_PASSWORD = "skdo zrbx kvfz qpnn"
+
+ASGI_APPLICATION = "backend.asgi.application"
