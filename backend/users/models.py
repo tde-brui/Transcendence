@@ -38,7 +38,6 @@ class OTP(models.Model):
 		code = random.randint(100000, 999999)
 		expires_at = timezone.now() + timezone.timedelta(minutes=5)
 		otp = OTP.objects.create(email=email, code=code, expires_at=expires_at)
-		print(f"otp: {otp}")
 		return otp
 	def __str__(self):
 		return f'OTP for {self.email}: {self.code} - Expires at {self.expires_at}' 

@@ -236,3 +236,8 @@ class user_detail(APIView):
 			serializer.save()
 			return Response(serializer.data, status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	
+def logout(request):
+	response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/")
+	response.delete_cookie('access_token')
+	return response
