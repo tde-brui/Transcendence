@@ -28,7 +28,7 @@ const getUsername = async (username: string): Promise<string | null> => {
 
     return user ? user.id : null;
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error", error);
     throw new Error("Unable to fetch user list");
   }
 };
@@ -49,6 +49,7 @@ const UserProfileWrapper = () => {
 			  setUserId(null);
 			}
 		  } catch (err) {
+			console.error(err);
 			setError("Failed to fetch user information.");
 		  }
 		}

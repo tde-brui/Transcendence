@@ -7,6 +7,7 @@
   }
   
   .profile-card {
+	font-family: Roboto;
 	max-width: 500px;
 	width: 100%;
 	border: none;
@@ -20,6 +21,7 @@
 	border-top-left-radius: 15px;
 	border-top-right-radius: 15px;
 	padding: 30px;
+	font-family: Rubik;
   }
   
   .profile-avatar {

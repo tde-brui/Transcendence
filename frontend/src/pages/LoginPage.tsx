@@ -3,6 +3,7 @@ import { useAuth } from "../components/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import OTPBoxed from "../components/OTPBoxed";
 import "../css/UserProfile.css";
+import "../css/Utils.css";
 import axiosInstance from "../components/AxiosInstance";
 import { IsLoggedIn } from "../components/isLoggedIn";
 
@@ -102,6 +103,10 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
     }
   };
 
+  const handleAuthentication = () => {
+	window.location.href = 'http://localhost:8000/users/42_login/';
+	};
+
   return (
     <div className="container d-flex align-items-center justify-content-center vh-100">
       {!isOtpSent ? (
@@ -122,6 +127,11 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
             )}
 
             <form onSubmit={handleSubmit} noValidate>
+			<div>
+			<button onClick={handleAuthentication} type="button" className="btn login-button">
+				Login with <img src="/42.png" alt="42" className="logo-42" />
+			  </button>
+			</div>
               <div className="form-group">
                 <label htmlFor="username"></label>
                 <div className="input-group mb-3">
@@ -166,13 +176,10 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
                   <div className="invalid-feedback">{formErrors.password}</div>
                 )}
               </div>
-			<div className="d-flex align-items-center justify-content-center">
-              <button type="submit" className="btn btn-primary btn-block mt-3">
+			<div className="d-flex flex-column align-items-center">
+              <button type="submit" className="btn btn-primary mt-3">
                 Login
               </button>
-			  <button type="button" className="btn btn-danger btn-block mt-3 text-white">
-				<Link className="text-white" to="/42-login">Login with 42</Link>
-			  </button>
 			  </div>
             </form>
           </div>

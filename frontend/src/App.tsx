@@ -14,6 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ChatPage from "./pages/ChatPage";
 import UserProfileWrapper from "./components/UserProfileWrapper";
 import CallBack from "./pages/CallBack";
+import ChangeDetails from "./components/ChangeDetails";
 
 function App() {
   const userId = useAuth().userId;
@@ -38,7 +39,16 @@ function App() {
 		  <Route path="/42-login" element={<Authenticate42 />} />
 		  <Route path="/42-callback" element={<CallBack />} />
           <Route path="*" element={<NotFoundPage />} />
-          <Route path="/test" element={<ChatPage />} />
+          <Route path="/test" element={<ChangeDetails
+      username="bigidagoe"
+      firstName="Denzel"
+      email="bigidagoe6@holendrecht.bims"
+      twoFactorEnabled={true}
+      avatarUrl='/images/default_avatar.jpg' // Replace with an actual avatar URL
+      onEditAvatar={() => console.log("Edit avatar clicked")}
+      onChangePassword={() => console.log("Change password clicked")}
+      onSubmit={(updatedDetails) => console.log("Updated details:", updatedDetails)}
+    />} />
           <Route
             path="/"
             element={<Home userId={userId} isAuthChecked={isAuthChecked} />}

@@ -16,7 +16,9 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
   useEffect(() => {
     const fetchEmail = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/users/${userId}/`);
+        const response = await axios.get(
+          `http://localhost:8000/users/${userId}/`
+        );
         if (response.status === 200 && response.data.email) {
           setEmail(response.data.email);
         } else {
@@ -31,7 +33,10 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
     fetchEmail();
   }, [userId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const { value } = e.target;
     if (/^\d*$/.test(value)) {
       const newOtp = [...otp];
@@ -45,7 +50,10 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       // Move to the previous input box on backspace
       inputRefs.current[index - 1]?.focus();
@@ -54,7 +62,9 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
 
   const handleResendCode = async () => {
     try {
-      await axios.post(`http://localhost:8000/resend_otp/`, { user_id: userId });
+      await axios.post(`http://localhost:8000/resend_otp/`, {
+        user_id: userId,
+      });
       alert("A new OTP has been sent!");
     } catch (err) {
       setError("Error resending OTP.");
@@ -71,11 +81,14 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:8000/users/verify_otp/`, {
-        user_id: userId,
-        otp_code: fullOtp,
-      });
-	  console.error("response:", response);
+      const response = await axios.post(
+        `http://localhost:8000/users/verify_otp/`,
+        {
+          user_id: userId,
+          otp_code: fullOtp,
+        }
+      );
+      console.error("response:", response);
       if (response.status === 200) {
         navigate("/");
       } else {
@@ -105,7 +118,8 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
         </div>
         <div className="card-body profile-body">
           <p className="text-center mb-4 h6">
-          An email has been sent to the email address <strong>{maskedEmail}</strong>. Enter the code to log in.
+            An email has been sent to the email address{" "}
+            <strong>{maskedEmail}</strong>. Enter the code to log in.
           </p>
           <form onSubmit={handleSubmit} noValidate>
             <div className="otp-container">

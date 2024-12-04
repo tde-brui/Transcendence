@@ -14,11 +14,6 @@ const LandingPage: React.FC = () => {
             Login
           </button>
         </Link>
-		<Link to="/42-login">
-          <button type="button" className="btn btn-primary glass-button-sc me-4">
-            Login with <img src="/42.png" alt="42" className="logo-42" />
-          </button>
-        </Link>
         <Link to="/register">
           <button type="button" className="btn btn-primary glass-button">
             Register
