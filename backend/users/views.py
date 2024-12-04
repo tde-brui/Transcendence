@@ -48,7 +48,7 @@ def user_42_callback(request):
 	authorization_code = request.GET.get('code')
 
 	if not authorization_code:
-		return JsonResponse({"error": "No authorization code provided"}, status=400)
+		return HttpResponseRedirect({f"{settings.FRONTEND_URL}/42-callback?error=authorization code not found"}, status=400)
 
 	# Exchange the authorization code for an access token from the 42 API
 	try:
@@ -81,10 +81,10 @@ def user_42_callback(request):
 		if user.twoFactorEnabled:
 			otp = OTP.generate_code(user)
 			send_otp_email(user, otp)
-			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?message=Sent OTP code to email")
+			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?message=Sent OTP code to email&status_code=202")
 		
 		refresh = RefreshToken.for_user(user)
-		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?user_id={user.id}")
+		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?user_id={user.id}&status_code=200")
 		response.set_cookie(
 			'access_token',
 			str(refresh.access_token),
