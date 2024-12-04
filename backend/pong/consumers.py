@@ -3,7 +3,7 @@
 import json
 import uuid
 from channels.generic.websocket import AsyncWebsocketConsumer
-from asyncio import create_task, sleep
+from asyncio import create_task, sleep, CancelledError
 from urllib.parse import parse_qs
 
 
@@ -17,6 +17,8 @@ class Game:
         self.players = {}  # Map from paddle to browser_key
         self.connections = {}  # Map from browser_key to WebSocket connection
         self.game_started = False
+        self.ball_task = None
+        self.broadcast_task = None
 
     def reset_ball(self):
         self.ball = {
@@ -31,6 +33,16 @@ class Game:
         self.score = {"a": 0, "b": 0}
         self.reset_ball()
         self.game_started = False
+        # Cancel tasks if they are running
+        self.cancel_tasks()
+
+    def cancel_tasks(self):
+        if self.ball_task and not self.ball_task.cancelled():
+            self.ball_task.cancel()
+            self.ball_task = None
+        if self.broadcast_task and not self.broadcast_task.cancelled():
+            self.broadcast_task.cancel()
+            self.broadcast_task = None
 
     async def add_connection(self, consumer, browser_key):
         # Reconnect logic for the same key
@@ -63,7 +75,9 @@ class Game:
         await consumer.accept()
         await consumer.send(json.dumps({"type": "assignPaddle", "paddle": paddle}))
 
-        print(f"Player connected: {paddle} with key {browser_key} to game {self.game_id}")
+        print(
+            f"Player connected: {paddle} with key {browser_key} to game {self.game_id}"
+        )
 
         await consumer.channel_layer.group_add(self.game_id, consumer.channel_name)
 
@@ -102,70 +116,83 @@ class Game:
         # Stop the game if a player disconnects
         if len(self.players) < 2:
             self.game_started = False
+            self.cancel_tasks()
+            print(f"Game {self.game_id} paused due to insufficient players.")
 
     async def start_game(self):
         if len(self.players) == 2 and not self.game_started:
             self.game_started = True
             print(f"Game {self.game_id} started!")
-            create_task(self.update_ball())
-            create_task(self.broadcast_game_state())
+            self.ball_task = create_task(self.update_ball())
+            self.broadcast_task = create_task(self.broadcast_game_state())
 
     async def broadcast(self, message):
         for consumer in self.connections.values():
             await consumer.send(json.dumps(message))
 
     async def update_ball(self):
-        while self.game_started:
-            ball = self.ball
-            paddles = self.paddles
-            score = self.score
+        try:
+            while self.game_started:
+                ball = self.ball
+                paddles = self.paddles
+                score = self.score
 
-            ball["x"] += ball["dx"] * 5
-            ball["y"] += ball["dy"] * 5
+                ball["x"] += ball["dx"] * 5
+                ball["y"] += ball["dy"] * 5
 
-            # Ball collision with walls
-            if ball["y"] <= 0 or ball["y"] >= 556:
-                ball["dy"] *= -1
+                # Ball collision with walls
+                if ball["y"] <= 0 or ball["y"] >= 556:
+                    ball["dy"] *= -1
 
-            # Ball collision with paddles
-            if (
-                ball["x"] <= 20
-                and paddles["a"] <= ball["y"] <= paddles["a"] + 100
-            ):
-                ball["dx"] *= -1
-            elif (
-                ball["x"] >= 904
-                and paddles["b"] <= ball["y"] <= paddles["b"] + 100
-            ):
-                ball["dx"] *= -1
+                # Ball collision with paddles
+                if (
+                    ball["x"] <= 20
+                    and paddles["a"] <= ball["y"] <= paddles["a"] + 100
+                ):
+                    ball["dx"] *= -1
+                elif (
+                    ball["x"] >= 904
+                    and paddles["b"] <= ball["y"] <= paddles["b"] + 100
+                ):
+                    ball["dx"] *= -1
 
-            # Check for goals
-            if ball["x"] < 0:
-                score["b"] += 1
-                self.reset_ball()
-            elif ball["x"] > 924:
-                score["a"] += 1
-                self.reset_ball()
+                # Check for goals
+                if ball["x"] < 0:
+                    score["b"] += 1
+                    self.reset_ball()
+                elif ball["x"] > 924:
+                    score["a"] += 1
+                    self.reset_ball()
 
-            # Check for game over
-            if score["a"] >= self.MAX_SCORE or score["b"] >= self.MAX_SCORE:
-                winner = "a" if score["a"] >= self.MAX_SCORE else "b"
-                await self.broadcast({"type": "gameOver", "winner": winner})
-                self.reset_game()
+                # Check for game over
+                if score["a"] >= self.MAX_SCORE or score["b"] >= self.MAX_SCORE:
+                    winner = "a" if score["a"] >= self.MAX_SCORE else "b"
+                    await self.broadcast({"type": "gameOver", "winner": winner})
+                    self.reset_game()
+                    return  # Exit the loop after game over
 
-            await sleep(0.02)
+                await sleep(0.02)
+        except CancelledError:
+            print(f"update_ball task for game {self.game_id} was cancelled.")
+        except Exception as e:
+            print(f"Error in update_ball for game {self.game_id}: {e}")
 
     async def broadcast_game_state(self):
-        while self.game_started:
-            await self.broadcast(
-                {
-                    "type": "update",
-                    "paddles": self.paddles,
-                    "ball": self.ball,
-                    "score": self.score,
-                }
-            )
-            await sleep(0.02)
+        try:
+            while self.game_started:
+                await self.broadcast(
+                    {
+                        "type": "update",
+                        "paddles": self.paddles,
+                        "ball": self.ball,
+                        "score": self.score,
+                    }
+                )
+                await sleep(0.02)
+        except CancelledError:
+            print(f"broadcast_game_state task for game {self.game_id} was cancelled.")
+        except Exception as e:
+            print(f"Error in broadcast_game_state for game {self.game_id}: {e}")
 
 
 class GameManager:
@@ -186,37 +213,46 @@ class GameManager:
         # If the player is already in a game, reconnect them
         if browser_key in self.browser_key_to_game:
             game_id = self.browser_key_to_game[browser_key]
-            game = self.games[game_id]
-            await game.add_connection(consumer, browser_key)
-            return game
-        else:
-            # Add player to the waiting queue
-            self.waiting_players.append((consumer, browser_key))
-            # If there are at least two players, create a new game
-            if len(self.waiting_players) >= 2:
-                player1, key1 = self.waiting_players.pop(0)
-                player2, key2 = self.waiting_players.pop(0)
-                game_id = str(uuid.uuid4())
-                game = Game(game_id)
-                self.games[game_id] = game
-                self.browser_key_to_game[key1] = game_id
-                self.browser_key_to_game[key2] = game_id
-                await game.add_connection(player1, key1)
-                await game.add_connection(player2, key2)
+            game = self.games.get(game_id)
+            if game:
+                await game.add_connection(consumer, browser_key)
                 return game
             else:
-                # Wait for another player
-                return None
+                # Game no longer exists, remove mapping
+                del self.browser_key_to_game[browser_key]
+
+        # Add player to the waiting queue
+        self.waiting_players.append((consumer, browser_key))
+        print(f"Player with key {browser_key} added to waiting queue.")
+
+        # If there are at least two players, create a new game
+        if len(self.waiting_players) >= 2:
+            player1, key1 = self.waiting_players.pop(0)
+            player2, key2 = self.waiting_players.pop(0)
+            game_id = str(uuid.uuid4())
+            game = Game(game_id)
+            self.games[game_id] = game
+            self.browser_key_to_game[key1] = game_id
+            self.browser_key_to_game[key2] = game_id
+            await game.add_connection(player1, key1)
+            await game.add_connection(player2, key2)
+            return game
+        else:
+            # Wait for another player
+            return None
 
     async def remove_player(self, browser_key):
         # Remove player from any game they're in
         if browser_key in self.browser_key_to_game:
             game_id = self.browser_key_to_game[browser_key]
-            game = self.games[game_id]
-            await game.remove_player(browser_key)
-            # If the game has no players, remove it
-            if not game.players:
-                del self.games[game_id]
+            game = self.games.get(game_id)
+            if game:
+                await game.remove_player(browser_key)
+                # If the game has no players, remove it
+                if not game.players:
+                    game.cancel_tasks()
+                    del self.games[game_id]
+                    print(f"Game {game_id} has been removed.")
             del self.browser_key_to_game[browser_key]
         else:
             # Remove from waiting players if they're there
@@ -265,7 +301,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     # Methods to handle messages sent to the group
     async def players_connected(self, event):
-        await self.send(json.dumps({"type": "playersConnected", "count": event["count"]}))
+        await self.send(
+            json.dumps({"type": "playersConnected", "count": event["count"]})
+        )
 
     async def send_update(self, event):
         await self.send(json.dumps(event))

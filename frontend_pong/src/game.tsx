@@ -41,13 +41,19 @@ export const PingPongCanvas: React.FC = () => {
   }, [assignedPaddle]);
 
   useEffect(() => {
+    let reconnectTimeout: NodeJS.Timeout;
+
     const connectWebSocket = () => {
       const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey.current}`);
       console.log('Connecting with key:', uniqueKey.current);
 
       websocketRef.current = websocket;
 
-      websocket.onopen = () => console.log('WebSocket connected');
+      websocket.onopen = () => {
+        console.log('WebSocket connected');
+        clearTimeout(reconnectTimeout);
+      };
+
       websocket.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
@@ -77,6 +83,10 @@ export const PingPongCanvas: React.FC = () => {
         if (data.type === 'gameOver') {
           setGameOver(true);
           setGamePaused(true);
+          setTimeout(() => {
+            setGameOver(false);
+            setScore({ a: 0, b: 0 });
+          }, 3000);
         }
       };
 
@@ -89,7 +99,7 @@ export const PingPongCanvas: React.FC = () => {
           console.log(
             `WebSocket disconnected unexpectedly. Retrying in 5 seconds...`
           );
-          setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
+          reconnectTimeout = setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
         }
       };
     };
@@ -100,6 +110,7 @@ export const PingPongCanvas: React.FC = () => {
       if (websocketRef.current) {
         websocketRef.current.close();
       }
+      clearTimeout(reconnectTimeout);
     };
   }, []);
 
