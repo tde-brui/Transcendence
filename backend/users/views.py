@@ -11,6 +11,11 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import status, viewsets, generics
 from django.shortcuts import get_object_or_404
+from rest_framework import status
+from django.http import HttpResponseRedirect
+from rest_framework.renderers import JSONRenderer
+from django.db import IntegrityError
+import requests
 
 class get_users(APIView):
 	def get(self, request, *args, **kwargs):
@@ -34,6 +39,65 @@ class user_login(APIView):
 			user = authenticate_user(request, serializer)
 			return return_JWT(user)
 
+def user_42_login(request):
+	authorization_url = f"{settings.AUTHORIZATION_URL}?client_id={settings.CLIENT_ID}&redirect_uri={settings.REDIRECT_URI}&response_type=code"
+	return HttpResponseRedirect(authorization_url)
+
+def user_42_callback(request):
+	# Get the authorization code from the query string
+	authorization_code = request.GET.get('code')
+
+	if not authorization_code:
+		return JsonResponse({"error": "No authorization code provided"}, status=400)
+
+	# Exchange the authorization code for an access token from the 42 API
+	try:
+		token_response = requests.post(settings.TOKEN_URL, data={
+			'grant_type': 'authorization_code',
+			'client_id': settings.CLIENT_ID,
+			'client_secret': settings.CLIENT_SECRET,
+			'code': authorization_code,
+			'redirect_uri': settings.REDIRECT_URI,
+		})
+		token_response.raise_for_status()
+		access_token = token_response.json().get('access_token')
+		user_response = requests.get(settings.USER_URL, headers={
+			'Authorization': f"Bearer {access_token}",
+		})
+		user_response.raise_for_status()
+		user_data = user_response.json()
+
+		try:
+			user, created = PongUser.objects.get_or_create(
+				oauth_id=user_data['id'],
+				defaults={
+					'username': user_data['login'],
+					'email': user_data['email'],
+					'firstName': user_data['first_name'],
+					'twoFactorEnabled': False,
+				})
+		except IntegrityError:
+			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?error=42_user_exists")
+		if user.twoFactorEnabled:
+			otp = OTP.generate_code(user)
+			send_otp_email(user, otp)
+			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?message=Sent OTP code to email")
+		
+		refresh = RefreshToken.for_user(user)
+		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?user_id={user.id}")
+		response.set_cookie(
+			'access_token',
+			str(refresh.access_token),
+			max_age=3600, # 1 hour
+			httponly=True,
+			# secure=True,  # HTTPS only, doesnt work when testing locally
+			samesite='Lax',
+		)
+		return response	
+	except requests.exceptions.RequestException as e:
+		return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?error=42_login_failed")
+	
+
 def authenticate_user(request, serializer):
 	username = serializer.validated_data['username']
 	password = serializer.validated_data['password']
@@ -42,7 +106,7 @@ def authenticate_user(request, serializer):
 
 def return_JWT(user):
 	if user:
-		if user.two_factor_enabled:
+		if user.twoFactorEnabled:
 			otp = OTP.generate_code(user)
 			send_otp_email(user, otp)
 			return Response({
@@ -64,14 +128,14 @@ def return_JWT(user):
 			# secure=True,  # HTTPS only, doesnt work when testing locally
 			samesite='Lax',
 		)
-		response.set_cookie(
-			'user_id',
-			str(user.id),
-			max_age=3600, # 1 hour
-			httponly=False,
-			# secure=True, # HTTPS only, doesnt work when testing locally
-			samesite='Lax'
-		)
+		# response.set_cookie(
+		# 	'user_id',
+		# 	str(user.id),
+		# 	max_age=3600, # 1 hour
+		# 	httponly=False,
+		# 	# secure=True, # HTTPS only, doesnt work when testing locally
+		# 	samesite='Lax'
+		# )
 		return response
 	else:
 		return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)

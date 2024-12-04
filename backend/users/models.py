@@ -11,7 +11,8 @@ class PongUser(AbstractUser):
 	friends = models.ManyToManyField("self", blank=True)
 	onlineStatus = models.BooleanField(default=False)
 	# match_history = models.CharField(blank=True)
-	
+	oauth_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+
 	def __str__(self):
 		return self.username
 
