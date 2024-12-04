@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-const WS_URL = 'ws://10.15.186.10:8000/ws/pong/';
+const WS_URL = 'ws://localhost:8000/ws/pong/';
 
 export const PingPongCanvas: React.FC = () => {
   const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
@@ -18,15 +18,22 @@ export const PingPongCanvas: React.FC = () => {
   // Generate a unique key per browser tab
   const uniqueKey = useRef<string>(sessionStorage.getItem('uniqueKey') || uuidv4());
 
+  // Create a ref to hold the latest value of assignedPaddle
+  const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
+
   useEffect(() => {
     if (!sessionStorage.getItem('uniqueKey')) {
       sessionStorage.setItem('uniqueKey', uniqueKey.current);
     }
   }, []);
 
+  // Update the ref whenever assignedPaddle changes
+  useEffect(() => {
+    assignedPaddleRef.current = assignedPaddle;
+  }, [assignedPaddle]);
+
   useEffect(() => {
     const connectWebSocket = () => {
-      // Correct usage of uniqueKey
       const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey.current}`);
       console.log('Connecting with key:', uniqueKey.current);
 
@@ -37,6 +44,7 @@ export const PingPongCanvas: React.FC = () => {
         const data = JSON.parse(event.data);
 
         if (data.type === 'assignPaddle') {
+          console.log('Assigned paddle:', data.paddle);
           setAssignedPaddle(data.paddle);
         }
 
@@ -85,9 +93,11 @@ export const PingPongCanvas: React.FC = () => {
       return;
     }
 
-    if (assignedPaddle === 'a' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+    const paddle = assignedPaddleRef.current;
+
+    if (paddle === 'a' && (event.key === 'w' || event.key === 's')) {
       websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
-    } else if (assignedPaddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+    } else if (paddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
       websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
     }
   };
@@ -98,7 +108,7 @@ export const PingPongCanvas: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [assignedPaddle]);
+  }, []); // Empty dependency array to add the listener only once
 
   return (
     <div className="pong">

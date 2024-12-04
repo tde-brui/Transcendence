@@ -12,6 +12,7 @@ class Game:
         self.score = {"a": 0, "b": 0}
         self.MAX_SCORE = 3
         self.players = {}  # Map from paddle to browser_key
+        self.connections = {}  # Map from browser_key to WebSocket connection
         self.game_started = False
 
     @classmethod
@@ -33,7 +34,6 @@ game = Game.get_instance()
 
 class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Get browser_key from query params
         query_params = parse_qs(self.scope["query_string"].decode())
         browser_key = query_params.get("key", [None])[0]
 
@@ -42,62 +42,68 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        # Check if the browser_key is already in use
-        if browser_key in game.players.values():
-            print(f"Connection rejected: Duplicate key {browser_key}.")
-            await self.close()
-            return
+        # Reconnect logic for the same key
+        if browser_key in game.connections:
+            old_connection = game.connections[browser_key]
+            print(f"Replacing old connection for key {browser_key}")
+            await old_connection.close()
 
-        # Assign paddle
-        if len(game.players) < 2:
-            if 'a' not in game.players:
-                self.paddle = 'a'
+        # Assign paddle if not already assigned
+        if browser_key not in game.players.values():
+            if len(game.players) < 2:
+                paddle = 'a' if 'a' not in game.players else 'b'
+                game.players[paddle] = browser_key
             else:
-                self.paddle = 'b'
-
-            game.players[self.paddle] = browser_key
-            self.browser_key = browser_key
-
-            await self.accept()
-            await self.send(json.dumps({"type": "assignPaddle", "paddle": self.paddle}))
-            print(f"Player connected: {self.paddle} with key {browser_key}")
-
-            await self.channel_layer.group_add('players', self.channel_name)
-
-            await self.channel_layer.group_send(
-                'players',
-                {
-                    'type': 'players_connected',
-                    'count': len(game.players)
-                }
-            )
-
-            if len(game.players) == 2 and not game.game_started:
-                game.game_started = True
-                print("Game started!")
-                create_task(self.update_ball())
-                create_task(self.broadcast_game_state())
+                print("Connection rejected: Game full.")
+                await self.close()
+                return
         else:
-            print("Connection rejected: Game full")
-            await self.close()
+            # Reconnect existing paddle
+            paddle = next(key for key, value in game.players.items() if value == browser_key)
+
+        # Store the connection
+        game.connections[browser_key] = self
+        self.browser_key = browser_key
+        self.paddle = paddle
+
+        await self.accept()
+        await self.send(json.dumps({"type": "assignPaddle", "paddle": paddle}))
+
+        print(f"Player connected: {paddle} with key {browser_key}")
+
+        await self.channel_layer.group_add('players', self.channel_name)
+
+        await self.channel_layer.group_send(
+            'players',
+            {
+                'type': 'players_connected',
+                'count': len(game.players)
+            }
+        )
+
+        if len(game.players) == 2 and not game.game_started:
+            game.game_started = True
+            print("Game started!")
+            create_task(self.update_ball())
+            create_task(self.broadcast_game_state())
 
     async def disconnect(self, close_code):
-        # Remove player
+        if hasattr(self, 'browser_key') and self.browser_key in game.connections:
+            del game.connections[self.browser_key]
+
         if hasattr(self, 'paddle') and self.paddle in game.players:
             del game.players[self.paddle]
             print(f"Player {self.paddle} with key {self.browser_key} disconnected.")
 
-            game.game_started = False  # Stop the game if a player disconnects
+        await self.channel_layer.group_discard('players', self.channel_name)
 
-            await self.channel_layer.group_discard('players', self.channel_name)
-
-            await self.channel_layer.group_send(
-                'players',
-                {
-                    'type': 'players_connected',
-                    'count': len(game.players)
-                }
-            )
+        await self.channel_layer.group_send(
+            'players',
+            {
+                'type': 'players_connected',
+                'count': len(game.players)
+            }
+        )
 
     async def receive(self, text_data):
         data = json.loads(text_data)
