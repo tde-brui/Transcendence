@@ -16,14 +16,14 @@ export const PingPongCanvas: React.FC = () => {
   const websocketRef = useRef<WebSocket | null>(null);
 
   // Generate a unique key per browser tab
-  const uniqueKey = useRef<string>(sessionStorage.getItem('uniqueKey') || uuidv4());
+  const uniqueKey = 'tristan'
 
   // Create a ref to hold the latest value of assignedPaddle
   const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
 
   useEffect(() => {
     if (!sessionStorage.getItem('uniqueKey')) {
-      sessionStorage.setItem('uniqueKey', uniqueKey.current);
+      sessionStorage.setItem('uniqueKey', uniqueKey);
     }
   }, []);
 
@@ -34,9 +34,9 @@ export const PingPongCanvas: React.FC = () => {
 
   useEffect(() => {
     const connectWebSocket = () => {
-      const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey.current}`);
-      console.log('Connecting with key:', uniqueKey.current);
-
+      const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey}`);
+      console.log('Connecting with key:', uniqueKey);
+  
       websocketRef.current = websocket;
 
       websocket.onopen = () => console.log('WebSocket connected');
@@ -92,15 +92,15 @@ export const PingPongCanvas: React.FC = () => {
       console.error('WebSocket is not open');
       return;
     }
-
+  
     const paddle = assignedPaddleRef.current;
-
+  
     if (paddle === 'a' && (event.key === 'w' || event.key === 's')) {
       websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
     } else if (paddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
       websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
     }
-  };
+  };  
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
