@@ -54,7 +54,7 @@ function App() {
             element={<Home userId={userId} isAuthChecked={isAuthChecked} />}
           />
           {/* <Route element={<ProtectedRoute />} > */}
-          <Route path="/account" element={<UserProfile userId={2} />} />
+          {/* <Route path="/account" element={<UserProfile userId={userId} />} /> */}
           {/* </Route> */}
 		  <Route path="/users/:username" element={<UserProfileWrapper />} />
         </Routes>

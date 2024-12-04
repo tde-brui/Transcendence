@@ -50,8 +50,8 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
 
   return (
 	<div className="container d-flex align-items-center justify-content-center">
-    <div className="card profile-card mt-4">
-      <div className="profile-header d-flex  flex-column align-items-center p-3">
+    <div className="card profile-card mt-4 ">
+      <div className="profile-header d-flex flex-column align-items-center p-3">
         <img
           src={avatarUrl}
           alt="Avatar"
@@ -68,7 +68,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
       <div className="profile-body p-4">
         <h2 className="mb-4">Change Details</h2>
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
+          <div className="d-flex flex-column mb-3">
             <label htmlFor="username" className="form-label">
               Username
             </label>
@@ -81,7 +81,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
               onChange={handleChange}
             />
           </div>
-          <div className="mb-3">
+          <div className="d-flex flex-column mb-3">
             <label htmlFor="firstName" className="form-label">
               First Name
             </label>
@@ -94,7 +94,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
               onChange={handleChange}
             />
           </div>
-          <div className="mb-3">
+          <div className="d-flex flex-column mb-3">
             <label htmlFor="email" className="form-label">
               Email
             </label>
@@ -107,7 +107,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
               onChange={handleChange}
             />
           </div>
-          <div className="d-flex justify-content-center mb-3 form-check form-switch">
+          <div className="d-flex justify-content-center mb-3 form-check form-switch custom-form-switch">
             <input
               type="checkbox"
               className="form-check-input"
@@ -116,13 +116,13 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
               onChange={handleCheckboxChange}
             />
             <label
-              className="form-check-label ms-3"
+              className="form-check-label ms-4"
               htmlFor="twoFactorEnabled"
             >
               Enable Two-Factor Authentication
             </label>
           </div>
-          <div className="d-flex justify-content-between">
+          <div className="d-flex justify-content-between mt-5">
             <button
               type="button"
               className="btn btn-primary"

@@ -5,9 +5,8 @@ import "../css/UserProfile.css";
 import { NotLoggedIn } from "./notLoggedin";
 import axiosInstance from "./AxiosInstance";
 import { useAuth } from "./AuthContext";
-import NotFoundPage from "../error_pages/404NotFound";
-import { log } from "console";
 import { useNavigate } from "react-router-dom";
+import ChangeDetails from "./ChangeDetails";
 
 type UserProfileProps = {
   userId: number;
@@ -30,10 +29,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   const [user, setUser] = useState<User | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>(
-    {}
-  );
+  const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>({});
   const [currentUser, setCurrentUser] = useState<number | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -115,6 +113,31 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     return <div>Logging out......</div>;
   };
 
+  	
+  const changeDetails = () => {
+	const username = user.username;
+	const firstName = user.firstName;
+	const email = user.email;
+	const twoFactorEnabled = user.twoFactorEnabled;
+	const avatarUrl = avatar || "/images/default_avatar.jpg";
+	const onEditAvatar = () => console.log("Edit avatar clicked");
+	const onChangePassword = () => console.log("Change password clicked");
+	const onSubmit = (updatedDetails: any) => console.log("Updated details:", updatedDetails);
+
+	console.log("Change details clicked");
+	return <ChangeDetails 
+	username={username}
+	firstName={firstName}
+	email={email}
+	twoFactorEnabled={twoFactorEnabled}
+	avatarUrl={avatarUrl}
+	onEditAvatar={onEditAvatar}
+	onChangePassword={onChangePassword}
+	onSubmit={onSubmit}
+	/>;
+
+	  };
+
   return (
     <div className="container d-flex align-items-center justify-content-center">
       <div className="card profile-card mx-auto">
@@ -157,7 +180,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
         </div> */}
         {currentUser === userId && (
           <div className="card-footer profile-footer d-flex justify-content-between">
-            <button className="btn btn-primary">Change details</button>
+            <button onClick={changeDetails} className="btn btn-primary">Change details</button>
             <button onClick={logoutLink} className="btn btn-danger">
               Log out
             </button>

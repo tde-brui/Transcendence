@@ -17,6 +17,7 @@ export type MatchHistory = {
 	onlineStatus: string;
 	friends: number[];
 	matchHistory: MatchHistory[];
+	twoFactorEnabled: boolean;
   };
   
   export type Session = {
