@@ -1,5 +1,3 @@
-// PingPongCanvas.tsx
-
 import React, { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -8,23 +6,17 @@ const WS_URL = 'ws://localhost:8000/ws/pong/';
 export const PingPongCanvas: React.FC = () => {
   const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
   const [paddleBPosition, setPaddleBPosition] = useState<number>(240);
-  const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({
-    x: 462,
-    y: 278,
-  });
+  const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({ x: 462, y: 278 });
   const [score, setScore] = useState<{ a: number; b: number }>({ a: 0, b: 0 });
   const [gamePaused, setGamePaused] = useState<boolean>(true);
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [playersConnected, setPlayersConnected] = useState<number>(0);
   const [assignedPaddle, setAssignedPaddle] = useState<'a' | 'b' | null>(null);
-  const [waitingForOpponent, setWaitingForOpponent] = useState<boolean>(false);
 
   const websocketRef = useRef<WebSocket | null>(null);
 
   // Generate a unique key per browser tab
-  const uniqueKey = useRef<string>(
-    sessionStorage.getItem('uniqueKey') || uuidv4()
-  );
+  const uniqueKey = useRef<string>(sessionStorage.getItem('uniqueKey') || uuidv4());
 
   // Create a ref to hold the latest value of assignedPaddle
   const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
@@ -41,36 +33,24 @@ export const PingPongCanvas: React.FC = () => {
   }, [assignedPaddle]);
 
   useEffect(() => {
-    let reconnectTimeout: NodeJS.Timeout;
-
     const connectWebSocket = () => {
       const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey.current}`);
       console.log('Connecting with key:', uniqueKey.current);
 
       websocketRef.current = websocket;
 
-      websocket.onopen = () => {
-        console.log('WebSocket connected');
-        clearTimeout(reconnectTimeout);
-      };
-
+      websocket.onopen = () => console.log('WebSocket connected');
       websocket.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
         if (data.type === 'assignPaddle') {
           console.log('Assigned paddle:', data.paddle);
           setAssignedPaddle(data.paddle);
-          setWaitingForOpponent(false); // We have an opponent
         }
 
         if (data.type === 'playersConnected') {
           setPlayersConnected(data.count);
           setGamePaused(data.count < 2);
-          if (data.count < 2) {
-            setWaitingForOpponent(true);
-          } else {
-            setWaitingForOpponent(false);
-          }
         }
 
         if (data.type === 'update') {
@@ -83,10 +63,6 @@ export const PingPongCanvas: React.FC = () => {
         if (data.type === 'gameOver') {
           setGameOver(true);
           setGamePaused(true);
-          setTimeout(() => {
-            setGameOver(false);
-            setScore({ a: 0, b: 0 });
-          }, 3000);
         }
       };
 
@@ -96,10 +72,8 @@ export const PingPongCanvas: React.FC = () => {
 
       websocket.onclose = (event) => {
         if (event.code !== 1000) {
-          console.log(
-            `WebSocket disconnected unexpectedly. Retrying in 5 seconds...`
-          );
-          reconnectTimeout = setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
+          console.log(`WebSocket disconnected unexpectedly. Retrying in 5 seconds...`);
+          setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
         }
       };
     };
@@ -110,15 +84,11 @@ export const PingPongCanvas: React.FC = () => {
       if (websocketRef.current) {
         websocketRef.current.close();
       }
-      clearTimeout(reconnectTimeout);
     };
   }, []);
 
   const handleKeyPress = (event: KeyboardEvent) => {
-    if (
-      !websocketRef.current ||
-      websocketRef.current.readyState !== WebSocket.OPEN
-    ) {
+    if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
       console.error('WebSocket is not open');
       return;
     }
@@ -126,16 +96,9 @@ export const PingPongCanvas: React.FC = () => {
     const paddle = assignedPaddleRef.current;
 
     if (paddle === 'a' && (event.key === 'w' || event.key === 's')) {
-      websocketRef.current.send(
-        JSON.stringify({ type: 'paddleMove', key: event.key })
-      );
-    } else if (
-      paddle === 'b' &&
-      (event.key === 'ArrowUp' || event.key === 'ArrowDown')
-    ) {
-      websocketRef.current.send(
-        JSON.stringify({ type: 'paddleMove', key: event.key })
-      );
+      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
+    } else if (paddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
     }
   };
 
@@ -153,25 +116,16 @@ export const PingPongCanvas: React.FC = () => {
         <div className="overlap-group">
           <div className="paddle-a" style={{ top: `${paddleAPosition}px` }} />
           <div className="paddle-b" style={{ top: `${paddleBPosition}px` }} />
-          <div
-            className="ball"
-            style={{ left: `${ballPosition.x}px`, top: `${ballPosition.y}px` }}
-          />
+          <div className="ball" style={{ left: `${ballPosition.x}px`, top: `${ballPosition.y}px` }} />
           <div className="overlap">
             <div className="scoreboard" />
-            <div className="score">
-              {score.a} - {score.b}
-            </div>
+            <div className="score">{score.a} - {score.b}</div>
           </div>
         </div>
-        {waitingForOpponent && (
+        {gamePaused && (
           <div className="game-paused">
-            <h2>Waiting for an opponent...</h2>
-          </div>
-        )}
-        {gamePaused && !waitingForOpponent && (
-          <div className="game-paused">
-            <h2>Game Paused</h2>
+            <h2>{playersConnected < 2 ? 'Waiting for another player...' : 'Game Paused'}</h2>
+            <p>Players connected: {playersConnected}/2</p>
           </div>
         )}
         {gameOver && (
