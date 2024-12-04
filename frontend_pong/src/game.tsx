@@ -4,9 +4,9 @@ import { v4 as uuidv4 } from 'uuid';
 const WS_URL = 'ws://localhost:8000/ws/pong/';
 
 export const PingPongCanvas: React.FC = () => {
-  const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
-  const [paddleBPosition, setPaddleBPosition] = useState<number>(240);
-  const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({ x: 462, y: 278 });
+  const [paddleAPosition, setPaddleAPosition] = useState<number>(50);
+  const [paddleBPosition, setPaddleBPosition] = useState<number>(50);
+  const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const [score, setScore] = useState<{ a: number; b: number }>({ a: 0, b: 0 });
   const [gamePaused, setGamePaused] = useState<boolean>(true);
   const [gameOver, setGameOver] = useState<boolean>(false);
@@ -72,8 +72,8 @@ export const PingPongCanvas: React.FC = () => {
 
       websocket.onclose = (event) => {
         if (event.code !== 1000) {
-          console.log(`WebSocket disconnected unexpectedly. Retrying in 5 seconds...`);
-          setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
+          console.log(`WebSocket disconnected unexpectedly. Retrying in 1 second...`);
+          setTimeout(connectWebSocket, 1000); // Retry connection after 1 second
         }
       };
     };
@@ -112,33 +112,45 @@ export const PingPongCanvas: React.FC = () => {
 
   return (
     <div className="pong">
-      <div className="overlap-group-wrapper">
-        <div className="overlap-group">
-          <div className="paddle-a" style={{ top: `${paddleAPosition}px` }} />
-          <div className="paddle-b" style={{ top: `${paddleBPosition}px` }} />
-          <div className="ball" style={{ left: `${ballPosition.x}px`, top: `${ballPosition.y}px` }} />
-          <div className="overlap">
-            <div className="scoreboard" />
-            <div className="score">{score.a} - {score.b}</div>
-          </div>
+      <div className="game-container">
+        <div
+          className="paddle-a"
+          style={{ top: `${paddleAPosition}%`, left: '2%', position: 'absolute', width: '2%', height: '20%' }}
+        />
+        <div
+          className="paddle-b"
+          style={{ top: `${paddleBPosition}%`, right: '2%', position: 'absolute', width: '2%', height: '20%' }}
+        />
+        <div
+          className="ball"
+          style={{
+            left: `${ballPosition.x}%`,
+            top: `${ballPosition.y}%`,
+            position: 'absolute',
+            width: '2%',
+            height: '2%',
+          }}
+        />
+        <div className="scoreboard">
+          <div className="score">{score.a} - {score.b}</div>
         </div>
-        {gamePaused && (
-          <div className="game-paused">
-            <h2>{playersConnected < 2 ? 'Waiting for another player...' : 'Game Paused'}</h2>
-            <p>Players connected: {playersConnected}/2</p>
-          </div>
-        )}
-        {gameOver && (
-          <div className="game-over">
-            <h2>{score.a > score.b ? 'Player A wins!' : 'Player B wins!'}</h2>
-          </div>
-        )}
-        {assignedPaddle && (
-          <div className="player-info">
-            <h3>You are controlling Paddle {assignedPaddle.toUpperCase()}</h3>
-          </div>
-        )}
       </div>
+      {gamePaused && (
+        <div className="game-paused">
+          <h2>{playersConnected < 2 ? 'Waiting for another player...' : 'Game Paused'}</h2>
+          <p>Players connected: {playersConnected}/2</p>
+        </div>
+      )}
+      {gameOver && (
+        <div className="game-over">
+          <h2>{score.a > score.b ? 'Player A wins!' : 'Player B wins!'}</h2>
+        </div>
+      )}
+      {assignedPaddle && (
+        <div className="player-info">
+          <h3>You are controlling Paddle {assignedPaddle.toUpperCase()}</h3>
+        </div>
+      )}
     </div>
   );
 };
