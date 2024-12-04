@@ -38,18 +38,16 @@ class user_register(APIView):
 				'firstName': user_data['firstName'],
 				'password': password,
 				'twoFactorEnabled': user_data['twoFactorEnabled'],
-				'user_id': user_data['id'],
 			}
 
 			if user_data['twoFactorEnabled'] == True:
-				otp = OTP.generate_code()
-				request.session['otp_code'] = otp.code
+				otp = OTP.generate_code(email=user_data['email'])
 				send_otp_email(user_data['email'], otp)
 				return Response({
 					"message": "Sent OTP code to email"
 				}, status=status.HTTP_202_ACCEPTED)
 			
-			user = PongUser.objects.create_user(**user_data)
+			user = PongUser.objects.create_user(username=user_data['username'], email=user_data['email'], password=password, firstName=user_data['firstName'], twoFactorEnabled=user_data['twoFactorEnabled'])
 			return jwtCookie(user)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -65,11 +63,10 @@ class user_login(APIView):
 			if user:
 				if user.twoFactorEnabled:
 					request.session['pending_user_id'] = user.id
-					otp = OTP.generate_code(user)
-					request.session['otp_code'] = otp.code
-					send_otp_email(user, otp)
+					request.session['pending_user_email'] = user.email
+					otp = OTP.generate_code(user.email)
+					send_otp_email(user.email, otp)
 					return Response({
-						"user_id": user.id,
 						"message": "Sent OTP code to email",
 					}, status=status.HTTP_202_ACCEPTED)
 				return jwtCookie(user)
@@ -162,30 +159,45 @@ def authenticate_user(request, serializer):
 	return user
 
 
-def send_otp_email(user, otp):
+def send_otp_email(email, otp):
 	subject = "Your OTP code"
 	message = f"Your One-Time-Password code is {otp.code}"
-	recipients = [user.email]
+	recipients = [email]
 	send_mail(subject, message, settings.EMAIL_HOST_USER, recipients)
 
 class verify_otp(APIView):
 	def post(self, request, *args, **kwargs):
 		otp_code = request.data.get('otp_code')
-		stored_otp = request.session.get('otp_code')
 		user_data = request.session.get('pending_user_data')
 		user_id = request.session.get('pending_user_id')
+		user_email = request.session.get('pending_user_email')
 
 
-		if not otp_code or not stored_otp:
-			return Response({"error": "Invalid or expired OTP code"}, status=status.HTTP_400_BAD_REQUEST)
+		if not otp_code:
+			return Response({"error": "OTP code is required"}, status=status.HTTP_400_BAD_REQUEST)
 
 		if user_data:
-			user = PongUser.objects.create_user(**user_data)
+			otp = OTP.objects.filter(email=user_data['email'], code=otp_code).last()
+			
+			if otp and not otp.is_expired():
+				otp.delete()
+				user = PongUser.objects.create_user(username=user_data['username'], email=user_data['email'], password=user_data['password'], firstName=user_data['firstName'], twoFactorEnabled=user_data['twoFactorEnabled'])
+				request.session.pop('pending_user_data', None)
+				return jwtCookie(user)
+			return Response({"error": "Invalid or expired OTP code"}, status=status.HTTP_400_BAD_REQUEST)
 		
 		elif user_id:
-			user = PongUser.objects.get(id=user_id)
-
-		return jwtCookie(user)
+			try:
+				user = PongUser.objects.get(id=user_id)
+				otp = OTP.objects.filter(email=user_email, code=otp_code).last()
+				if otp and not otp.is_expired():
+					otp.delete()
+					request.session.pop('pending_user_id', None)
+					return jwtCookie(user)
+				return Response({"error": "Invalid or expired OTP code"}, status=status.HTTP_400_BAD_REQUEST)
+			except PongUser.DoesNotExist:
+				return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+		return Response({"error": "No pending user data found"}, status=status.HTTP_400_BAD_REQUEST)
 
 class check_token(APIView):
 	def get(self, request, *args, **kwargs):
