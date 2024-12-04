@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-const WS_URL = 'ws://localhost:8000/ws/pong/';
+const WS_URL = 'ws://10.15.186.10:8000/ws/pong/';
 
 export const PingPongCanvas: React.FC = () => {
   const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
@@ -15,19 +15,20 @@ export const PingPongCanvas: React.FC = () => {
 
   const websocketRef = useRef<WebSocket | null>(null);
 
+  // Generate a unique key per browser tab
   const uniqueKey = useRef<string>(sessionStorage.getItem('uniqueKey') || uuidv4());
 
   useEffect(() => {
-	  if (!sessionStorage.getItem('uniqueKey')) {
-		  sessionStorage.setItem('uniqueKey', uniqueKey.current);
-	  }
-  }, []);  
+    if (!sessionStorage.getItem('uniqueKey')) {
+      sessionStorage.setItem('uniqueKey', uniqueKey.current);
+    }
+  }, []);
 
   useEffect(() => {
     const connectWebSocket = () => {
-		// Correct usage of uniqueKey
-		const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey.current}`);
-		console.log(uniqueKey.current);
+      // Correct usage of uniqueKey
+      const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey.current}`);
+      console.log('Connecting with key:', uniqueKey.current);
 
       websocketRef.current = websocket;
 
@@ -61,12 +62,12 @@ export const PingPongCanvas: React.FC = () => {
         console.error('WebSocket error:', error);
       };
 
-	  websocket.onclose = (event) => {
-		if (event.code !== 1000) {
-			console.log(`WebSocket disconnected unexpectedly. Retrying in 5 seconds...`);
-			setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
-		}
-		};	
+      websocket.onclose = (event) => {
+        if (event.code !== 1000) {
+          console.log(`WebSocket disconnected unexpectedly. Retrying in 5 seconds...`);
+          setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
+        }
+      };
     };
 
     connectWebSocket();
@@ -84,7 +85,7 @@ export const PingPongCanvas: React.FC = () => {
       return;
     }
 
-    if (assignedPaddle === 'a' && (event.key === 'w' || event.key === 's')) {
+    if (assignedPaddle === 'a' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
       websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
     } else if (assignedPaddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
       websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));

@@ -3,16 +3,37 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asyncio import create_task, sleep
 from urllib.parse import parse_qs
 
-class PongConsumer(AsyncWebsocketConsumer):
-    paddles = {"a": 240, "b": 240}
-    ball = {"x": 462, "y": 278, "dx": 1, "dy": 1}
-    score = {"a": 0, "b": 0}
-    MAX_SCORE = 3
-    players = {}  # Track WebSocket connections (socket -> paddle)
-    browser_keys = set()  # Track unique browser keys
-    game_started = False
+class Game:
+    instance = None
 
+    def __init__(self):
+        self.paddles = {"a": 240, "b": 240}
+        self.ball = {"x": 462, "y": 278, "dx": 1, "dy": 1}
+        self.score = {"a": 0, "b": 0}
+        self.MAX_SCORE = 3
+        self.players = {}  # Map from paddle to browser_key
+        self.game_started = False
+
+    @classmethod
+    def get_instance(cls):
+        if not cls.instance:
+            cls.instance = Game()
+        return cls.instance
+
+    def reset_ball(self):
+        self.ball = {"x": 462, "y": 278, "dx": -1 if self.ball["dx"] > 0 else 1, "dy": 1}
+
+    def reset_game(self):
+        self.paddles = {"a": 240, "b": 240}
+        self.score = {"a": 0, "b": 0}
+        self.reset_ball()
+        self.game_started = False
+
+game = Game.get_instance()
+
+class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        # Get browser_key from query params
         query_params = parse_qs(self.scope["query_string"].decode())
         browser_key = query_params.get("key", [None])[0]
 
@@ -21,27 +42,38 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        if browser_key in PongConsumer.browser_keys:
-            print(f"Connection rejected: Duplicate key {browser_key}. Current browser_keys: {PongConsumer.browser_keys}")
+        # Check if the browser_key is already in use
+        if browser_key in game.players.values():
+            print(f"Connection rejected: Duplicate key {browser_key}.")
             await self.close()
             return
 
-        if len(PongConsumer.players) < 2:
-            paddle = "a" if "a" not in PongConsumer.players.values() else "b"
-            PongConsumer.players[self] = paddle
-            PongConsumer.browser_keys.add(browser_key)
+        # Assign paddle
+        if len(game.players) < 2:
+            if 'a' not in game.players:
+                self.paddle = 'a'
+            else:
+                self.paddle = 'b'
+
+            game.players[self.paddle] = browser_key
+            self.browser_key = browser_key
 
             await self.accept()
-            await self.send(json.dumps({"type": "assignPaddle", "paddle": paddle}))
-            print(f"Player connected: {paddle} with key {browser_key}")
-            print(f"Current players: {PongConsumer.players}")
+            await self.send(json.dumps({"type": "assignPaddle", "paddle": self.paddle}))
+            print(f"Player connected: {self.paddle} with key {browser_key}")
 
-            await self.broadcast(
-                {"type": "playersConnected", "count": len(PongConsumer.players)}
+            await self.channel_layer.group_add('players', self.channel_name)
+
+            await self.channel_layer.group_send(
+                'players',
+                {
+                    'type': 'players_connected',
+                    'count': len(game.players)
+                }
             )
 
-            if len(PongConsumer.players) == 2 and not PongConsumer.game_started:
-                PongConsumer.game_started = True
+            if len(game.players) == 2 and not game.game_started:
+                game.game_started = True
                 print("Game started!")
                 create_task(self.update_ball())
                 create_task(self.broadcast_game_state())
@@ -50,46 +82,42 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     async def disconnect(self, close_code):
-        query_params = parse_qs(self.scope["query_string"].decode())
-        browser_key = query_params.get("key", [None])[0]
+        # Remove player
+        if hasattr(self, 'paddle') and self.paddle in game.players:
+            del game.players[self.paddle]
+            print(f"Player {self.paddle} with key {self.browser_key} disconnected.")
 
-        if browser_key in PongConsumer.browser_keys:
-            PongConsumer.browser_keys.discard(browser_key)
-            print(f"Removed browser key {browser_key} on disconnect.")
+            game.game_started = False  # Stop the game if a player disconnects
 
-        if self in PongConsumer.players:
-            paddle = PongConsumer.players.pop(self)
-            print(f"Player {paddle} with key {browser_key} disconnected.")
+            await self.channel_layer.group_discard('players', self.channel_name)
 
-        PongConsumer.game_started = False  # Stop the game if a player disconnects
-
-        await self.broadcast(
-            {"type": "playersConnected", "count": len(PongConsumer.players)}
-        )
+            await self.channel_layer.group_send(
+                'players',
+                {
+                    'type': 'players_connected',
+                    'count': len(game.players)
+                }
+            )
 
     async def receive(self, text_data):
-        # Handle paddle movements
         data = json.loads(text_data)
-        paddle = PongConsumer.players.get(self)  # Get player's assigned paddle
+        if data["type"] == "paddleMove" and hasattr(self, 'paddle'):
+            if data["key"] in ["w", "s"] and self.paddle == "a":
+                game.paddles["a"] += -10 if data["key"] == "w" else 10
+            elif data["key"] in ["ArrowUp", "ArrowDown"] and self.paddle == "b":
+                game.paddles["b"] += -10 if data["key"] == "ArrowUp" else 10
 
-        if data["type"] == "paddleMove" and paddle:
-            if data["key"] in ["w", "s"] and paddle == "a":
-                PongConsumer.paddles["a"] += -10 if data["key"] == "w" else 10
-            elif data["key"] in ["ArrowUp", "ArrowDown"] and paddle == "b":
-                PongConsumer.paddles["b"] += -10 if data["key"] == "ArrowUp" else 10
+    async def players_connected(self, event):
+        await self.send(text_data=json.dumps({"type": "playersConnected", "count": event['count']}))
 
-    @classmethod
-    async def broadcast(cls, message):
-        # Broadcast message to all connected players
-        for player in cls.players.keys():
-            await player.send(text_data=json.dumps(message))
+    async def send_update(self, event):
+        await self.send(text_data=json.dumps(event['message']))
 
     async def update_ball(self):
-        # Update ball position and handle collisions
-        while PongConsumer.game_started:
-            ball = PongConsumer.ball
-            paddles = PongConsumer.paddles
-            score = PongConsumer.score
+        while game.game_started:
+            ball = game.ball
+            paddles = game.paddles
+            score = game.score
 
             ball["x"] += ball["dx"] * 5
             ball["y"] += ball["dy"] * 5
@@ -107,38 +135,40 @@ class PongConsumer(AsyncWebsocketConsumer):
             # Check for goals
             if ball["x"] < 0:
                 score["b"] += 1
-                self.reset_ball()
+                game.reset_ball()
             elif ball["x"] > 924:
                 score["a"] += 1
-                self.reset_ball()
+                game.reset_ball()
 
             # Check for game over
-            if score["a"] >= PongConsumer.MAX_SCORE or score["b"] >= PongConsumer.MAX_SCORE:
-                winner = "a" if score["a"] >= PongConsumer.MAX_SCORE else "b"
-                await self.broadcast({"type": "gameOver", "winner": winner})
-                self.reset_game()
+            if score["a"] >= game.MAX_SCORE or score["b"] >= game.MAX_SCORE:
+                winner = "a" if score["a"] >= game.MAX_SCORE else "b"
+                await self.channel_layer.group_send(
+                    'players',
+                    {
+                        'type': 'game_over',
+                        'winner': winner
+                    }
+                )
+                game.reset_game()
 
             await sleep(0.02)
 
     async def broadcast_game_state(self):
-        # Broadcast the game state periodically
-        while PongConsumer.game_started:
-            await self.broadcast({
-                "type": "update",
-                "paddles": PongConsumer.paddles,
-                "ball": PongConsumer.ball,
-                "score": PongConsumer.score,
-            })
-            await sleep(0.005)
+        while game.game_started:
+            await self.channel_layer.group_send(
+                'players',
+                {
+                    'type': 'send_update',
+                    'message': {
+                        "type": "update",
+                        "paddles": game.paddles,
+                        "ball": game.ball,
+                        "score": game.score,
+                    }
+                }
+            )
+            await sleep(0.02)
 
-    @staticmethod
-    def reset_ball():
-        # Reset ball to center
-        PongConsumer.ball = {"x": 462, "y": 278, "dx": -1 if PongConsumer.ball["dx"] > 0 else 1, "dy": 1}
-
-    @staticmethod
-    def reset_game():
-        # Reset game state
-        PongConsumer.paddles = {"a": 240, "b": 240}
-        PongConsumer.score = {"a": 0, "b": 0}
-        PongConsumer.reset_ball()
+    async def game_over(self, event):
+        await self.send(text_data=json.dumps({"type": "gameOver", "winner": event['winner']}))
