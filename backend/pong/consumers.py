@@ -49,10 +49,10 @@ class Game:
         if browser_key in self.connections:
             old_connection = self.connections[browser_key]
             print(f"Replacing old connection for key {browser_key}")
+            old_connection.replaced = True  # Set flag to prevent removal
             await old_connection.close()
-
-        # Assign paddle if not already assigned
-        if browser_key not in self.players.values():
+        else:
+            # Assign paddle if not already assigned
             if len(self.players) < 2:
                 paddle = "a" if "a" not in self.players else "b"
                 self.players[paddle] = browser_key
@@ -60,8 +60,6 @@ class Game:
                 print("Game full.")
                 await consumer.close()
                 return
-        else:
-            # Reconnect existing paddle
             paddle = next(
                 key for key, value in self.players.items() if value == browser_key
             )
@@ -276,6 +274,8 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
+        self.replaced = False  # Initialize the replaced flag
+
         game = await game_manager.add_player(self, browser_key)
         if game:
             self.game_id = game.game_id
@@ -284,6 +284,11 @@ class PongConsumer(AsyncWebsocketConsumer):
             print(f"Player with key {browser_key} is waiting for an opponent.")
 
     async def disconnect(self, close_code):
+        if getattr(self, 'replaced', False):
+            # Disconnection due to replacement; do not remove player
+            print(f"Connection for key {self.browser_key} was replaced. Skipping removal.")
+            return
+
         if hasattr(self, "browser_key"):
             await game_manager.remove_player(self.browser_key)
 
