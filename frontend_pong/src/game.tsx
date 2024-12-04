@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-
-const WS_URL = 'ws://localhost:8000/ws/pong/';
+import websocket from './websocket'; // Adjust the path accordingly
 
 export const PingPongCanvas: React.FC = () => {
   const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
@@ -10,22 +9,15 @@ export const PingPongCanvas: React.FC = () => {
   const [score, setScore] = useState<{ a: number; b: number }>({ a: 0, b: 0 });
   const [gamePaused, setGamePaused] = useState<boolean>(true);
   const [gameOver, setGameOver] = useState<boolean>(false);
-  const [playersConnected, setPlayersConnected] = useState<number>(0);
   const [assignedPaddle, setAssignedPaddle] = useState<'a' | 'b' | null>(null);
+  const [gamesInfo, setGamesInfo] = useState<Array<{ game_id: string; players: number }>>([]);
+  const [gameId, setGameId] = useState<string | null>(null);
+  const [opponentDisconnected, setOpponentDisconnected] = useState<boolean>(false);
 
-  const websocketRef = useRef<WebSocket | null>(null);
-
-  // Generate a unique key per browser tab
-  const uniqueKey = useRef<string>(sessionStorage.getItem('uniqueKey') || uuidv4());
+  const websocketRef = useRef<WebSocket | null>(websocket);
 
   // Create a ref to hold the latest value of assignedPaddle
   const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
-
-  useEffect(() => {
-    if (!sessionStorage.getItem('uniqueKey')) {
-      sessionStorage.setItem('uniqueKey', uniqueKey.current);
-    }
-  }, []);
 
   // Update the ref whenever assignedPaddle changes
   useEffect(() => {
@@ -34,8 +26,7 @@ export const PingPongCanvas: React.FC = () => {
 
   useEffect(() => {
     const connectWebSocket = () => {
-      const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey.current}`);
-      console.log('Connecting with key:', uniqueKey.current);
+      console.log('Connecting with key:', websocketRef.current);
 
       websocketRef.current = websocket;
 
@@ -46,11 +37,17 @@ export const PingPongCanvas: React.FC = () => {
         if (data.type === 'assignPaddle') {
           console.log('Assigned paddle:', data.paddle);
           setAssignedPaddle(data.paddle);
+          setGameId(data.game_id);
+          setGamePaused(false);
+          setOpponentDisconnected(false); // Reset opponentDisconnected status
         }
 
-        if (data.type === 'playersConnected') {
-          setPlayersConnected(data.count);
-          setGamePaused(data.count < 2);
+        if (data.type === 'gamesInfo') {
+          setGamesInfo(data.games);
+        }
+
+        if (data.type === 'waitingForOpponent') {
+          setGamePaused(true);
         }
 
         if (data.type === 'update') {
@@ -62,6 +59,11 @@ export const PingPongCanvas: React.FC = () => {
 
         if (data.type === 'gameOver') {
           setGameOver(true);
+          setGamePaused(true);
+        }
+
+        if (data.type === 'opponentDisconnected') {
+          setOpponentDisconnected(true);
           setGamePaused(true);
         }
       };
@@ -96,9 +98,9 @@ export const PingPongCanvas: React.FC = () => {
     const paddle = assignedPaddleRef.current;
 
     if (paddle === 'a' && (event.key === 'w' || event.key === 's')) {
-      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
+      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key, paddle }));
     } else if (paddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
-      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
+      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key, paddle }));
     }
   };
 
@@ -108,7 +110,7 @@ export const PingPongCanvas: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, []); // Empty dependency array to add the listener only once
+  }, []);
 
   return (
     <div className="pong">
@@ -119,13 +121,14 @@ export const PingPongCanvas: React.FC = () => {
           <div className="ball" style={{ left: `${ballPosition.x}px`, top: `${ballPosition.y}px` }} />
           <div className="overlap">
             <div className="scoreboard" />
-            <div className="score">{score.a} - {score.b}</div>
+            <div className="score">
+              {score.a} - {score.b}
+            </div>
           </div>
         </div>
         {gamePaused && (
           <div className="game-paused">
-            <h2>{playersConnected < 2 ? 'Waiting for another player...' : 'Game Paused'}</h2>
-            <p>Players connected: {playersConnected}/2</p>
+            <h2>Waiting for another player...</h2>
           </div>
         )}
         {gameOver && (
@@ -136,8 +139,24 @@ export const PingPongCanvas: React.FC = () => {
         {assignedPaddle && (
           <div className="player-info">
             <h3>You are controlling Paddle {assignedPaddle.toUpperCase()}</h3>
+            {gameId && <p>Game ID: {gameId}</p>}
           </div>
         )}
+        {opponentDisconnected && (
+          <div className="game-over">
+            <h2>Your opponent has disconnected.</h2>
+          </div>
+        )}
+        <div className="games-info">
+          <h3>Current Matches:</h3>
+          <ul>
+            {gamesInfo.map((game) => (
+              <li key={game.game_id}>
+                Game ID: {game.game_id}, Players: {game.players}/2
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
