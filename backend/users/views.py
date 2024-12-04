@@ -1,8 +1,8 @@
 from django.http import Http404
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
-from .models import PongUser, OTP
-from .serializers import UserSerializer, LoginSerializer
+from .models import PongUser, OTP, FriendRequest
+from .serializers import UserSerializer, LoginSerializer, AcceptFriendRequestSerializer ,FriendRequestSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
@@ -179,17 +179,17 @@ class verify_otp(APIView):
 		except PongUser.DoesNotExist:
 			return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-class check_token(APIView):
-	def get(self, request, *args, **kwargs):
-	#check for token in request cookies
-		access_token = request.COOKIES.get('access_token')
-		if not access_token:
-			return Response({"error": "No token provided"}, status=status.HTTP_401_UNAUTHORIZED)
-		try:
-			AccessToken(access_token)
-		except Exception as e:
-				return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-		return Response({"message": "Valid token"}, status=status.HTTP_200_OK)
+# class check_token(APIView):
+# 	def get(self, request, *args, **kwargs):
+# 	#check for token in request cookies
+# 		access_token = request.COOKIES.get('access_token')
+# 		if not access_token:
+# 			return Response({"error": "No token provided"}, status=status.HTTP_401_UNAUTHORIZED)
+# 		try:
+# 			AccessToken(access_token)
+# 		except Exception as e:
+# 				return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+# 		return Response({"message": "Valid token"}, status=status.HTTP_200_OK)
 
 class get_logged_in_user(APIView):
 	def get(self, request):
@@ -216,3 +216,23 @@ class user_detail(APIView):
 			serializer.save()
 			return Response(serializer.data, status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@csrf_exempt	
+def send_friend_request(request, userID):
+	sender = request.user
+	receiver = get_object_or_404(PongUser, pk=userID)
+	friend_request, created = FriendRequest.objects.get_or_create(sender = sender, receiver = receiver)
+	if created:
+		return Response("friend request send")
+	else:
+		return Response("friend request already send")
+	
+def check_token(request):
+		access_token = request.COOKIES.get('access_token')
+		if not access_token:
+			return Response({"error": "No token provided"}, status=status.HTTP_401_UNAUTHORIZED)
+		try:
+			AccessToken(access_token)
+		except Exception as e:
+				return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+		return Response({"message": "Valid token"}, status=status.HTTP_200_OK)

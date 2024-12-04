@@ -19,8 +19,14 @@ class PongUser(AbstractUser):
 class FriendRequest(models.Model):
 	sender = models.ForeignKey(PongUser, related_name="sent_requests", on_delete=models.CASCADE)
 	receiver = models.ForeignKey(PongUser, related_name="received_requests", on_delete=models.CASCADE)
-	created_at = models.DateTimeField(auto_now_add=True)
-	is_accepted = models.BooleanField(default=False)
+	createdAt = models.DateTimeField(auto_now_add=True)
+	isAccepted = models.BooleanField(default=False)
+
+	class Meta:
+		unique_together = ["sender", "receiver"]
+	
+	def __str__(self):
+		return f"friend request: {self.sender} -> {self.receiver} | Accepted: {self.isAccepted}"
 
 class OTP(models.Model):
 	user = models.ForeignKey(PongUser, on_delete=models.CASCADE, related_name='otp_codes')

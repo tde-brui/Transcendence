@@ -7,10 +7,11 @@ urlpatterns = [
 	path('register/', views.user_register.as_view()),
 	path('<int:pk>/', views.user_detail.as_view()),
 	path('verify_otp/', views.verify_otp.as_view()),
-	path('auth/verify/', views.check_token.as_view()),
+	# path('auth/verify/', views.check_token.as_view()),
 	path('me/', views.get_logged_in_user.as_view()),
 	path('42_login/', views.user_42_login),
 	path('42_callback/', views.user_42_callback),
+	path('send_friend_request/<int:userId>/', views.send_friend_request),
 ]
 
 #for development only
