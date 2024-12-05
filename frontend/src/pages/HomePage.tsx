@@ -26,7 +26,7 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
         setUser(response.data);
 		setUsername(response.data.username);
       } catch (error) {
-        // console.error("Failed to fetch user data", error);
+        console.error("Failed to fetch user data", error);
         setError((error as Error).message);
       }
     };
@@ -35,7 +35,7 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   }, [userId]);
 
 //   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!user) return <div className="text-center mt-5">Loading...</div>;
+  if (!user) return <div className="text-center mt-5">Test</div>;
 
   return (
     <div className="container">

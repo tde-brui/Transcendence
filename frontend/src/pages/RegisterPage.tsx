@@ -37,7 +37,7 @@ const RegisterPage: React.FC<UserProfileProps> = ({
   });
 
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [otpUserId, setOtpUserId] = useState<number | null>(null);
+  const [otpUserEmail, setOtpUserEmail] = useState<string | null>(null);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<"success" | "error" | null>(null);
 
@@ -132,12 +132,11 @@ const RegisterPage: React.FC<UserProfileProps> = ({
         setAlertMessage("Registration successful!");
         setAlertType("success");
         setTimeout(() => navigate("/"), 1000);
-      } else if (response.status === 202 && response.data?.user_id) {
+      } else if (response.status === 202 && response.data?.email) {
+        const userEmail = response.data.email;
         setAlertMessage("OTP sent to your email.");
         setAlertType("success");
-        const userId = response.data.user_id;
-        setUserId(userId);
-        setOtpUserId(userId);
+        setOtpUserEmail(userEmail);
         setIsOtpSent(true);
       }
     } catch (error) {
@@ -297,7 +296,7 @@ const RegisterPage: React.FC<UserProfileProps> = ({
           </div>
         </div>
       ) : (
-        otpUserId !== null && <OTPBoxed userId={otpUserId} />
+        otpUserEmail !== null && <OTPBoxed email={otpUserEmail} />
       )}
     </div>
   );

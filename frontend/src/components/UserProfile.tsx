@@ -36,7 +36,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const userId = await getCurrentUser();
-      setCurrentUser(userId);
+      setCurrentUser(2);
     };
 
     fetchCurrentUser();

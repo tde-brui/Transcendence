@@ -29,7 +29,7 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   });
 
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [otpUserId, setOtpUserId] = useState<number | null>(null);
+  const [otpUserEmail, setOtpUserEmail] = useState<string | null>(null);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<"success" | "error" | null>(null);
 
@@ -85,10 +85,9 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
         setAlertMessage("Login successful!");
         setAlertType("success");
         setTimeout(() => navigate("/"), 500);
-      } else if (response.status === 202 && response.data?.user_id) {
-        const userId = response.data.user_id;
-        setUserId(userId);
-        setOtpUserId(userId);
+      } else if (response.status === 202 && response.data?.email) {
+        const userEmail = response.data.email;
+        setOtpUserEmail(userEmail);
         setIsOtpSent(true);
         setAlertMessage("OTP sent to your email.");
         setAlertType("success");
@@ -190,7 +189,7 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
           </div>
         </div>
       ) : (
-        otpUserId !== null && <OTPBoxed userId={otpUserId} />
+        otpUserEmail !== null && <OTPBoxed email={otpUserEmail} />
       )}
     </div>
   );

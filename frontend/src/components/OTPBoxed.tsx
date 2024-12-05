@@ -1,37 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "./AuthContext";
 
 interface OTPBoxedProps {
-  userId: number;
+  email: string;
 }
 
-const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
-  const [email, setEmail] = useState<string>("");
+const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [error, setError] = useState<string | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
+  const { setUserId } = useAuth();
 
-  useEffect(() => {
-    const fetchEmail = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8000/users/${userId}/`
-        );
-        if (response.status === 200 && response.data.email) {
-          setEmail(response.data.email);
-        } else {
-          throw new Error("Failed to fetch user email.");
-        }
-      } catch (err) {
-        setError("Error fetching user email.");
-        console.error(err);
-      }
-    };
-
-    fetchEmail();
-  }, [userId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -62,8 +44,7 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
 
   const handleResendCode = async () => {
     try {
-      await axios.post(`http://localhost:8000/resend_otp/`, {
-        user_id: userId,
+      await axios.post(`http://localhost:8000/users/resend_otp/`, {
       });
       alert("A new OTP has been sent!");
     } catch (err) {
@@ -84,12 +65,13 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
       const response = await axios.post(
         `http://localhost:8000/users/verify_otp/`,
         {
-          user_id: userId,
           otp_code: fullOtp,
         }
       );
       console.error("response:", response);
-      if (response.status === 200) {
+      if (response.status === 200 && response.data?.user_id) {
+        const userId = response.data.user_id;
+        setUserId(userId);
         navigate("/");
       } else {
         throw new Error("OTP verification failed.");

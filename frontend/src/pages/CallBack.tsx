@@ -20,7 +20,8 @@ const CallbackPage: React.FC = () => {
   }, [statusCode, navigate]);
 
   if (statusCode === "202") {
-    return <OTPBoxed userId={Number(userId)} />;
+    
+    return <OTPBoxed email="test" />;
   }
 
   return (
