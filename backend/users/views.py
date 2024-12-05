@@ -11,11 +11,11 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import status, viewsets, generics
 from django.shortcuts import get_object_or_404
-from rest_framework import status
 from django.http import HttpResponseRedirect
 from rest_framework.renderers import JSONRenderer
 from django.db import IntegrityError
 import requests
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 class get_users(APIView):
 	def get(self, request, *args, **kwargs):
@@ -24,6 +24,7 @@ class get_users(APIView):
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
 class user_register(APIView):
+	permission_classes = [AllowAny]
 	def post(self, request, *args, **kwargs):
 		serializer = UserSerializer(data=request.data)
 		if serializer.is_valid():
@@ -33,6 +34,7 @@ class user_register(APIView):
 
 class user_login(APIView):
 	#logs a user in
+	permission_classes = [AllowAny]
 	def post(self, request, *args, **kwargs):
 		serializer = LoginSerializer(data=request.data)
 		if serializer.is_valid():
@@ -179,30 +181,10 @@ class verify_otp(APIView):
 		except PongUser.DoesNotExist:
 			return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-# class check_token(APIView):
-# 	def get(self, request, *args, **kwargs):
-# 	#check for token in request cookies
-# 		access_token = request.COOKIES.get('access_token')
-# 		if not access_token:
-# 			return Response({"error": "No token provided"}, status=status.HTTP_401_UNAUTHORIZED)
-# 		try:
-# 			AccessToken(access_token)
-# 		except Exception as e:
-# 				return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-# 		return Response({"message": "Valid token"}, status=status.HTTP_200_OK)
-
 class get_logged_in_user(APIView):
 	def get(self, request):
-		token = request.COOKIES.get('access_token')
-		if not token:
-			return Response({"error": "No access token provided"}, status=status.HTTP_401_UNAUTHORIZED)
-		try:
-			decoded_token = AccessToken(token)
-			user_id = decoded_token['user_id']
-			# You can fetch more user data from the database if needed
-			return Response({"user_id": user_id})
-		except Exception as e:
-			return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+		user_id = request.user.id
+		return Response({"user_id": user_id})
 
 class user_detail(APIView):
 	def get(self, request, pk, *args, **kwargs):
@@ -217,22 +199,13 @@ class user_detail(APIView):
 			return Response(serializer.data, status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@csrf_exempt	
-def send_friend_request(request, userID):
-	sender = request.user
-	receiver = get_object_or_404(PongUser, pk=userID)
-	friend_request, created = FriendRequest.objects.get_or_create(sender = sender, receiver = receiver)
-	if created:
-		return Response("friend request send")
-	else:
-		return Response("friend request already send")
+class send_friend_request(APIView):
+	def post(self, request, userID):
+		sender = request.user
+		receiver = get_object_or_404(PongUser, pk=userID)
+		friend_request, created = FriendRequest.objects.get_or_create(sender=sender, receiver=receiver)
+		if created:
+			return Response("friend request send")
+		else:
+			return Response("friend request already send")
 	
-def check_token(request):
-		access_token = request.COOKIES.get('access_token')
-		if not access_token:
-			return Response({"error": "No token provided"}, status=status.HTTP_401_UNAUTHORIZED)
-		try:
-			AccessToken(access_token)
-		except Exception as e:
-				return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-		return Response({"message": "Valid token"}, status=status.HTTP_200_OK)
