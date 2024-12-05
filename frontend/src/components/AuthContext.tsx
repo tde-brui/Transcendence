@@ -62,9 +62,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
-      await axios.get("users/auth/logout/");
-      setIsAuthenticated(false);
-      setUserId(-1);
+      const response = await axios.delete("users/auth/logout/");
+      if (response.status === 200) {
+        setIsAuthenticated(false);
+        setUserId(-1);
+      }
 	  console.log("Logout successful");
     } catch (error) {
       console.error("Logout failed:", error);
