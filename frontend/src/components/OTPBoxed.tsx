@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import axiosInstance from "./AxiosInstance";
 import { useAuth } from "./AuthContext";
 
 interface OTPBoxedProps {
@@ -62,8 +63,8 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
     }
 
     try {
-      const response = await axios.post(
-        `http://localhost:8000/users/verify_otp/`,
+      const response = await axiosInstance.post(
+        `/users/verify_otp/`,
         {
           otp_code: fullOtp,
         }
