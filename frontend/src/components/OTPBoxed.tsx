@@ -11,6 +11,8 @@ interface OTPBoxedProps {
 const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [error, setError] = useState<string | null>(null);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertType, setAlertType] = useState<"success" | "error" | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
   const { setUserId } = useAuth();
@@ -74,11 +76,16 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
         const userId = response.data.user_id;
         setUserId(userId);
         navigate("/");
+      } 
+      else if (response.status === 400) {
+         setAlertMessage("Invalid OTP or verification failed.");
+        setAlertType("error");
       } else {
         throw new Error("OTP verification failed.");
       }
     } catch (err) {
-      setError("Invalid OTP or verification failed.");
+      setAlertMessage("Error verifying OTP.");
+      setAlertType("error");
       console.error(err);
     }
   };
@@ -105,6 +112,19 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
             <strong>{maskedEmail}</strong>. Enter the code to log in.
           </p>
           <form onSubmit={handleSubmit} noValidate>
+          <div className="card-body">
+            {/* Alert Box */}
+            {alertMessage && (
+              <div
+                className={`alert ${
+                  alertType === "success" ? "alert-success" : "alert-danger"
+                } text-center`}
+              >
+                {alertMessage}
+              </div>
+              )}
+              </div>
+          
             <div className="otp-container">
               {otp.map((digit, index) => (
                 <input
