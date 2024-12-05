@@ -19,11 +19,19 @@ class PongUser(AbstractUser):
 class FriendRequest(models.Model):
 	sender = models.ForeignKey(PongUser, related_name="sent_requests", on_delete=models.CASCADE)
 	receiver = models.ForeignKey(PongUser, related_name="received_requests", on_delete=models.CASCADE)
-	created_at = models.DateTimeField(auto_now_add=True)
-	is_accepted = models.BooleanField(default=False)
+	createdAt = models.DateTimeField(auto_now_add=True)
+	isAccepted = models.BooleanField(default=False)
+
+	class Meta:
+		unique_together = ["sender", "receiver"]
+	
+	def __str__(self):
+		return f"friend request: {self.sender} -> {self.receiver} | Accepted: {self.isAccepted}"
 
 class OTP(models.Model):
-	user = models.ForeignKey(PongUser, on_delete=models.CASCADE, related_name='otp_codes')
+
+	email = models.EmailField()
+
 	code = models.CharField(max_length=6)
 	created_at = models.DateTimeField(auto_now_add=True)
 	expires_at = models.DateTimeField()
@@ -32,10 +40,10 @@ class OTP(models.Model):
 		return timezone.now() > self.expires_at
 	
 	@staticmethod
-	def generate_code(user):
+	def generate_code(email):
 		code = random.randint(100000, 999999)
 		expires_at = timezone.now() + timezone.timedelta(minutes=5)
-		otp = OTP.objects.create(user=user, code=code, expires_at=expires_at)
+		otp = OTP.objects.create(email=email, code=code, expires_at=expires_at)
 		return otp
 	def __str__(self):
-		return f'OTP for {self.user.username} - Code: {self.code} - Expires at: {self.expires_at}' 
+		return f'OTP for {self.email}: {self.code} - Expires at {self.expires_at}' 

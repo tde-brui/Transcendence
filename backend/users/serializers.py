@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import PongUser
+from .models import PongUser, FriendRequest
 
 class UserSerializer(serializers.ModelSerializer):
 	password = serializers.CharField(write_only=True)
@@ -29,3 +29,14 @@ class UserSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
 	username = serializers.CharField()
 	password = serializers.CharField(write_only=True)
+
+class FriendRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['id', 'sender', 'receiver', 'createdAt', 'isAccepted']
+        read_only_fields = ['id', 'createdAt', 'isAccepted']
+
+class AcceptFriendRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['isAccepted']
