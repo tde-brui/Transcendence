@@ -8,10 +8,16 @@ class PongUser(AbstractUser):
 	twoFactorEnabled = models.BooleanField(default=False)
 	firstName = models.CharField(blank=True, max_length=100)
 	avatar = models.ImageField(upload_to="avatars/", default="avatars/default.png")
-	friends = models.ManyToManyField("self", blank=True)
+	friends = models.ManyToManyField("self", blank=True, symmetrical=True)
 	onlineStatus = models.BooleanField(default=False)
 	# match_history = models.CharField(blank=True)
 	oauth_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+
+	def add_friend(self, friend):
+		self.friends.add(friend)
+
+	def remove_friend(self, friend):
+		self.friends.remove(friend)
 
 	def __str__(self):
 		return self.username
@@ -20,7 +26,6 @@ class FriendRequest(models.Model):
 	sender = models.ForeignKey(PongUser, related_name="sent_requests", on_delete=models.CASCADE)
 	receiver = models.ForeignKey(PongUser, related_name="received_requests", on_delete=models.CASCADE)
 	createdAt = models.DateTimeField(auto_now_add=True)
-	isAccepted = models.BooleanField(default=False)
 
 	class Meta:
 		unique_together = ["sender", "receiver"]

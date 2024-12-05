@@ -33,10 +33,5 @@ class LoginSerializer(serializers.Serializer):
 class FriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
-        fields = ['id', 'sender', 'receiver', 'createdAt', 'isAccepted']
-        read_only_fields = ['id', 'createdAt', 'isAccepted']
-
-class AcceptFriendRequestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FriendRequest
-        fields = ['isAccepted']
+        fields = ['id', 'sender', 'receiver', 'createdAt']
+        read_only_fields = ['id', 'createdAt']

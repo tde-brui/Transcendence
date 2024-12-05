@@ -10,7 +10,9 @@ urlpatterns = [
 	path('me/', views.get_logged_in_user.as_view()),
 	path('42_login/', views.user_42_login),
 	path('42_callback/', views.user_42_callback),
-	path('send_friend_request/<int:pk>/', views.send_friend_request.as_view()),
+	path('send_friend_request/<int:userId>/', views.send_friend_request.as_view()),
+    path('accept_friend_request/<int:requestId>/', views.accept_friend_request.as_view()),
+    path('friend_requests/', views.get_friend_requests.as_view())
 ]
 
 #for development only
