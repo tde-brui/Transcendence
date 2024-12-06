@@ -1,8 +1,9 @@
 from django.http import Http404
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
-from .models import PongUser, OTP, FriendRequest
-from .serializers import UserSerializer, LoginSerializer, FriendRequestSerializer
+from .models import PongUser, OTP
+from friends.models import FriendRequest
+from .serializers import UserSerializer, LoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
@@ -219,38 +220,6 @@ class user_detail(APIView):
 			serializer.save()
 			return Response(serializer.data, status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class send_friend_request(APIView):
-	permission_classes = [AllowAny]
-	def post(self, request, userId):
-		sender = request.user
-		receiver = get_object_or_404(PongUser, pk=userId)
-		if sender == receiver:
-			return Response("Sender cannot be the same as reciever", status=status.HTTP_400_BAD_REQUEST)
-		friend_request, created = FriendRequest.objects.get_or_create(sender=sender, receiver=receiver)
-		if created:
-			friend_request.save()
-			return Response("friend request send", status=status.HTTP_200_OK)
-		else:
-			return Response("friend request already send", status=status.HTTP_400_BAD_REQUEST)
-		
-class accept_friend_request(APIView):
-	permission_classes = [AllowAny]
-	def patch(self, request, requestId):
-		friend_request = get_object_or_404(FriendRequest, pk=requestId)
-		if friend_request.receiver != request.user:
-			return Response("Friend request can only be accepted by the receiver", status=status.HTTP_403_FORBIDDEN)
-		friend_request.isAccepted = True
-		request.user.add_friend(friend_request.sender)
-		friend_request.delete()
-		return Response("friend request accepted")
-
-class get_friend_requests(APIView):
-	permission_classes = [AllowAny]
-	def get(self, request, *args, **kwargs):
-		friendRequests = FriendRequest.objects.all()
-		serializer = FriendRequestSerializer(friendRequests, many=True)
-		return Response(serializer.data, status=status.HTTP_200_OK)
 	
 def logout(request):
 	response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/")

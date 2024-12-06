@@ -53,6 +53,7 @@ ALLOWED_HOSTS = [
 INSTALLED_APPS = [
 	'corsheaders',
 	'users',
+	'friends',
 	'rest_framework',
 	'rest_framework_simplejwt',
     'django.contrib.admin',
