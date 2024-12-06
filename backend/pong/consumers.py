@@ -156,24 +156,23 @@ class PongConsumer(AsyncWebsocketConsumer):
             game = self.game
             # Handle starting movement
             if data["type"] == "paddleMove":
-                if self.paddle == "a":
-                    if data["key"] == "w":
+                if data["key"] == "up":
+                    if self.paddle == "a":
                         game.paddle_directions["a"] = -1
-                    elif data["key"] == "s":
-                        game.paddle_directions["a"] = 1
-                elif self.paddle == "b":
-                    if data["key"] == "ArrowUp":
+                    elif self.paddle == "b":
                         game.paddle_directions["b"] = -1
-                    elif data["key"] == "ArrowDown":
+                elif data["key"] == "down":
+                    if self.paddle == "a":
+                        game.paddle_directions["a"] = 1
+                    elif self.paddle == "b":
                         game.paddle_directions["b"] = 1
-
-            # Handle stopping movement
             elif data["type"] == "paddleStop":
-                # Reset direction to 0 so the paddle doesn't keep moving
                 if self.paddle == "a":
                     game.paddle_directions["a"] = 0
                 elif self.paddle == "b":
                     game.paddle_directions["b"] = 0
+
+
 
 
 

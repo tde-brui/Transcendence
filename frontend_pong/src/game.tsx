@@ -15,11 +15,8 @@ export const PingPongCanvas: React.FC = () => {
 
   const websocketRef = useRef<WebSocket | null>(null);
 
-  // const uniqueKey = 'alex'
   const urlParams = new URLSearchParams(window.location.search);
   const uniqueKey = urlParams.get('key') || 'defaultKey';
-  //Tab 1: http://localhost:3000?key=alex
-  //Tab 2: http://localhost:3000?key=bob
 
   const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
 
@@ -86,23 +83,20 @@ export const PingPongCanvas: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
-      const paddle = assignedPaddleRef.current;
 
-      if (paddle === 'a' && (event.key === 'w' || event.key === 's')) {
-        websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
-      } else if (paddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
-        websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
+      // Determine if the key corresponds to "up" or "down"
+      if (event.key === 'w' || event.key === 'ArrowUp') {
+        websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: 'up' }));
+      } else if (event.key === 's' || event.key === 'ArrowDown') {
+        websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: 'down' }));
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
-      const paddle = assignedPaddleRef.current;
 
       // If the user releases one of the movement keys, send a paddleStop command
-      if (paddle === 'a' && (event.key === 'w' || event.key === 's')) {
-        websocketRef.current.send(JSON.stringify({ type: 'paddleStop' }));
-      } else if (paddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      if (event.key === 'w' || event.key === 's' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
         websocketRef.current.send(JSON.stringify({ type: 'paddleStop' }));
       }
     };
