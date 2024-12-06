@@ -16,24 +16,20 @@ export const PingPongCanvas: React.FC = () => {
   const websocketRef = useRef<WebSocket | null>(null);
 
   // const uniqueKey = 'alex'
-
   const urlParams = new URLSearchParams(window.location.search);
   const uniqueKey = urlParams.get('key') || 'defaultKey';
-
-  //zo speel je op 1 machine tegen jezelf:
   //Tab 1: http://localhost:3000?key=alex
   //Tab 2: http://localhost:3000?key=bob
 
-  // Create a ref to hold the latest value of assignedPaddle
   const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
 
   useEffect(() => {
     if (!sessionStorage.getItem('uniqueKey')) {
       sessionStorage.setItem('uniqueKey', uniqueKey);
     }
-  }, []);
+  }, [uniqueKey]);
 
-  // Update the ref whenever assignedPaddle changes
+  // Keep assignedPaddleRef updated
   useEffect(() => {
     assignedPaddleRef.current = assignedPaddle;
   }, [assignedPaddle]);
@@ -75,13 +71,6 @@ export const PingPongCanvas: React.FC = () => {
       websocket.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
-
-      // websocket.onclose = (event) => {
-      //   if (event.code !== 1000) {
-      //     console.log(`WebSocket disconnected unexpectedly. Retrying in 5 seconds...`);
-      //     setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
-      //   }
-      // };
     };
 
     connectWebSocket();
@@ -91,30 +80,41 @@ export const PingPongCanvas: React.FC = () => {
         websocketRef.current.close();
       }
     };
-  }, []);
+  }, [uniqueKey]);
 
-  const handleKeyPress = (event: KeyboardEvent) => {
-    if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
-      console.error('WebSocket is not open');
-      return;
-    }
-  
-    const paddle = assignedPaddleRef.current;
-  
-    if (paddle === 'a' && (event.key === 'w' || event.key === 's')) {
-      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
-    } else if (paddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
-      websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
-    }
-  };  
-
+  // Handle key events: move paddle on keydown, stop paddle on keyup
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyPress);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
+      const paddle = assignedPaddleRef.current;
+
+      if (paddle === 'a' && (event.key === 'w' || event.key === 's')) {
+        websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
+      } else if (paddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+        websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: event.key }));
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
+      const paddle = assignedPaddleRef.current;
+
+      // If the user releases one of the movement keys, send a paddleStop command
+      if (paddle === 'a' && (event.key === 'w' || event.key === 's')) {
+        websocketRef.current.send(JSON.stringify({ type: 'paddleStop' }));
+      } else if (paddle === 'b' && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+        websocketRef.current.send(JSON.stringify({ type: 'paddleStop' }));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyPress);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []); // Empty dependency array to add the listener only once
+  }, []);
 
   return (
     <div className="pong">

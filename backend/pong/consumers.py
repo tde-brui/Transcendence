@@ -47,6 +47,8 @@ class Game:
         self.players = {}  # Map from paddle to browser_key
         self.connections = {}  # Map from browser_key to WebSocket connection
         self.game_started = False
+        # Add a dictionary to track paddle directions: -1 = up, 0 = stop, 1 = down
+        self.paddle_directions = {"a": 0, "b": 0}
 
     def reset_ball(self):
         self.ball = {"x": 462, "y": 278, "dx": -1 if self.ball["dx"] > 0 else 1, "dy": 1}
@@ -56,6 +58,7 @@ class Game:
         self.score = {"a": 0, "b": 0}
         self.reset_ball()
         self.game_started = False
+        self.paddle_directions = {"a": 0, "b": 0}
 
 class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -149,12 +152,30 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        if data["type"] == "paddleMove" and hasattr(self, 'paddle'):
+        if hasattr(self, 'paddle'):  # Ensure we have a paddle assigned
             game = self.game
-            if data["key"] in ["w", "s"] and self.paddle == "a":
-                game.paddles["a"] += -10 if data["key"] == "w" else 10
-            elif data["key"] in ["ArrowUp", "ArrowDown"] and self.paddle == "b":
-                game.paddles["b"] += -10 if data["key"] == "ArrowUp" else 10
+            # Handle starting movement
+            if data["type"] == "paddleMove":
+                if self.paddle == "a":
+                    if data["key"] == "w":
+                        game.paddle_directions["a"] = -1
+                    elif data["key"] == "s":
+                        game.paddle_directions["a"] = 1
+                elif self.paddle == "b":
+                    if data["key"] == "ArrowUp":
+                        game.paddle_directions["b"] = -1
+                    elif data["key"] == "ArrowDown":
+                        game.paddle_directions["b"] = 1
+
+            # Handle stopping movement
+            elif data["type"] == "paddleStop":
+                # Reset direction to 0 so the paddle doesn't keep moving
+                if self.paddle == "a":
+                    game.paddle_directions["a"] = 0
+                elif self.paddle == "b":
+                    game.paddle_directions["b"] = 0
+
+
 
     async def players_connected(self, event):
         try:
@@ -171,19 +192,35 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def update_ball(self):
         game = self.game
         
+        # Define paddle movement speed per tick
+        paddle_speed = 5
+        # Define bounds for paddle positions
+        min_paddle_pos = 0
+        max_paddle_pos = 456  # 556 (field height) - 100 (paddle height)
+
         while game.game_started:
             ball = game.ball
             paddles = game.paddles
             score = game.score
 
+            # Move the paddles at a fixed rate based on their direction
+            paddles["a"] += game.paddle_directions["a"] * paddle_speed
+            paddles["b"] += game.paddle_directions["b"] * paddle_speed
+
+            # Clamp paddle positions
+            paddles["a"] = max(min_paddle_pos, min(max_paddle_pos, paddles["a"]))
+            paddles["b"] = max(min_paddle_pos, min(max_paddle_pos, paddles["b"]))
+
+            # Move the ball
             ball["x"] += ball["dx"] * 5
             ball["y"] += ball["dy"] * 5
 
-            # Ball collision with walls
+            # Ball collision with top/bottom walls
             if ball["y"] <= 0 or ball["y"] >= 556:
                 ball["dy"] *= -1
 
             # Ball collision with paddles
+            # Paddle A is at x=0 to ~20, Paddle B is at x=~904 to 924
             if ball["x"] <= 20 and paddles["a"] <= ball["y"] <= paddles["a"] + 100:
                 ball["dx"] *= -1
             elif ball["x"] >= 904 and paddles["b"] <= ball["y"] <= paddles["b"] + 100:
@@ -210,6 +247,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                 game.reset_game()
 
             await sleep(0.02)
+
 
     async def broadcast_game_state(self):
         game = self.game
