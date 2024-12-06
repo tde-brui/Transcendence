@@ -132,8 +132,8 @@ def user_42_callback(request):
 		except IntegrityError:
 			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?error=42_user_exists")
 		if user.twoFactorEnabled:
-			otp = OTP.generate_code(user)
-			send_otp_email(user, otp)
+			otp = OTP.generate_code(user.email)
+			send_otp_email(user.email, otp)
 			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?message=Sent OTP code to email&status_code=202")
 		
 		refresh = RefreshToken.for_user(user)
