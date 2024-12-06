@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import UserProfile from "./UserProfile";
+import UserProfile from "../pages/UserProfile";
 import NotFoundPage from "../error_pages/404NotFound";
 import axiosInstance from "./AxiosInstance";
 import axios from "axios";

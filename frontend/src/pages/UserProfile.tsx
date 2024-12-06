@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { User } from "./api";
-import { returnName } from "./userService";
+import { User } from "../components/api";
+import { returnName } from "../components/userService";
 import "../css/UserProfile.css";
-import { NotLoggedIn } from "./notLoggedin";
-import axiosInstance from "./AxiosInstance";
-import { useAuth } from "./AuthContext";
+import { NotLoggedIn } from "../components/notLoggedin";
+import axiosInstance from "../components/AxiosInstance";
+import { useAuth } from "../components/AuthContext";
 import { useNavigate } from "react-router-dom";
-import ChangeDetails from "./ChangeDetails";
+import ChangeDetails from "../components/ChangeDetails";
+import axios from "axios";
 
 type UserProfileProps = {
   userId: number;
@@ -36,7 +37,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const userId = await getCurrentUser();
-      setCurrentUser(2);
+      setCurrentUser(userId);
     };
 
     fetchCurrentUser();
@@ -45,10 +46,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/users/${userId}/`);
-        if (!response.ok) throw new Error("Failed to fetch user data");
-        const userData = await response.json();
-        setUser(userData);
+        const response = await axiosInstance.get(`/users/${userId}/`);
+        if (response.status === 200 && response.data)
+        	setUser(response.data);
       } catch (error) {
         setError((error as Error).message);
       }
@@ -115,31 +115,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
 
   	
   const changeDetails = () => {
-	const username = user.username;
-	const firstName = user.firstName;
-	const email = user.email;
-	const twoFactorEnabled = user.twoFactorEnabled;
-	const avatarUrl = avatar || "/images/default_avatar.jpg";
-	const onEditAvatar = () => console.log("Edit avatar clicked");
-	const onChangePassword = () => console.log("Change password clicked");
-	const onSubmit = (updatedDetails: any) => console.log("Updated details:", updatedDetails);
-
-	console.log("Change details clicked");
-	return <ChangeDetails 
-	username={username}
-	firstName={firstName}
-	email={email}
-	twoFactorEnabled={twoFactorEnabled}
-	avatarUrl={avatarUrl}
-	onEditAvatar={onEditAvatar}
-	onChangePassword={onChangePassword}
-	onSubmit={onSubmit}
-	/>;
+	setShowDetails(true);
 
 	  };
 
   return (
     <div className="container d-flex align-items-center justify-content-center">
+	{!showDetails ? (
       <div className="card profile-card mx-auto">
         <div className="card-header profile-header text-center">
           <img
@@ -187,6 +169,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
           </div>
         )}
       </div>
+	  ) : (
+        <ChangeDetails 
+		username={user.username}
+		firstName={user.firstName}
+		email={user.email}
+		twoFactorEnabled={user.twoFactorEnabled}
+		avatarUrl={avatar || "/images/default_avatar.jpg"}
+		userId={user.id}
+		onEditAvatar={() => console.log("Edit avatar clicked")}
+		onChangePassword={() => console.log("Change password clicked")}
+		onSubmit={(updatedDetails: any) => console.log("Updated details:", updatedDetails)}
+		/>
+      )}
     </div>
   );
 };

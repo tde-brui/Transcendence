@@ -127,12 +127,14 @@ const RegisterPage: React.FC<UserProfileProps> = ({
         dataToSend,
         config
       );
+	  console.info(response);
       if (response.status === 200 && response.data?.user_id) {
         setUserId(response.data.user_id);
         setAlertMessage("Registration successful!");
         setAlertType("success");
         setTimeout(() => navigate("/"), 1000);
       } else if (response.status === 202 && response.data?.email) {
+		console.log(response.data.message);
         const userEmail = response.data.email;
         setAlertMessage("OTP sent to your email.");
         setAlertType("success");

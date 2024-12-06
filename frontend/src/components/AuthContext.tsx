@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthChecked(true); // Mark auth check as complete
       }
     };
-  
+
     checkAuthStatus();
   }, []);
 

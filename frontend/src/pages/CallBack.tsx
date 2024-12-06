@@ -10,18 +10,17 @@ const CallbackPage: React.FC = () => {
   // Parse query parameters
   const searchParams = new URLSearchParams(location.search);
   const statusCode = searchParams.get("status_code");
-  const userId = searchParams.get("user_id");
-
+  
   // Perform actions based on status code
   React.useEffect(() => {
-    if (statusCode === "200") {
-      navigate("/"); // Redirect to home if status code is 200
-    }
-  }, [statusCode, navigate]);
-
-  if (statusCode === "202") {
-    
-    return <OTPBoxed email="test" />;
+	  if (statusCode === "200") {
+		  navigate("/"); // Redirect to home if status code is 200
+		}
+	}, [statusCode, navigate]);
+	
+	if (statusCode === "202") {
+	const email = searchParams.get("email");
+    return <OTPBoxed email={email!} />;
   }
 
   return (
