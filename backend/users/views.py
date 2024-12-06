@@ -15,7 +15,6 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 from rest_framework.renderers import JSONRenderer
 from django.db import IntegrityError
-import requests
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 class get_users(APIView):
@@ -235,11 +234,12 @@ class accept_friend_request(APIView):
 	permission_classes = [AllowAny]
 	def patch(self, request, requestId):
 		friend_request = get_object_or_404(FriendRequest, pk=requestId)
-		
-
-
-		
-		
+		if friend_request.receiver != request.user:
+			return Response("Friend request can only be accepted by the receiver", status=status.HTTP_403_FORBIDDEN)
+		friend_request.isAccepted = True
+		request.user.add_friend(friend_request.sender)
+		friend_request.delete()
+		return Response("friend request accepted")
 
 class get_friend_requests(APIView):
 	permission_classes = [AllowAny]
