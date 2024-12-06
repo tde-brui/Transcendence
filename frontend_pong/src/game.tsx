@@ -15,8 +15,14 @@ export const PingPongCanvas: React.FC = () => {
 
   const websocketRef = useRef<WebSocket | null>(null);
 
-  // Generate a unique key per browser tab
-  const uniqueKey = 'tristan'
+  // const uniqueKey = 'alex'
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const uniqueKey = urlParams.get('key') || 'defaultKey';
+
+  //zo speel je op 1 machine tegen jezelf:
+  //Tab 1: http://localhost:3000?key=alex
+  //Tab 2: http://localhost:3000?key=bob
 
   // Create a ref to hold the latest value of assignedPaddle
   const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
@@ -70,12 +76,12 @@ export const PingPongCanvas: React.FC = () => {
         console.error('WebSocket error:', error);
       };
 
-      websocket.onclose = (event) => {
-        if (event.code !== 1000) {
-          console.log(`WebSocket disconnected unexpectedly. Retrying in 5 seconds...`);
-          setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
-        }
-      };
+      // websocket.onclose = (event) => {
+      //   if (event.code !== 1000) {
+      //     console.log(`WebSocket disconnected unexpectedly. Retrying in 5 seconds...`);
+      //     setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
+      //   }
+      // };
     };
 
     connectWebSocket();

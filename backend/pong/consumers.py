@@ -23,13 +23,15 @@ class GameManager:
         for game_id, game in self.games.items():
             if len(game.players) < 2:
                 return game
-
+    
         # No available game, create a new one
         self.game_counter += 1
         game_id = f'game_{self.game_counter}'
         new_game = Game(game_id)
         self.games[game_id] = new_game
         return new_game
+    
+
 
     def remove_game(self, game_id):
         if game_id in self.games:
@@ -67,17 +69,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 
         game_manager = GameManager.get_instance()
 
-        # Reconnect logic for the same key
-        if browser_key in game_manager.browser_key_to_channel:
-            old_channel_name = game_manager.browser_key_to_channel[browser_key]
-            print(f"Replacing old connection for key {browser_key}")
-            # Send a message to the old connection to close itself
-            await self.channel_layer.send(
-                old_channel_name,
-                {
-                    'type': 'force_disconnect',
-                }
-            )
 
         # Assign to a game
         game = game_manager.get_or_create_game()
@@ -144,16 +135,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 
                 del game_manager.browser_key_to_game[self.browser_key]
 
-                # Check if game should be removed
-                if len(game.players) == 0:
-                    # Cancel tasks if they are running
-                    if hasattr(self, 'update_ball_task'):
-                        self.update_ball_task.cancel()
-                    if hasattr(self, 'broadcast_game_state_task'):
-                        self.broadcast_game_state_task.cancel()
-
-                    game_manager.remove_game(self.game_id)
-                    print(f"Game {self.game_id} removed due to no players.")
 
         if hasattr(self, 'game_group_name'):
             await self.channel_layer.group_discard(self.game_group_name, self.channel_name)
