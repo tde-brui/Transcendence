@@ -45,7 +45,8 @@ class user_register(APIView):
 				otp = OTP.generate_code(email=user_data['email'])
 				send_otp_email(user_data['email'], otp)
 				return Response({
-					"message": "Sent OTP code to email"
+					"message": "Sent OTP code to email",
+					"email": user_data['email']
 				}, status=status.HTTP_202_ACCEPTED)
 			
 			user = PongUser.objects.create_user(username=user_data['username'], email=user_data['email'], password=password, firstName=user_data['firstName'], twoFactorEnabled=user_data['twoFactorEnabled'])
@@ -134,7 +135,7 @@ def user_42_callback(request):
 		if user.twoFactorEnabled:
 			otp = OTP.generate_code(user.email)
 			send_otp_email(user.email, otp)
-			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?message=Sent OTP code to email&status_code=202")
+			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?message=Sent OTP code to email&email={user.email}&status_code=202")
 		
 		refresh = RefreshToken.for_user(user)
 		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?user_id={user.id}&status_code=200")
