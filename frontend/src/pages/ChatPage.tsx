@@ -115,7 +115,9 @@ const ChatPage: React.FC = () => {
         </form>
       ) : ws ? (
         <div className="chat-container">
-          <p>Logged in as: <strong>{username}</strong></p>
+          <p>
+            Logged in as: <strong>{username}</strong>
+          </p>
           <textarea
             value={chatLog}
             readOnly
@@ -139,10 +141,16 @@ const ChatPage: React.FC = () => {
             {onlineUsers.map((user) => (
               <div key={user} className="user-item">
                 <span>{user}</span>
-                <button onClick={() => handleBlockUser(user)} className="btn btn-danger btn-sm">
+                <button
+                  onClick={() => handleBlockUser(user)}
+                  className="btn btn-danger btn-sm"
+                >
                   Block
                 </button>
-                <button onClick={() => handleDirectMessage(user)} className="btn btn-success btn-sm">
+                <button
+                  onClick={() => handleDirectMessage(user)}
+                  className="btn btn-success btn-sm"
+                >
                   Message
                 </button>
               </div>

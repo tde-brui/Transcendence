@@ -103,8 +103,8 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   };
 
   const handleAuthentication = () => {
-	window.location.href = 'http://localhost:8000/users/42_login/';
-	};
+    window.location.href = "http://localhost:8000/users/42_login/";
+  };
 
   return (
     <div className="container d-flex align-items-center justify-content-center vh-100">
@@ -126,11 +126,15 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
             )}
 
             <form onSubmit={handleSubmit} noValidate>
-			<div>
-			<button onClick={handleAuthentication} type="button" className="btn login-button">
-				Login with <img src="/42.png" alt="42" className="logo-42" />
-			  </button>
-			</div>
+              <div>
+                <button
+                  onClick={handleAuthentication}
+                  type="button"
+                  className="btn login-button"
+                >
+                  Login with <img src="/42.png" alt="42" className="logo-42" />
+                </button>
+              </div>
               <div className="form-group">
                 <label htmlFor="username"></label>
                 <div className="input-group mb-3">
@@ -175,11 +179,11 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
                   <div className="invalid-feedback">{formErrors.password}</div>
                 )}
               </div>
-			<div className="d-flex flex-column align-items-center">
-              <button type="submit" className="btn btn-primary mt-3">
-                Login
-              </button>
-			  </div>
+              <div className="d-flex flex-column align-items-center">
+                <button type="submit" className="btn btn-primary mt-3">
+                  Login
+                </button>
+              </div>
             </form>
           </div>
           <div className="card-footer text-center">

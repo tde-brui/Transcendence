@@ -26,11 +26,13 @@ const getCurrentUser = async (): Promise<number | null> => {
 const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   const navigate = useNavigate();
   const logout = useAuth().logout;
-  
+
   const [user, setUser] = useState<User | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>({});
+  const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>(
+    {}
+  );
   const [currentUser, setCurrentUser] = useState<number | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
@@ -47,8 +49,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     const fetchUser = async () => {
       try {
         const response = await axiosInstance.get(`/users/${userId}/`);
-        if (response.status === 200 && response.data)
-        	setUser(response.data);
+        if (response.status === 200 && response.data) setUser(response.data);
       } catch (error) {
         setError((error as Error).message);
       }
@@ -113,39 +114,37 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     return <div>Logging out......</div>;
   };
 
-  	
   const changeDetails = () => {
-	setShowDetails(true);
-
-	  };
+    setShowDetails(true);
+  };
 
   return (
     <div className="container d-flex align-items-center justify-content-center">
-	{!showDetails ? (
-      <div className="card profile-card mx-auto">
-        <div className="card-header profile-header text-center">
-          <img
-            src={avatar || "/images/default_avatar.jpg"}
-            alt={`${user.firstName}'s avatar`}
-            className="profile-avatar"
-          />
-        </div>
-        <div className="card-body profile-body">
-          <h4 className="profile-title">{user.firstName}</h4>
-          <p className="profile-username">@{user.username}</p>
-          <div className="list-group profile-info">
-            <div className="list-group-item">
-              <strong>Email:</strong> {user.email}
-            </div>
-            <div className="list-group-item">
-              {/* <strong>Status:</strong> <span className={`status ${user.onlineStatus.toLowerCase()}`}>{user.onlineStatus}</span> */}
-            </div>
-            <div className="list-group-item">
-              <strong>Friends:</strong> {user.friends.length} friends
+      {!showDetails ? (
+        <div className="card profile-card mx-auto">
+          <div className="card-header profile-header text-center">
+            <img
+              src={avatar || "/images/default_avatar.jpg"}
+              alt={`${user.firstName}'s avatar`}
+              className="profile-avatar"
+            />
+          </div>
+          <div className="card-body profile-body">
+            <h4 className="profile-title">{user.firstName}</h4>
+            <p className="profile-username">@{user.username}</p>
+            <div className="list-group profile-info">
+              <div className="list-group-item">
+                <strong>Email:</strong> {user.email}
+              </div>
+              <div className="list-group-item">
+                {/* <strong>Status:</strong> <span className={`status ${user.onlineStatus.toLowerCase()}`}>{user.onlineStatus}</span> */}
+              </div>
+              <div className="list-group-item">
+                <strong>Friends:</strong> {user.friends.length} friends
+              </div>
             </div>
           </div>
-        </div>
-        {/* <div className="card-footer profile-footer">
+          {/* <div className="card-footer profile-footer">
           <h5 className="match-history-title">Match History</h5>
           <ul className="list-group match-history-list">
             {user.matchHistory.length > 0 ? (
@@ -160,27 +159,31 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
             )}
           </ul>
         </div> */}
-        {currentUser === userId && (
-          <div className="card-footer profile-footer d-flex justify-content-between">
-            <button onClick={changeDetails} className="btn btn-primary">Change details</button>
-            <button onClick={logoutLink} className="btn btn-danger">
-              Log out
-            </button>
-          </div>
-        )}
-      </div>
-	  ) : (
-        <ChangeDetails 
-		username={user.username}
-		firstName={user.firstName}
-		email={user.email}
-		twoFactorEnabled={user.twoFactorEnabled}
-		avatarUrl={avatar || "/images/default_avatar.jpg"}
-		userId={user.id}
-		onEditAvatar={() => console.log("Edit avatar clicked")}
-		onChangePassword={() => console.log("Change password clicked")}
-		onSubmit={(updatedDetails: any) => console.log("Updated details:", updatedDetails)}
-		/>
+          {currentUser === userId && (
+            <div className="card-footer profile-footer d-flex justify-content-between">
+              <button onClick={changeDetails} className="btn btn-primary">
+                Change details
+              </button>
+              <button onClick={logoutLink} className="btn btn-danger">
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <ChangeDetails
+          username={user.username}
+          firstName={user.firstName}
+          email={user.email}
+          twoFactorEnabled={user.twoFactorEnabled}
+          avatarUrl={avatar || "/images/default_avatar.jpg"}
+          userId={user.id}
+          onEditAvatar={() => console.log("Edit avatar clicked")}
+          onChangePassword={() => console.log("Change password clicked")}
+          onSubmit={(updatedDetails: any) =>
+            console.log("Updated details:", updatedDetails)
+          }
+        />
       )}
     </div>
   );

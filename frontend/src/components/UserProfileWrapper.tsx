@@ -7,7 +7,6 @@ import axios from "axios";
 
 // Define your axios instance
 
-
 interface User {
   id: string;
   username: string;
@@ -34,39 +33,39 @@ const getUsername = async (username: string): Promise<string | null> => {
 };
 
 const UserProfileWrapper = () => {
-	const { username } = useParams<{ username: string }>();
-	const [userId, setUserId] = useState<number | null>(null); // Number state
-	const [error, setError] = useState<string | null>(null);
-  
-	useEffect(() => {
-	  const fetchUserId = async () => {
-		if (username) {
-		  try {
-			const id = await getUsername(username);
-			if (id !== null) {
-			  setUserId(Number(id));
-			} else {
-			  setUserId(null);
-			}
-		  } catch (err) {
-			console.error(err);
-			setError("Failed to fetch user information.");
-		  }
-		}
-	  };
-  
-	  fetchUserId();
-	}, [username]);
-  
-	if (error) {
-	  return <div>Error: {error}</div>;
-	}
-  
-	if (userId === null) {
-	  return <NotFoundPage/>
-	}
-  
-	return <UserProfile userId={userId} />;
-  };
-  
-  export default UserProfileWrapper;
+  const { username } = useParams<{ username: string }>();
+  const [userId, setUserId] = useState<number | null>(null); // Number state
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      if (username) {
+        try {
+          const id = await getUsername(username);
+          if (id !== null) {
+            setUserId(Number(id));
+          } else {
+            setUserId(null);
+          }
+        } catch (err) {
+          console.error(err);
+          setError("Failed to fetch user information.");
+        }
+      }
+    };
+
+    fetchUserId();
+  }, [username]);
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (userId === null) {
+    return <NotFoundPage />;
+  }
+
+  return <UserProfile userId={userId} />;
+};
+
+export default UserProfileWrapper;

@@ -1,5 +1,11 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode} from "react";
-import axios from './AxiosInstance';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  ReactNode,
+} from "react";
+import axios from "./AxiosInstance";
 
 // Define AuthContext types
 interface AuthContextType {
@@ -12,8 +18,8 @@ interface AuthContextType {
 }
 
 interface AuthProviderProps {
-	children: ReactNode; // Allow any valid React children
-  }
+  children: ReactNode; // Allow any valid React children
+}
 
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,7 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Provider component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  
+
   const [userId, setUserId] = useState<number>(-1);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   // Check authentication status on app load
@@ -31,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const response = await axios.get("users/auth/verify/");
         if (response.status === 200) {
           setIsAuthenticated(true);
-  
+
           const userResponse = await axios.get("users/me/");
           if (userResponse.status === 200) {
             console.info("User authenticated:", userResponse);
@@ -51,7 +57,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthStatus();
   }, []);
 
-
   // Login function
   const login = (token: string) => {
     setIsAuthenticated(true);
@@ -67,16 +72,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(false);
         setUserId(-1);
       }
-	  console.log("Logout successful");
+      console.log("Logout successful");
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
 
- 
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userId, login, logout, setUserId, isAuthChecked }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        userId,
+        login,
+        logout,
+        setUserId,
+        isAuthChecked,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

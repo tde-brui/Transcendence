@@ -17,7 +17,6 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
   const navigate = useNavigate();
   const { setUserId } = useAuth();
 
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
@@ -47,8 +46,7 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
 
   const handleResendCode = async () => {
     try {
-      await axios.post(`http://localhost:8000/users/resend_otp/`, {
-      });
+      await axios.post(`http://localhost:8000/users/resend_otp/`, {});
       alert("A new OTP has been sent!");
     } catch (err) {
       setError("Error resending OTP.");
@@ -65,20 +63,16 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
     }
 
     try {
-      const response = await axiosInstance.post(
-        `/users/verify_otp/`,
-        {
-          otp_code: fullOtp,
-        }
-      );
+      const response = await axiosInstance.post(`/users/verify_otp/`, {
+        otp_code: fullOtp,
+      });
       console.error("response:", response);
       if (response.status === 200 && response.data?.user_id) {
         const userId = response.data.user_id;
         setUserId(userId);
         navigate("/");
-      } 
-      else if (response.status === 400) {
-         setAlertMessage("Invalid OTP or verification failed.");
+      } else if (response.status === 400) {
+        setAlertMessage("Invalid OTP or verification failed.");
         setAlertType("error");
       } else {
         throw new Error("OTP verification failed.");
@@ -112,19 +106,19 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
             <strong>{maskedEmail}</strong>. Enter the code to log in.
           </p>
           <form onSubmit={handleSubmit} noValidate>
-          <div className="card-body">
-            {/* Alert Box */}
-            {alertMessage && (
-              <div
-                className={`alert ${
-                  alertType === "success" ? "alert-success" : "alert-danger"
-                } text-center`}
-              >
-                {alertMessage}
-              </div>
+            <div className="card-body">
+              {/* Alert Box */}
+              {alertMessage && (
+                <div
+                  className={`alert ${
+                    alertType === "success" ? "alert-success" : "alert-danger"
+                  } text-center`}
+                >
+                  {alertMessage}
+                </div>
               )}
-              </div>
-          
+            </div>
+
             <div className="otp-container">
               {otp.map((digit, index) => (
                 <input
