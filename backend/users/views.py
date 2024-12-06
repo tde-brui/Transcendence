@@ -92,6 +92,10 @@ def jwtCookie(user):
 		else:
 			return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 		
+class verify_user(APIView):
+	def get(self, request):
+		return Response(status=status.HTTP_200_OK)
+		
 def user_42_login(request):
 	authorization_url = f"{settings.AUTHORIZATION_URL}?client_id={settings.CLIENT_ID}&redirect_uri={settings.REDIRECT_URI}&response_type=code"
 	return HttpResponseRedirect(authorization_url)
