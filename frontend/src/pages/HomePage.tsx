@@ -59,8 +59,8 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
             <Nav.Link href={`/users/${username}`} className="glass-nav-item">
               ACCOUNT
             </Nav.Link>
-            <Nav.Link href="settings" className="glass-nav-item">
-              SETTINGS
+            <Nav.Link href="/users" className="glass-nav-item">
+              USERS
             </Nav.Link>
           </Nav>
         </Navbar>

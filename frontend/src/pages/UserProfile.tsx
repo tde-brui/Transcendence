@@ -110,7 +110,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
 
   const logoutLink = () => {
     logout();
-    navigate("/");
+	setTimeout(() => navigate("/"), 1000);
     return <div>Logging out......</div>;
   };
 

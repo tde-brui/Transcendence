@@ -13,6 +13,7 @@ import ChatPage from "./pages/ChatPage";
 import UserProfileWrapper from "./components/UserProfileWrapper";
 import CallBack from "./pages/CallBack";
 import UsersPage from "./pages/UsersPage";
+import NavBar from "./components/NavBar";
 
 function App() {
   const userId = useAuth().userId;
@@ -21,6 +22,7 @@ function App() {
   return (
     // <div className="App" style={{ backgroundImage: 'url(./BG.jpg)'}}>
     <div className="App">
+	{/* <NavBar username="exampleUser" /> */}
       <Router>
         <Routes>
           <Route path="/hello" element={<LandingPage />} />
@@ -47,6 +49,7 @@ function App() {
           {/* </Route> */}
           <Route path="/users/:username" element={<UserProfileWrapper />} />
           <Route path="/users" element={<UsersPage />} />
+		  <Route path="/chat" element={<ChatPage />} />
         </Routes>
       </Router>
     </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../components/AxiosInstance";
 import "../css/UserProfile.css";
+import { Link, useNavigate } from "react-router-dom";
 
 interface User {
   id: number;
@@ -10,6 +11,7 @@ interface User {
 }
 
 const UsersPage: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [avatars, setAvatars] = useState<Record<number, string>>({}); // Stores avatar URLs by user ID
   const [loading, setLoading] = useState<boolean>(true);
@@ -77,25 +79,33 @@ const UsersPage: React.FC = () => {
           <h4 className="profile-title text-white">Users list </h4>
         </div>
         <div className="card-body profile-body">
-          <ul className="d-flex flex-column">
+          <ul className="d-flex flex-column align-items-center justify-content-center">
             {users.map((user) => (
-              <li key={user.id} className="d-flex">
+              <li key={user.id} className="d-flex mt-2 users-list-body align-items-center">
                 <img
                   src={avatars[user.id] || ""}
                   alt={`${user.username}'s avatar`}
                   className="users-avatar"
-                  onError={(e) => (e.currentTarget.style.display = "none")}
                 />
-                <div className="d-flex flex-column align-items-start">
-                  <p>
-                    <strong>{user.firstName}</strong>
-                  </p>
-                  <p>@{user.username}</p>
-                </div>
+				<div className="d-flex align-items-center">
+					<div className="d-flex flex-column align-items-start ms-3">
+					<strong>{user.firstName}</strong>
+					@{user.username}
+					</div>
+					<div className="d-flex ms-5">
+						<Link to={`/users/${user.username}`} className="btn btn-primary ms-3">
+							View
+						</Link>
+						<button className="btn btn-success ms-3">Add</button>
+					</div>
+				</div>
               </li>
             ))}
           </ul>
         </div>
+		<div className="card-footer profile-footer d-flex">
+			Total users: {users.length}
+		</div>
       </div>
     </div>
   );

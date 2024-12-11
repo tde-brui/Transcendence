@@ -162,12 +162,27 @@
 }
 
 .users-avatar {
-  width: 50px;
-  height: 50px;
+  width: 65px;
+  height: 65px;
   border-radius: 50%;
-  border: 2px solid #000000;
+  border: 2px solid #f1f1f1;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 .users-list-body {
-  background-color: aqua;
+  background-color: #f1f1f1;
+  border-radius: 10px;
+  padding: 0.8rem;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
 }
+
+.test-blue {
+	background-color: rgb(0, 225, 255);
+}
+
+.test-pink {
+	background-color: pink;
+}
+ .test-yellow {
+	background-color: yellow;
+ }
