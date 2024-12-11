@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { useParams, useLocation } from 'react-router-dom';
 
 const WS_URL = 'ws://localhost:8000/ws/pong/';
 
@@ -14,10 +14,11 @@ export const RemotePongCanvas: React.FC = () => {
   const [assignedPaddle, setAssignedPaddle] = useState<'a' | 'b' | null>(null);
   const [gameID, setGameID] = useState<string>('');
   const [playerKeys, setPlayerKeys] = useState<{a?: string; b?: string}>({});
-  
-  const websocketRef = useRef<WebSocket | null>(null);
 
-  const urlParams = new URLSearchParams(window.location.search);
+  const websocketRef = useRef<WebSocket | null>(null);
+  const { lobbyId } = useParams<{ lobbyId: string }>();
+  const location = useLocation();
+  const urlParams = new URLSearchParams(location.search);
   const uniqueKey = urlParams.get('key') || 'defaultKey';
 
   const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
@@ -25,57 +26,75 @@ export const RemotePongCanvas: React.FC = () => {
   useEffect(() => {
     if (!sessionStorage.getItem('uniqueKey')) {
       sessionStorage.setItem('uniqueKey', uniqueKey);
+      console.log('Unique key stored in sessionStorage:', uniqueKey);
     }
   }, [uniqueKey]);
 
-  // Keep assignedPaddleRef updated
   useEffect(() => {
     assignedPaddleRef.current = assignedPaddle;
   }, [assignedPaddle]);
 
   useEffect(() => {
     const connectWebSocket = () => {
-      const websocket = new WebSocket(`${WS_URL}?key=${uniqueKey}`);
-      console.log('Connecting with key:', uniqueKey);
-  
+      // Add &lobby=lobbyId so we join/create that specific lobby
+      const wsUrl = lobbyId ? `${WS_URL}?key=${uniqueKey}&lobby=${lobbyId}` : `${WS_URL}?key=${uniqueKey}`;
+      console.log('Connecting to WebSocket at:', wsUrl);
+      const websocket = new WebSocket(wsUrl);
+      console.log('Connecting with key:', uniqueKey, 'lobby:', lobbyId);
+
       websocketRef.current = websocket;
 
-      websocket.onopen = () => console.log('WebSocket connected');
+      websocket.onopen = () => {
+        console.log('WebSocket connected');
+      };
+
       websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+        console.log('Received message:', event.data);
+        try {
+          const data = JSON.parse(event.data);
 
-        if (data.type === 'assignPaddle') {
-          console.log('Assigned paddle:', data.paddle);
-          setAssignedPaddle(data.paddle);
-          if (data.game_id) {
-            setGameID(data.game_id);
+          if (data.type === 'assignPaddle') {
+            console.log('Assigned paddle:', data.paddle);
+            setAssignedPaddle(data.paddle);
+            if (data.game_id) {
+              setGameID(data.game_id);
+            }
+            if (data.players) {
+              setPlayerKeys(data.players); // data.players should look like {a: 'alex', b: 'bob'}
+              console.log('Player keys:', data.players);
+            }
           }
-          if (data.players) {
-            setPlayerKeys(data.players); // data.players should look like {a: 'alex', b: 'bob'}
+
+          if (data.type === 'playersConnected') {
+            console.log('Players connected:', data.count);
+            setPlayersConnected(data.count);
+            setGamePaused(data.count < 2);
           }
-          
-        }
 
-        if (data.type === 'playersConnected') {
-          setPlayersConnected(data.count);
-          setGamePaused(data.count < 2);
-        }
+          if (data.type === 'update') {
+            console.log('Game update received:', data);
+            setPaddleAPosition(data.paddles.a);
+            setPaddleBPosition(data.paddles.b);
+            setBallPosition(data.ball);
+            setScore(data.score);
+          }
 
-        if (data.type === 'update') {
-          setPaddleAPosition(data.paddles.a);
-          setPaddleBPosition(data.paddles.b);
-          setBallPosition(data.ball);
-          setScore(data.score);
-        }
-
-        if (data.type === 'gameOver') {
-          setGameOver(true);
-          setGamePaused(true);
+          if (data.type === 'gameOver') {
+            console.log('Game over. Winner:', data.winner);
+            setGameOver(true);
+            setGamePaused(true);
+          }
+        } catch (err) {
+          console.error('Error parsing message:', err);
         }
       };
 
       websocket.onerror = (error) => {
         console.error('WebSocket error:', error);
+      };
+
+      websocket.onclose = (event) => {
+        console.log('WebSocket closed:', event);
       };
     };
 
@@ -84,19 +103,20 @@ export const RemotePongCanvas: React.FC = () => {
     return () => {
       if (websocketRef.current) {
         websocketRef.current.close();
+        console.log('WebSocket connection closed');
       }
     };
-  }, [uniqueKey]);
+  }, [uniqueKey, lobbyId]);
 
-  // Handle key events: move paddle on keydown, stop paddle on keyup
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
 
-      // Determine if the key corresponds to "up" or "down"
       if (event.key === 'w' || event.key === 'ArrowUp') {
+        console.log('Key down: Moving paddle up');
         websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: 'up' }));
       } else if (event.key === 's' || event.key === 'ArrowDown') {
+        console.log('Key down: Moving paddle down');
         websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: 'down' }));
       }
     };
@@ -104,8 +124,8 @@ export const RemotePongCanvas: React.FC = () => {
     const handleKeyUp = (event: KeyboardEvent) => {
       if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
 
-      // If the user releases one of the movement keys, send a paddleStop command
       if (event.key === 'w' || event.key === 's' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        console.log('Key up: Stopping paddle movement');
         websocketRef.current.send(JSON.stringify({ type: 'paddleStop' }));
       }
     };
@@ -121,13 +141,12 @@ export const RemotePongCanvas: React.FC = () => {
 
   return (
     <div className="pong">
-      {/* Display the lobby name at the top */}
       {gameID && (
-        <div style={{ position: 'absolute', top: '10px', width: '100%', textAlign: 'center', fontWeight: 'bold' }}>
+        <div style={{ position: 'absolute', top: '10px', width: '100%', textAlign: 'center', fontWeight: 'bold', color: 'white' }}>
           Lobby: {gameID}
         </div>
       )}
-  
+
       <div className="overlap-group-wrapper">
         <div className="overlap-group">
           <div className="paddle-a" style={{ top: `${paddleAPosition}px` }} />
@@ -138,8 +157,7 @@ export const RemotePongCanvas: React.FC = () => {
             <div className="score">{score.a} - {score.b}</div>
           </div>
         </div>
-  
-        {/* Player IDs on sides */}
+
         {playerKeys.a && (
           <div style={{ position: 'absolute', left: '20px', top: '60px', color: 'white', fontWeight: 'bold' }}>
             {playerKeys.a}
@@ -150,7 +168,7 @@ export const RemotePongCanvas: React.FC = () => {
             {playerKeys.b}
           </div>
         )}
-  
+
         {gamePaused && (
           <div className="game-paused">
             <h2>{playersConnected < 2 ? 'Waiting for another player...' : 'Game Paused'}</h2>
@@ -170,6 +188,6 @@ export const RemotePongCanvas: React.FC = () => {
       </div>
     </div>
   );
-};  
+};
 
 export default RemotePongCanvas;
