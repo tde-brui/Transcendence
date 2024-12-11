@@ -181,7 +181,6 @@ class verify_otp(APIView):
 		user_id = request.session.get('pending_user_id')
 		user_email = request.session.get('pending_user_email')
 
-
 		if not otp_code:
 			return Response({"error": "OTP code is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -202,6 +201,7 @@ class verify_otp(APIView):
 				if otp and not otp.is_expired():
 					otp.delete()
 					request.session.pop('pending_user_id', None)
+					request.session.pop('pending_user_email', None)
 					return jwtCookie(user)
 				return Response({"error": "Invalid or expired OTP code"}, status=status.HTTP_400_BAD_REQUEST)
 			except PongUser.DoesNotExist:
