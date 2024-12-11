@@ -81,24 +81,24 @@ const UsersPage: React.FC = () => {
         <div className="card-body profile-body">
           <ul className="d-flex flex-column align-items-center justify-content-center">
             {users.map((user) => (
-              <li key={user.id} className="d-flex mt-2 users-list-body align-items-center">
+              <li key={user.id} className="d-flex mt-2 users-list-body align-items-center justify-content-between">
+				  <div className="d-flex align-items-center justify-content-between">
                 <img
                   src={avatars[user.id] || ""}
                   alt={`${user.username}'s avatar`}
                   className="users-avatar"
                 />
-				<div className="d-flex align-items-center">
 					<div className="d-flex flex-column align-items-start ms-3">
 					<strong>{user.firstName}</strong>
 					@{user.username}
 					</div>
+				</div>
 					<div className="d-flex ms-5">
 						<Link to={`/users/${user.username}`} className="btn btn-primary ms-3">
 							View
 						</Link>
 						<button className="btn btn-success ms-3">Add</button>
 					</div>
-				</div>
               </li>
             ))}
           </ul>
