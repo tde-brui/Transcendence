@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../components/AxiosInstance";
 import "../css/UserProfile.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface User {
   id: number;
@@ -81,31 +81,42 @@ const UsersPage: React.FC = () => {
         <div className="card-body profile-body">
           <ul className="d-flex flex-column align-items-center justify-content-center">
             {users.map((user) => (
-              <li key={user.id} className="d-flex mt-2 users-list-body align-items-center justify-content-between">
-				  <div className="d-flex align-items-center justify-content-between">
-                <img
-                  src={avatars[user.id] || ""}
-                  alt={`${user.username}'s avatar`}
-                  className="users-avatar"
-                />
-					<div className="d-flex flex-column align-items-start ms-3">
-					<strong>{user.firstName}</strong>
-					@{user.username}
-					</div>
-				</div>
-					<div className="d-flex ms-5">
-						<Link to={`/users/${user.username}`} className="btn btn-primary ms-3">
-							View
-						</Link>
-						<button className="btn btn-success ms-3">Add</button>
-					</div>
+              <li
+                key={user.id}
+                className="d-flex mt-2 users-list-body align-items-center justify-content-between"
+              >
+                <div className="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div className="status-profile online online-profile">
+                      ONLINE
+                    </div>
+                    <img
+                      src={avatars[user.id] || ""}
+                      alt={`${user.username}'s avatar`}
+                      className="users-avatar mt-2"
+                    />
+                  </div>
+                  <div className="d-flex flex-column align-items-start ms-3">
+                    <strong>{user.firstName}</strong>@{user.username}
+                    <br />
+                  </div>
+                </div>
+                <div className="d-flex ms-5">
+                  <Link
+                    to={`/users/${user.username}`}
+                    className="btn btn-primary ms-3"
+                  >
+                    View
+                  </Link>
+                  <button className="btn btn-success ms-3">Add</button>
+                </div>
               </li>
             ))}
           </ul>
         </div>
-		<div className="card-footer profile-footer d-flex">
-			Total users: {users.length}
-		</div>
+        <div className="card-footer profile-footer d-flex">
+          Total users: {users.length}
+        </div>
       </div>
     </div>
   );

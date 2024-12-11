@@ -2,12 +2,10 @@ import React, { useEffect, useState } from "react";
 import { User } from "../components/api";
 import { returnName } from "../components/userService";
 import "../css/UserProfile.css";
-import { NotLoggedIn } from "../components/notLoggedin";
 import axiosInstance from "../components/AxiosInstance";
 import { useAuth } from "../components/AuthContext";
 import { useNavigate } from "react-router-dom";
 import ChangeDetails from "../components/ChangeDetails";
-import axios from "axios";
 
 type UserProfileProps = {
   userId: number;
@@ -110,7 +108,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
 
   const logoutLink = () => {
     logout();
-	setTimeout(() => navigate("/"), 1000);
+    setTimeout(() => navigate("/"), 1000);
     return <div>Logging out......</div>;
   };
 
