@@ -15,7 +15,7 @@ const RegisterPage: React.FC<UserProfileProps> = ({
   userId,
   isAuthChecked,
 }) => {
-    IsLoggedIn(userId, isAuthChecked);
+	IsLoggedIn(userId, isAuthChecked);
   const { setUserId } = useAuth();
   const navigate = useNavigate();
 
