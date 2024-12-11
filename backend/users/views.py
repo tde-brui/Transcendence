@@ -17,6 +17,7 @@ from django.http import HttpResponseRedirect
 from rest_framework.renderers import JSONRenderer
 from django.db import IntegrityError
 from rest_framework.permissions import AllowAny, IsAuthenticated
+import requests
 
 class get_users(APIView):
 	permission_classes = [AllowAny]
@@ -46,7 +47,8 @@ class user_register(APIView):
 				otp = OTP.generate_code(email=user_data['email'])
 				send_otp_email(user_data['email'], otp)
 				return Response({
-					"message": "Sent OTP code to email"
+					"message": "Sent OTP code to email",
+					"email": user_data['email']
 				}, status=status.HTTP_202_ACCEPTED)
 			
 			user = PongUser.objects.create_user(username=user_data['username'], email=user_data['email'], password=password, firstName=user_data['firstName'], twoFactorEnabled=user_data['twoFactorEnabled'])
@@ -68,6 +70,7 @@ class user_login(APIView):
 					send_otp_email(user.email, otp)
 					return Response({
 						"message": "Sent OTP code to email",
+						"email": user.email
 					}, status=status.HTTP_202_ACCEPTED)
 				return jwtCookie(user)
 		return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -95,8 +98,8 @@ def jwtCookie(user):
 		
 class verify_user(APIView):
 	def get(self, request):
-		return Response(status=status.HTTP_200_OK)
-		
+		return Response({"message": "User is verified"}, status=status.HTTP_200_OK)
+
 def user_42_login(request):
 	authorization_url = f"{settings.AUTHORIZATION_URL}?client_id={settings.CLIENT_ID}&redirect_uri={settings.REDIRECT_URI}&response_type=code"
 	return HttpResponseRedirect(authorization_url)
@@ -134,12 +137,14 @@ def user_42_callback(request):
 					'firstName': user_data['first_name'],
 					'twoFactorEnabled': False,
 				})
+			request.session['pending_user_id'] = user.id
+			request.session['pending_user_email'] = user.email
 		except IntegrityError:
 			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?error=42_user_exists")
 		if user.twoFactorEnabled:
-			otp = OTP.generate_code(user)
-			send_otp_email(user, otp)
-			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?message=Sent OTP code to email&status_code=202")
+			otp = OTP.generate_code(user.email)
+			send_otp_email(user.email, otp)
+			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?message=Sent OTP code to email&email={user.email}&status_code=202")
 		
 		refresh = RefreshToken.for_user(user)
 		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?user_id={user.id}&status_code=200")
@@ -170,12 +175,12 @@ def send_otp_email(email, otp):
 	send_mail(subject, message, settings.EMAIL_HOST_USER, recipients)
 
 class verify_otp(APIView):
+	permission_classes = [AllowAny]
 	def post(self, request, *args, **kwargs):
 		otp_code = request.data.get('otp_code')
 		user_data = request.session.get('pending_user_data')
 		user_id = request.session.get('pending_user_id')
 		user_email = request.session.get('pending_user_email')
-
 
 		if not otp_code:
 			return Response({"error": "OTP code is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -197,6 +202,7 @@ class verify_otp(APIView):
 				if otp and not otp.is_expired():
 					otp.delete()
 					request.session.pop('pending_user_id', None)
+					request.session.pop('pending_user_email', None)
 					return jwtCookie(user)
 				return Response({"error": "Invalid or expired OTP code"}, status=status.HTTP_400_BAD_REQUEST)
 			except PongUser.DoesNotExist:
@@ -221,7 +227,8 @@ class user_detail(APIView):
 			return Response(serializer.data, status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 	
-def logout(request):
-	response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/")
-	response.delete_cookie('access_token')
-	return response
+class logout(APIView):
+	def delete(self, request):
+		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/")
+		response.delete_cookie('access_token')
+		return response
