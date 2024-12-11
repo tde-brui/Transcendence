@@ -9,105 +9,106 @@ const LocalPongCanvas: React.FC = () => {
   const [gameOver, setGameOver] = useState<boolean>(false);
 
   const MAX_SCORE = 3;
-  const paddleSpeed = 5;
+  const paddleSpeed = 5;  
   const ballSpeed = 5;
-  
+
   // Directions: -1 = up, 0 = stop, 1 = down
   const paddleDirections = useRef<{ a: number; b: number }>({ a: 0, b: 0 });
 
-  const ballRef = useRef({ x: 462, y: 278, dx: 1, dy: 1 });
+  // Refs for positions/states used in the game loop
+  const paddleARef = useRef<number>(240);
+  const paddleBRef = useRef<number>(240);
+  const ballRef = useRef<{ x: number; y: number; dx: number; dy: number }>({ x: 462, y: 278, dx: 1, dy: 1 });
   const scoreRef = useRef(score);
   const gameOverRef = useRef(gameOver);
 
-  // Keep refs updated
   useEffect(() => {
     scoreRef.current = score;
   }, [score]);
-  
+
   useEffect(() => {
     gameOverRef.current = gameOver;
   }, [gameOver]);
 
-  // Handle continuous movement via animation frame
+  const resetBall = () => {
+    // Reverse horizontal direction and reset vertical direction
+    ballRef.current = {
+      x: 462,
+      y: 278,
+      dx: ballRef.current.dx > 0 ? -1 : 1,
+      dy: 1
+    };
+  };
+
   useEffect(() => {
     const minPaddlePos = 0;
     const maxPaddlePos = 456; // 556 field height - 100 paddle height
 
-    const animate = () => {
-      if (gameOverRef.current || gamePaused) {
-        requestAnimationFrame(animate);
-        return;
-      }
+    // Run the game loop every 20ms, similar to the remote server's 0.02s updates
+    const interval = setInterval(() => {
+      if (gameOverRef.current || gamePaused) return;
 
       // Update paddle positions
-      setPaddleAPosition(prev => {
-        let newPos = prev + paddleDirections.current.a * paddleSpeed;
-        return Math.max(minPaddlePos, Math.min(maxPaddlePos, newPos));
-      });
+      paddleARef.current += paddleDirections.current.a * paddleSpeed;
+      paddleBRef.current += paddleDirections.current.b * paddleSpeed;
 
-      setPaddleBPosition(prev => {
-        let newPos = prev + paddleDirections.current.b * paddleSpeed;
-        return Math.max(minPaddlePos, Math.min(maxPaddlePos, newPos));
-      });
-
-      // After updating state, read the latest paddle positions
-      const updatedAPos = paddleAPosition + paddleDirections.current.a * paddleSpeed;
-      const updatedBPos = paddleBPosition + paddleDirections.current.b * paddleSpeed;
+      // Clamp paddle positions
+      paddleARef.current = Math.max(minPaddlePos, Math.min(maxPaddlePos, paddleARef.current));
+      paddleBRef.current = Math.max(minPaddlePos, Math.min(maxPaddlePos, paddleBRef.current));
 
       // Update the ball
       const ball = ballRef.current;
       ball.x += ball.dx * ballSpeed;
       ball.y += ball.dy * ballSpeed;
 
-      // Check wall collisions
+      // Check collisions with top/bottom walls
       if (ball.y <= 0 || ball.y >= 556) {
         ball.dy *= -1;
       }
 
       // Check paddle collisions
-      // Paddle A at x=0..20, Paddle B at x=904..924 (field width=924)
-      if (ball.x <= 20 && ball.y >= updatedAPos && ball.y <= updatedAPos + 100) {
+      // Paddle A: x <= 20; Paddle B: x >= 904
+      if (ball.x <= 20 && ball.y >= paddleARef.current && ball.y <= paddleARef.current + 100) {
         ball.dx *= -1;
-      } else if (ball.x >= 904 && ball.y >= updatedBPos && ball.y <= updatedBPos + 100) {
+      } else if (ball.x >= 904 && ball.y >= paddleBRef.current && ball.y <= paddleBRef.current + 100) {
         ball.dx *= -1;
       }
 
       // Check for goals
+      let newScore = { ...scoreRef.current };
       if (ball.x < 0) {
-        setScore(prev => ({ a: prev.a, b: prev.b + 1 }));
+        newScore.b += 1;
         resetBall();
       } else if (ball.x > 924) {
-        setScore(prev => ({ a: prev.a + 1, b: prev.b }));
+        newScore.a += 1;
         resetBall();
       }
 
       // Check for game over
-      if (scoreRef.current.a >= MAX_SCORE || scoreRef.current.b >= MAX_SCORE) {
-        setGameOver(true);
+      let newGameOver = false;
+      if (newScore.a >= MAX_SCORE || newScore.b >= MAX_SCORE) {
+        newGameOver = true;
       }
 
-      // Update state with new ball position
-      setBallPosition({ x: ball.x, y: ball.y });
-
-      requestAnimationFrame(animate);
-    };
-
-    requestAnimationFrame(animate);
+      // Update React states once per frame
+      setPaddleAPosition(paddleARef.current);
+      setPaddleBPosition(paddleBRef.current);
+      setBallPosition({ x: ballRef.current.x, y: ballRef.current.y });
+      setScore(newScore);
+      if (newGameOver && !gameOverRef.current) {
+        setGameOver(true);
+      }
+    }, 20);
 
     return () => {
-      // cleanup if needed
+      clearInterval(interval);
     };
-  }, [gamePaused, paddleAPosition, paddleBPosition]);
-
-  const resetBall = () => {
-    ballRef.current = { x: 462, y: 278, dx: ballRef.current.dx > 0 ? -1 : 1, dy: 1 };
-    setBallPosition({ x: 462, y: 278 });
-  };
+  }, [gamePaused]);
 
   // Handle keydown/keyup for paddle directions
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (gameOver) return;
+      if (gameOverRef.current) return;
       if (event.key === 'w') {
         paddleDirections.current.a = -1;
       } else if (event.key === 's') {
@@ -134,7 +135,7 @@ const LocalPongCanvas: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameOver]);
+  }, []);
 
   return (
     <div className="pong">

@@ -100,6 +100,15 @@ class PongConsumer(AsyncWebsocketConsumer):
         self.paddle = paddle
 
         await self.accept()
+
+        await self.send(json.dumps({
+            "type": "assignPaddle",
+            "paddle": paddle,
+            "game_id": self.game_id,
+            "players": self.game.players  # This should be a dict: {'a': keyA, 'b': keyB}
+        }))
+
+
         await self.send(json.dumps({"type": "assignPaddle", "paddle": paddle}))
 
         print(f"Player connected: {paddle} with key {browser_key} to game {self.game_id}")

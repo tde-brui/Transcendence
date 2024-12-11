@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const WS_URL = 'ws://localhost:8000/ws/pong/';
 
-export const PingPongCanvas: React.FC = () => {
+export const RemotePongCanvas: React.FC = () => {
   const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
   const [paddleBPosition, setPaddleBPosition] = useState<number>(240);
   const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({ x: 462, y: 278 });
@@ -12,7 +12,9 @@ export const PingPongCanvas: React.FC = () => {
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [playersConnected, setPlayersConnected] = useState<number>(0);
   const [assignedPaddle, setAssignedPaddle] = useState<'a' | 'b' | null>(null);
-
+  const [gameID, setGameID] = useState<string>('');
+  const [playerKeys, setPlayerKeys] = useState<{a?: string; b?: string}>({});
+  
   const websocketRef = useRef<WebSocket | null>(null);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -45,6 +47,13 @@ export const PingPongCanvas: React.FC = () => {
         if (data.type === 'assignPaddle') {
           console.log('Assigned paddle:', data.paddle);
           setAssignedPaddle(data.paddle);
+          if (data.game_id) {
+            setGameID(data.game_id);
+          }
+          if (data.players) {
+            setPlayerKeys(data.players); // data.players should look like {a: 'alex', b: 'bob'}
+          }
+          
         }
 
         if (data.type === 'playersConnected') {
@@ -112,6 +121,13 @@ export const PingPongCanvas: React.FC = () => {
 
   return (
     <div className="pong">
+      {/* Display the lobby name at the top */}
+      {gameID && (
+        <div style={{ position: 'absolute', top: '10px', width: '100%', textAlign: 'center', fontWeight: 'bold' }}>
+          Lobby: {gameID}
+        </div>
+      )}
+  
       <div className="overlap-group-wrapper">
         <div className="overlap-group">
           <div className="paddle-a" style={{ top: `${paddleAPosition}px` }} />
@@ -122,6 +138,19 @@ export const PingPongCanvas: React.FC = () => {
             <div className="score">{score.a} - {score.b}</div>
           </div>
         </div>
+  
+        {/* Player IDs on sides */}
+        {playerKeys.a && (
+          <div style={{ position: 'absolute', left: '20px', top: '60px', color: 'white', fontWeight: 'bold' }}>
+            {playerKeys.a}
+          </div>
+        )}
+        {playerKeys.b && (
+          <div style={{ position: 'absolute', right: '20px', top: '60px', color: 'white', fontWeight: 'bold' }}>
+            {playerKeys.b}
+          </div>
+        )}
+  
         {gamePaused && (
           <div className="game-paused">
             <h2>{playersConnected < 2 ? 'Waiting for another player...' : 'Game Paused'}</h2>
@@ -141,6 +170,6 @@ export const PingPongCanvas: React.FC = () => {
       </div>
     </div>
   );
-};
+};  
 
-export default PingPongCanvas;
+export default RemotePongCanvas;
