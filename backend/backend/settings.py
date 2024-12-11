@@ -44,7 +44,7 @@ INSTALLED_APPS = [
 	'daphne',
 	'chat',
 	'corsheaders',
-	'users',
+	# 'users',
 	'rest_framework',
 	'channels',
     'django.contrib.admin',
@@ -148,7 +148,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-AUTH_USER_MODEL = "users.PongUser"
+# AUTH_USER_MODEL = "users.PongUser"
 OTP_EXPIRATION_TIME = 300
 
 REST_FRAMEWORK = {
