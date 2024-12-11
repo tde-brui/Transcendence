@@ -18,9 +18,19 @@ load_dotenv()
 
 email_password = os.getenv('EMAIL_PASSWORD')
 
+CLIENT_ID = os.getenv('CLIENT_ID')
+CLIENT_SECRET = os.getenv('CLIENT_SECRET')
+REDIRECT_URI = os.getenv('REDIRECT_URI')
+AUTHORIZATION_URL = os.getenv('AUTHORIZATION_URL')
+
+TOKEN_URL = "https://api.intra.42.fr/oauth/token"
+USER_URL = "https://api.intra.42.fr/v2/me"
+
+FRONTEND_URL = "http://localhost:3000"
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -43,7 +53,9 @@ ALLOWED_HOSTS = [
 INSTALLED_APPS = [
 	'corsheaders',
 	'users',
+	'friends',
 	'rest_framework',
+	'rest_framework_simplejwt',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +63,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
 
 MIDDLEWARE = [
 	'corsheaders.middleware.CorsMiddleware',
@@ -145,8 +158,11 @@ OTP_EXPIRATION_TIME = 300
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'users.authentication.CookieJWTAuthentication',
     ],
+	'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -155,3 +171,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'transcendence4000@gmail.com'
 EMAIL_HOST_PASSWORD = "skdo zrbx kvfz qpnn"
+
+#settings for storing user pictures
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
