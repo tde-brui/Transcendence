@@ -137,6 +137,7 @@ def user_42_callback(request):
 					'twoFactorEnabled': False,
 				})
 			request.session['pending_user_id'] = user.id
+			request.session['pending_user_email'] = user.email
 		except IntegrityError:
 			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?error=42_user_exists")
 		if user.twoFactorEnabled:
