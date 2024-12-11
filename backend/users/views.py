@@ -19,6 +19,7 @@ import requests
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 class get_users(APIView):
+	permission_classes = [AllowAny]
 	def get(self, request, *args, **kwargs):
 		users = PongUser.objects.all()
 		serializer = UserSerializer(users, many=True)
@@ -68,6 +69,7 @@ class user_login(APIView):
 					send_otp_email(user.email, otp)
 					return Response({
 						"message": "Sent OTP code to email",
+						"email": user.email
 					}, status=status.HTTP_202_ACCEPTED)
 				return jwtCookie(user)
 		return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -93,6 +95,10 @@ def jwtCookie(user):
 		else:
 			return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 		
+class verify_user(APIView):
+	def get(self, request):
+		return Response({"message": "User is verified"}, status=status.HTTP_200_OK)
+
 def user_42_login(request):
 	authorization_url = f"{settings.AUTHORIZATION_URL}?client_id={settings.CLIENT_ID}&redirect_uri={settings.REDIRECT_URI}&response_type=code"
 	return HttpResponseRedirect(authorization_url)
@@ -130,6 +136,7 @@ def user_42_callback(request):
 					'firstName': user_data['first_name'],
 					'twoFactorEnabled': False,
 				})
+			request.session['pending_user_id'] = user.id
 		except IntegrityError:
 			return HttpResponseRedirect(f"{settings.FRONTEND_URL}/42-callback?error=42_user_exists")
 		if user.twoFactorEnabled:
@@ -166,6 +173,7 @@ def send_otp_email(email, otp):
 	send_mail(subject, message, settings.EMAIL_HOST_USER, recipients)
 
 class verify_otp(APIView):
+	permission_classes = [AllowAny]
 	def post(self, request, *args, **kwargs):
 		otp_code = request.data.get('otp_code')
 		user_data = request.session.get('pending_user_data')
@@ -228,7 +236,8 @@ class send_friend_request(APIView):
 			return Response("friend request already send")
 	
 	
-def logout(request):
-	response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/")
-	response.delete_cookie('access_token')
-	return response
+class logout(APIView):
+	def delete(self, request):
+		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/")
+		response.delete_cookie('access_token')
+		return response
