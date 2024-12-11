@@ -1,37 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import axiosInstance from "./AxiosInstance";
+import { useAuth } from "./AuthContext";
 
 interface OTPBoxedProps {
-  userId: number;
+  email: string;
 }
 
-const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
-  const [email, setEmail] = useState<string>("");
+const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [error, setError] = useState<string | null>(null);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertType, setAlertType] = useState<"success" | "error" | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
+  const { setUserId } = useAuth();
 
-  useEffect(() => {
-    const fetchEmail = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8000/users/${userId}/`);
-        if (response.status === 200 && response.data.email) {
-          setEmail(response.data.email);
-        } else {
-          throw new Error("Failed to fetch user email.");
-        }
-      } catch (err) {
-        setError("Error fetching user email.");
-        console.error(err);
-      }
-    };
-
-    fetchEmail();
-  }, [userId]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const { value } = e.target;
     if (/^\d*$/.test(value)) {
       const newOtp = [...otp];
@@ -45,7 +34,10 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       // Move to the previous input box on backspace
       inputRefs.current[index - 1]?.focus();
@@ -54,7 +46,7 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
 
   const handleResendCode = async () => {
     try {
-      await axios.post(`http://localhost:8000/resend_otp/`, { user_id: userId });
+      await axios.post(`http://localhost:8000/users/resend_otp/`, {});
       alert("A new OTP has been sent!");
     } catch (err) {
       setError("Error resending OTP.");
@@ -71,18 +63,23 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:8000/users/verify_otp/`, {
-        user_id: userId,
+      const response = await axiosInstance.post(`/users/verify_otp/`, {
         otp_code: fullOtp,
       });
-	  console.error("response:", response);
-      if (response.status === 200) {
+      console.error("response:", response);
+      if (response.status === 200 && response.data?.user_id) {
+        const userId = response.data.user_id;
+        setUserId(userId);
         navigate("/");
+      } else if (response.status === 400) {
+        setAlertMessage("Invalid OTP or verification failed.");
+        setAlertType("error");
       } else {
         throw new Error("OTP verification failed.");
       }
     } catch (err) {
-      setError("Invalid OTP or verification failed.");
+      setAlertMessage("Error verifying OTP.");
+      setAlertType("error");
       console.error(err);
     }
   };
@@ -105,9 +102,23 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ userId }) => {
         </div>
         <div className="card-body profile-body">
           <p className="text-center mb-4 h6">
-          An email has been sent to the email address <strong>{maskedEmail}</strong>. Enter the code to log in.
+            An email has been sent to the email address{" "}
+            <strong>{maskedEmail}</strong>. Enter the code to log in.
           </p>
           <form onSubmit={handleSubmit} noValidate>
+            <div className="card-body">
+              {/* Alert Box */}
+              {alertMessage && (
+                <div
+                  className={`alert ${
+                    alertType === "success" ? "alert-success" : "alert-danger"
+                  } text-center`}
+                >
+                  {alertMessage}
+                </div>
+              )}
+            </div>
+
             <div className="otp-container">
               {otp.map((digit, index) => (
                 <input

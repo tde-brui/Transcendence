@@ -1,84 +1,137 @@
 {
-  "users": [
-    {
-      "id": "1",
-      "username": "dvan-kle",
-      "email": "dvan-kle@",
-      "password": "$2b$10$1234567890abcdef1234567890abcdef",
-      "displayName": "Daniel",
-      "avatar": "/images/logo192.png",
-      "friends": [
-        2
-      ],
-      "onlineStatus": "online",
-      "matchHistory": [
-        {
-          "opponentId": 2,
-          "date": "2024-11-12",
-          "result": "win"
-        }
-      ]
-    },
-    {
-      "id": "2",
-      "username": "tvan-bee",
-      "email": "tvan-bee@student.codam.nl",
-      "password": "$2b$10$abcdef1234567890abcdef1234567890",
-      "displayName": "Tristan",
-      "avatar": "/images/logo192.png",
-      "friends": [
-        1
-      ],
-      "onlineStatus": "online",
-      "matchHistory": [
-        {
-          "opponentId": 1,
-          "date": "2024-11-12",
-          "result": "loss"
-        }
-      ]
-    },
-    {
-      "id": "362a",
-      "username": "danielvanlkeef",
-      "email": "test",
-      "password": "test"
-    },
-    {
-      "id": "cf26",
-      "username": "daniel",
-      "email": "gmail@gmail.com",
-      "password": "test"
-    }
-  ],
-  "sessions": [
-    {
-      "userId": 1,
-      "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-      "expiresAt": "2024-12-01T12:00:00Z",
-      "id": "f6ed"
-    }
-  ],
-  "authRequests": [
-    {
-      "userId": 1,
-      "provider": "42",
-      "authToken": "auth_token_value",
-      "createdAt": "2024-11-13T10:30:00Z",
-      "id": "0048"
-    }
-  ],
-  "twoFactorAuth": [
-    {
-      "userId": 1,
-      "method": "app",
-      "isEnabled": true,
-      "secret": "base32secretkey",
-      "backupCodes": [
-        "12345678",
-        "87654321"
-      ],
-      "id": "638b"
-    }
-  ]
-}
+	"users": [
+	  {
+		"id": "1",
+		"username": "daniel",
+		"email": "daniel@vkleef.nl",
+		"firstName": "Daniel",
+		"avatar": "/images/tvan-bee.jpeg",
+		"friends": [2, 3, 5, 4, 6],
+		"onlineStatus": "online",
+		"twoFactorEnabled": true,
+		"matchHistory": [
+		  {
+			"opponentId": "2",
+			"date": "2024-11-12",
+			"result": "win"
+		  },
+		  {
+			"opponentId": "3",
+			"date": "2024-11-15",
+			"result": "loss"
+		  }
+		]
+	  },
+	  {
+		"id": "2",
+		"username": "bigidagoe",
+		"email": "bigidagoe6@gmail.com",
+		"firstName": "Denzel",
+		"avatar": "/images/dvan-kle.jpeg",
+		"friends": [1, 4],
+		"onlineStatus": "offline",
+		"two_factor_enabled": false,
+		"matchHistory": [
+		  {
+			"opponentId": "1",
+			"date": "2024-11-12",
+			"result": "loss"
+		  },
+		  {
+			"opponentId": "4",
+			"date": "2024-11-16",
+			"result": "win"
+		  }
+		]
+	  },
+	  {
+		"id": "3",
+		"username": "kclark",
+		"email": "kclark@",
+		"firstName": "Kara",
+		"avatar": "/imagejpg",
+		"friends": [1, 4],
+		"onlineStatus": "away",
+		"two_factor_enabled": true,
+		"matchHistory": [
+		  {
+			"opponentId": "1",
+			"date": "2024-11-15",
+			"result": "win"
+		  },
+		  {
+			"opponentId": "4",
+			"date": "2024-11-17",
+			"result": "loss"
+		  }
+		]
+	  },
+	  {
+		"id": "4",
+		"username": "lmiller",
+		"email": "lmiller@",
+		"firstName": "Lucy",
+		"avatar": "/images/default_avatar.jpg",
+		"friends": [2, 3],
+		"onlineStatus": "online",
+		"two_factor_enabled": false,
+		"matchHistory": [
+		  {
+			"opponentId": "2",
+			"date": "2024-11-16",
+			"result": "loss"
+		  },
+		  {
+			"opponentId": "3",
+			"date": "2024-11-17",
+			"result": "win"
+		  }
+		]
+	  },
+	  {
+		"id": "5",
+		"username": "asmith",
+		"email": "asmith@",
+		"firstName": "Alex",
+		"avatar": "/images/default_avatar.jpg",
+		"friends": [1, 3],
+		"onlineStatus": "offline",
+		"two_factor_enabled": true,
+		"matchHistory": [
+		  {
+			"opponentId": "1",
+			"date": "2024-11-18",
+			"result": "loss"
+		  },
+		  {
+			"opponentId": "3",
+			"date": "2024-11-19",
+			"result": "win"
+		  }
+		]
+	  },
+	  {
+		"id": "6",
+		"username": "jonesy",
+		"email": "asmith@",
+		"firstName": "jones",
+		"avatar": "/images/default_avatar.jpg",
+		"friends": [1, 3],
+		"onlineStatus": "offline",
+		"two_factor_enabled": true,
+		"matchHistory": [
+		  {
+			"opponentId": "1",
+			"date": "2024-11-18",
+			"result": "loss"
+		  },
+		  {
+			"opponentId": "3",
+			"date": "2024-11-19",
+			"result": "win"
+		  }
+		]
+	  }
+	]
+  }
+  

@@ -12,11 +12,12 @@ export type MatchHistory = {
 	id: number;
 	username: string;
 	email: string;
-	displayName: string;
+	firstName: string;
 	avatar?: string;
 	onlineStatus: string;
 	friends: number[];
 	matchHistory: MatchHistory[];
+	twoFactorEnabled: boolean;
   };
   
   export type Session = {

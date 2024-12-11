@@ -2,19 +2,18 @@ import React, { useState } from "react";
 import { useAuth } from "../components/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import OTPBoxed from "../components/OTPBoxed";
-import '../css/UserProfile.css';
+import "../css/UserProfile.css";
+import "../css/Utils.css";
 import axiosInstance from "../components/AxiosInstance";
 import { IsLoggedIn } from "../components/isLoggedIn";
 
-
 type UserProfileProps = {
-	userId: number;
-	isAuthChecked: boolean;
-  };
+  userId: number;
+  isAuthChecked: boolean;
+};
 
 const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
-
-//   IsLoggedIn(userId, isAuthChecked);
+  //   IsLoggedIn(userId, isAuthChecked);
   const { login } = useAuth();
   const { setUserId } = useAuth();
   const navigate = useNavigate();
@@ -30,7 +29,7 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   });
 
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [otpUserId, setOtpUserId] = useState<number | null>(null);
+  const [otpUserEmail, setOtpUserEmail] = useState<string | null>(null);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<"success" | "error" | null>(null);
 
@@ -56,7 +55,12 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (formErrors.username || formErrors.password || !formData.username || !formData.password) {
+    if (
+      formErrors.username ||
+      formErrors.password ||
+      !formData.username ||
+      !formData.password
+    ) {
       setAlertMessage("Please fix the errors before submitting.");
       setAlertType("error");
       return;
@@ -69,18 +73,21 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
         },
       };
 
-      const response = await axiosInstance.post("/users/login/", formData, config);
-	  console.warn("RESPONSE HEADER AFTER LOGIN:", response);
+      const response = await axiosInstance.post(
+        "/users/login/",
+        formData,
+        config
+      );
+      console.warn("RESPONSE HEADER AFTER LOGIN:", response);
       if (response.status === 200 && response.data?.user_id) {
         login(response.data.acces_token);
         setUserId(response.data.user_id);
         setAlertMessage("Login successful!");
         setAlertType("success");
-        // setTimeout(() => navigate("/"), 1000);
-      } else if (response.status === 202 && response.data?.user_id) {	
-        const userId = response.data.user_id;
-        setUserId(userId);
-        setOtpUserId(userId);
+        setTimeout(() => navigate("/"), 500);
+      } else if (response.status === 202 && response.data?.email) {
+        const userEmail = response.data.email;
+        setOtpUserEmail(userEmail);
         setIsOtpSent(true);
         setAlertMessage("OTP sent to your email.");
         setAlertType("success");
@@ -93,6 +100,10 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
       setAlertMessage("Invalid username or password.");
       setAlertType("error");
     }
+  };
+
+  const handleAuthentication = () => {
+    window.location.href = "http://localhost:8000/users/42_login/";
   };
 
   return (
@@ -115,6 +126,15 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
             )}
 
             <form onSubmit={handleSubmit} noValidate>
+              <div>
+                <button
+                  onClick={handleAuthentication}
+                  type="button"
+                  className="btn login-button"
+                >
+                  Login with <img src="/42.png" alt="42" className="logo-42" />
+                </button>
+              </div>
               <div className="form-group">
                 <label htmlFor="username"></label>
                 <div className="input-group mb-3">
@@ -123,7 +143,9 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
                   </div>
                   <input
                     type="text"
-                    className={`form-control ${formErrors.username ? "is-invalid" : ""}`}
+                    className={`form-control ${
+                      formErrors.username ? "is-invalid" : ""
+                    }`}
                     id="username"
                     name="username"
                     placeholder="Username"
@@ -132,7 +154,9 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
                     required
                   />
                   {formErrors.username && (
-                    <div className="invalid-feedback">{formErrors.username}</div>
+                    <div className="invalid-feedback">
+                      {formErrors.username}
+                    </div>
                   )}
                 </div>
               </div>
@@ -141,7 +165,9 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
                 <label htmlFor="password"></label>
                 <input
                   type="password"
-                  className={`form-control ${formErrors.password ? "is-invalid" : ""}`}
+                  className={`form-control ${
+                    formErrors.password ? "is-invalid" : ""
+                  }`}
                   id="password"
                   name="password"
                   placeholder="Password"
@@ -153,10 +179,11 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
                   <div className="invalid-feedback">{formErrors.password}</div>
                 )}
               </div>
-
-              <button type="submit" className="btn btn-primary btn-block mt-2">
-                Login
-              </button>
+              <div className="d-flex flex-column align-items-center">
+                <button type="submit" className="btn btn-primary mt-3">
+                  Login
+                </button>
+              </div>
             </form>
           </div>
           <div className="card-footer text-center">
@@ -165,7 +192,9 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
             </p>
           </div>
         </div>
-      ) : ( otpUserId !== null && ( <OTPBoxed userId={otpUserId}/>) )}
+      ) : (
+        otpUserEmail !== null && <OTPBoxed email={otpUserEmail} />
+      )}
     </div>
   );
 };

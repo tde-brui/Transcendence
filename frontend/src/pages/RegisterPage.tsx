@@ -15,26 +15,31 @@ const RegisterPage: React.FC<UserProfileProps> = ({
   userId,
   isAuthChecked,
 }) => {
-//   IsLoggedIn(userId, isAuthChecked);
+  //   IsLoggedIn(userId, isAuthChecked);
   const { setUserId } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     username: "",
+    firstName: "",
     email: "",
     password: "",
     confirmPassword: "",
-    two_factor_enabled: false,
+    twoFactorEnabled: false,
   });
 
   const [formErrors, setFormErrors] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
+    firstName: "",
   });
 
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [otpUserId, setOtpUserId] = useState<number | null>(null);
+  const [otpUserEmail, setOtpUserEmail] = useState<string | null>(null);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertType, setAlertType] = useState<"success" | "error" | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -42,6 +47,16 @@ const RegisterPage: React.FC<UserProfileProps> = ({
       ...formData,
       [name]: type === "checkbox" ? checked : value, // Handle checkbox
     });
+
+    if (name === "username") {
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      setFormErrors({
+        ...formErrors,
+        username: usernameRegex.test(value)
+          ? ""
+          : "Username must be 3-20 characters long and can only contain letters, numbers, and underscores",
+      });
+    }
 
     if (name === "email") {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,7 +73,7 @@ const RegisterPage: React.FC<UserProfileProps> = ({
         ...formErrors,
         password: passwordRegex.test(value)
           ? ""
-          : "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number and a special character",
+          : "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character",
       });
     }
 
@@ -67,6 +82,16 @@ const RegisterPage: React.FC<UserProfileProps> = ({
         ...formErrors,
         confirmPassword:
           value !== formData.password ? "Passwords do not match" : "",
+      });
+    }
+
+    if (name === "firstName") {
+      const firstNameRegex = /^[A-Z][a-z]*$/; // First letter capital, rest lowercase
+      setFormErrors({
+        ...formErrors,
+        firstName: firstNameRegex.test(value)
+          ? ""
+          : "First name must start with a capital letter and only contain lowercase letters afterward",
       });
     }
   };
@@ -81,7 +106,8 @@ const RegisterPage: React.FC<UserProfileProps> = ({
       !formData.email ||
       !formData.password
     ) {
-      alert("Please fix the errors before submitting.");
+      setAlertMessage("Please fix the errors before submitting.");
+      setAlertType("error");
       return;
     }
 
@@ -101,19 +127,24 @@ const RegisterPage: React.FC<UserProfileProps> = ({
         dataToSend,
         config
       );
-      if (response.status === 200 && response.data?.user_id)
-		{
-        	setUserId(response.data.user_id);
-        	setTimeout(() => navigate("/"), 1000);
-      } else if (response.status === 202 && response.data?.user_id) {
-        const userId = response.data.user_id;
-        setUserId(userId);
-        setOtpUserId(userId);
+      console.info(response);
+      if (response.status === 200 && response.data?.user_id) {
+        setUserId(response.data.user_id);
+        setAlertMessage("Registration successful!");
+        setAlertType("success");
+        setTimeout(() => navigate("/"), 1000);
+      } else if (response.status === 202 && response.data?.email) {
+        console.log(response.data.message);
+        const userEmail = response.data.email;
+        setAlertMessage("OTP sent to your email.");
+        setAlertType("success");
+        setOtpUserEmail(userEmail);
         setIsOtpSent(true);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("An error occurred during registration.");
+      setAlertMessage("Failed to register. Please try again.");
+      setAlertType("error");
     }
   };
 
@@ -125,6 +156,16 @@ const RegisterPage: React.FC<UserProfileProps> = ({
             <h4 className="profile-title text-white">Register</h4>
           </div>
           <div className="card-body profile-body">
+            {/* Alert Box */}
+            {alertMessage && (
+              <div
+                className={`alert ${
+                  alertType === "success" ? "alert-success" : "alert-danger"
+                } text-center`}
+              >
+                {alertMessage}
+              </div>
+            )}
             <form onSubmit={handleSubmit} noValidate>
               <div className="form-group">
                 <label htmlFor="username"></label>
@@ -134,7 +175,9 @@ const RegisterPage: React.FC<UserProfileProps> = ({
                   </div>
                   <input
                     type="text"
-                    className="form-control"
+                    className={`form-control ${
+                      formErrors.username ? "is-invalid" : ""
+                    }`}
                     id="username"
                     name="username"
                     placeholder="Username"
@@ -142,7 +185,30 @@ const RegisterPage: React.FC<UserProfileProps> = ({
                     onChange={handleChange}
                     required
                   />
+                  {formErrors.username && (
+                    <div className="invalid-feedback">
+                      {formErrors.username}
+                    </div>
+                  )}
                 </div>
+              </div>
+              <div className="form-group">
+                <label htmlFor="firstName"></label>
+                <input
+                  type="text"
+                  className={`form-control ${
+                    formErrors.firstName ? "is-invalid" : ""
+                  }`}
+                  id="firstName"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  required
+                />
+                {formErrors.firstName && (
+                  <div className="invalid-feedback">{formErrors.firstName}</div>
+                )}
               </div>
               <div className="form-group">
                 <label htmlFor="email"></label>
@@ -207,14 +273,14 @@ const RegisterPage: React.FC<UserProfileProps> = ({
                 <input
                   type="checkbox"
                   className="form-check-input checkmark"
-                  id="two_factor_enabled"
-                  name="two_factor_enabled"
-                  checked={formData.two_factor_enabled}
+                  id="twoFactorEnabled"
+                  name="twoFactorEnabled"
+                  checked={formData.twoFactorEnabled}
                   onChange={handleChange}
                 />
                 <label
                   className="form-check-label ps-2 text-secondary"
-                  htmlFor="two_factor_enabled"
+                  htmlFor="twoFactorEnabled"
                 >
                   Enable 2FA
                 </label>
@@ -232,7 +298,7 @@ const RegisterPage: React.FC<UserProfileProps> = ({
           </div>
         </div>
       ) : (
-        otpUserId !== null && <OTPBoxed userId={otpUserId} />
+        otpUserEmail !== null && <OTPBoxed email={otpUserEmail} />
       )}
     </div>
   );
