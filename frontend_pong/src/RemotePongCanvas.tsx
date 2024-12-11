@@ -4,6 +4,7 @@ import { useParams, useLocation } from 'react-router-dom';
 const WS_URL = 'ws://localhost:8000/ws/pong/';
 
 export const RemotePongCanvas: React.FC = () => {
+  // Game state variables
   const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
   const [paddleBPosition, setPaddleBPosition] = useState<number>(240);
   const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({ x: 462, y: 278 });
@@ -13,16 +14,22 @@ export const RemotePongCanvas: React.FC = () => {
   const [playersConnected, setPlayersConnected] = useState<number>(0);
   const [assignedPaddle, setAssignedPaddle] = useState<'a' | 'b' | null>(null);
   const [gameID, setGameID] = useState<string>('');
-  const [playerKeys, setPlayerKeys] = useState<{a?: string; b?: string}>({});
+  const [playerKeys, setPlayerKeys] = useState<{ a?: string; b?: string }>({});
+  const [winner, setWinner] = useState<string | null>(null); // New state for winner
 
+  // WebSocket reference
   const websocketRef = useRef<WebSocket | null>(null);
+  
+  // Retrieve URL parameters
   const { lobbyId } = useParams<{ lobbyId: string }>();
   const location = useLocation();
   const urlParams = new URLSearchParams(location.search);
   const uniqueKey = urlParams.get('key') || 'defaultKey';
 
+  // Ref for assigned paddle
   const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
 
+  // Store unique key in sessionStorage
   useEffect(() => {
     if (!sessionStorage.getItem('uniqueKey')) {
       sessionStorage.setItem('uniqueKey', uniqueKey);
@@ -30,13 +37,15 @@ export const RemotePongCanvas: React.FC = () => {
     }
   }, [uniqueKey]);
 
+  // Update ref when assignedPaddle changes
   useEffect(() => {
     assignedPaddleRef.current = assignedPaddle;
   }, [assignedPaddle]);
 
+  // Connect to WebSocket
   useEffect(() => {
     const connectWebSocket = () => {
-      // Add &lobby=lobbyId so we join/create that specific lobby
+      // Construct WebSocket URL with lobby and key
       const wsUrl = lobbyId ? `${WS_URL}?key=${uniqueKey}&lobby=${lobbyId}` : `${WS_URL}?key=${uniqueKey}`;
       console.log('Connecting to WebSocket at:', wsUrl);
       const websocket = new WebSocket(wsUrl);
@@ -69,6 +78,10 @@ export const RemotePongCanvas: React.FC = () => {
             console.log('Players connected:', data.count);
             setPlayersConnected(data.count);
             setGamePaused(data.count < 2);
+            if (data.players) {
+              setPlayerKeys(data.players);
+              console.log('Updated player keys:', data.players);
+            }
           }
 
           if (data.type === 'update') {
@@ -83,6 +96,7 @@ export const RemotePongCanvas: React.FC = () => {
             console.log('Game over. Winner:', data.winner);
             setGameOver(true);
             setGamePaused(true);
+            setWinner(data.winner); // Set the winner
           }
         } catch (err) {
           console.error('Error parsing message:', err);
@@ -100,6 +114,7 @@ export const RemotePongCanvas: React.FC = () => {
 
     connectWebSocket();
 
+    // Cleanup on component unmount
     return () => {
       if (websocketRef.current) {
         websocketRef.current.close();
@@ -108,6 +123,7 @@ export const RemotePongCanvas: React.FC = () => {
     };
   }, [uniqueKey, lobbyId]);
 
+  // Handle keyboard events for paddle movement
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
@@ -133,56 +149,64 @@ export const RemotePongCanvas: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
+    // Cleanup event listeners on component unmount
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 
+  // Helper function to map paddle to position
+  const getPaddlePosition = (paddle: 'a' | 'b') => {
+    return paddle === 'a' ? 'left' : 'right';
+  };
+
   return (
     <div className="pong">
       {gameID && (
-        <div style={{ position: 'absolute', top: '10px', width: '100%', textAlign: 'center', fontWeight: 'bold', color: 'white' }}>
-          Lobby: {gameID}
-        </div>
+        <div className="lobby-id">Lobby: {gameID}</div>
       )}
 
       <div className="overlap-group-wrapper">
         <div className="overlap-group">
+          {/* Paddles and Ball */}
           <div className="paddle-a" style={{ top: `${paddleAPosition}px` }} />
           <div className="paddle-b" style={{ top: `${paddleBPosition}px` }} />
           <div className="ball" style={{ left: `${ballPosition.x}px`, top: `${ballPosition.y}px` }} />
-          <div className="overlap">
-            <div className="scoreboard" />
+          
+          {/* Scoreboard */}
+          <div className="overlap">  {/* Changed from "scoreboard" to "overlap" */}
             <div className="score">{score.a} - {score.b}</div>
           </div>
         </div>
 
+        {/* Player Names */}
         {playerKeys.a && (
-          <div style={{ position: 'absolute', left: '20px', top: '60px', color: 'white', fontWeight: 'bold' }}>
-            {playerKeys.a}
-          </div>
+          <div className="player-name-a">{playerKeys.a}</div>
         )}
         {playerKeys.b && (
-          <div style={{ position: 'absolute', right: '20px', top: '60px', color: 'white', fontWeight: 'bold' }}>
-            {playerKeys.b}
-          </div>
+          <div className="player-name-b">{playerKeys.b}</div>
         )}
 
+        {/* Game Paused Overlay */}
         {gamePaused && (
           <div className="game-paused">
             <h2>{playersConnected < 2 ? 'Waiting for another player...' : 'Game Paused'}</h2>
             <p>Players connected: {playersConnected}/2</p>
           </div>
         )}
+
+        {/* Game Over Display */}
         {gameOver && (
           <div className="game-over">
-            <h2>{score.a > score.b ? 'Player A wins!' : 'Player B wins!'}</h2>
+            <h2>{winner ? `${winner} wins!` : 'No one wins!'}</h2>
           </div>
         )}
+
+        {/* Player Info Display */}
         {assignedPaddle && (
           <div className="player-info">
-            <h3>You are controlling Paddle {assignedPaddle.toUpperCase()}</h3>
+            <h3>You are controlling the {getPaddlePosition(assignedPaddle)} paddle</h3>
           </div>
         )}
       </div>

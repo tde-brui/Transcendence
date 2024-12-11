@@ -10,10 +10,11 @@ function App() {
     <div className="App">
       <Router>
         <Routes>
+          {/* Main menu page */}
           <Route
             path="/"
             element={
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', color: 'white' }}>
                 <h1>Main Menu</h1>
                 <Link to="/remote">
                   <button className="reset-button">Remote Play</button>
@@ -28,6 +29,7 @@ function App() {
           <Route path="/remote" element={<RemoteLobbyList />} />
           {/* Specific lobby page */}
           <Route path="/remote/:lobbyId" element={<RemotePongCanvas />} />
+          {/* Local play page */}
           <Route path="/local" element={<LocalPongCanvas />} />
         </Routes>
       </Router>
