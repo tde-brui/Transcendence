@@ -19,6 +19,7 @@ const Button = styled.button`
   padding: 0 20px;
   margin-left: 10px;
   font-size: 16px;
+  cursor: pointer;
 `;
 
 function MessageInput({ sendMessage }) {

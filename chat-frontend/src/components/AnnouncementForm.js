@@ -36,7 +36,7 @@ function AnnouncementForm({ sendAnnouncement }) {
     <FormContainer onSubmit={handleSubmit}>
       <input
         type="text"
-        placeholder="Enter announcement"
+        placeholder="Enter server announcement"
         value={announcement}
         onChange={(e) => setAnnouncement(e.target.value)}
         required

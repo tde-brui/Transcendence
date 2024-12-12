@@ -26,37 +26,31 @@ const LoginContainer = styled.div`
   button {
     padding: 10px 20px;
     margin-top: 10px;
+    cursor: pointer;
   }
 `;
 
 function App() {
   const [username, setUsername] = useState('');
-  const [roomName, setRoomName] = useState('');
   const [isConnected, setIsConnected] = useState(false);
 
   const handleConnect = () => {
-    if (username.trim() !== '' && roomName.trim() !== '') {
+    if (username.trim() !== '') {
       setIsConnected(true);
     } else {
-      alert('Please enter both username and room name.');
+      alert('Please enter a username.');
     }
   };
 
   if (!isConnected) {
     return (
       <LoginContainer>
-        <h2>Welcome to the Chat App</h2>
+        <h2>Welcome to the Global Chat App</h2>
         <input
           type="text"
           placeholder="Enter your username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Enter room name"
-          value={roomName}
-          onChange={(e) => setRoomName(e.target.value)}
         />
         <button onClick={handleConnect}>Join Chat</button>
       </LoginContainer>
@@ -65,7 +59,7 @@ function App() {
 
   return (
     <AppContainer>
-      <Chat username={username} roomName={roomName} />
+      <Chat username={username} />
     </AppContainer>
   );
 }

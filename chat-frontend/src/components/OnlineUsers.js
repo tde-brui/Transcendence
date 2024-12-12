@@ -19,6 +19,7 @@ const Actions = styled.div`
     margin-left: 5px;
     padding: 5px;
     font-size: 12px;
+    cursor: pointer;
   }
 `;
 

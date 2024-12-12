@@ -4,64 +4,52 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
-from .models import Room, Message, BlockedUser
+from .models import Message, BlockedUser
 
 User = get_user_model()
 
-online_users = {}  # {room_name: {username: channel_name}}
-
-@database_sync_to_async
-def get_or_create_room(room_name):
-    room, created = Room.objects.get_or_create(name=room_name)
-    return room
-
-@database_sync_to_async
-def create_message(room, user, message):
-    return Message.objects.create(room=room, sender=user, text=message)
+online_users = {}  # {username: channel_name}
 
 @database_sync_to_async
 def get_user(username):
     return User.objects.get(username=username)
 
 @database_sync_to_async
-def block_user(blocker, blocked_username):
+def create_message(sender, recipient, text, is_announcement=False):
+    return Message.objects.create(sender=sender, recipient=recipient, text=text, is_announcement=is_announcement)
+
+@database_sync_to_async
+def block_user(blocker, blocked_user):
     try:
-        blocked_user = User.objects.get(username=blocked_username)
         BlockedUser.objects.create(blocker=blocker, blocked=blocked_user)
-        return True, f"You have blocked '{blocked_username}'."
-    except User.DoesNotExist:
-        return False, f"User '{blocked_username}' does not exist."
+        return True, f"You have blocked '{blocked_user.username}'."
+    except BlockedUser.DoesNotExist:
+        return False, f"User '{blocked_user.username}' does not exist."
     except:
         return False, "An error occurred while blocking the user."
 
 @database_sync_to_async
-def unblock_user(blocker, blocked_username):
+def unblock_user(blocker, blocked_user):
     try:
-        blocked_user = User.objects.get(username=blocked_username)
         BlockedUser.objects.filter(blocker=blocker, blocked=blocked_user).delete()
-        return True, f"You have unblocked '{blocked_username}'."
-    except User.DoesNotExist:
-        return False, f"User '{blocked_username}' does not exist."
+        return True, f"You have unblocked '{blocked_user.username}'."
+    except BlockedUser.DoesNotExist:
+        return False, f"User '{blocked_user.username}' does not exist."
     except:
         return False, "An error occurred while unblocking the user."
 
 @database_sync_to_async
-def is_blocked(sender, recipient):
-    return BlockedUser.objects.filter(blocker=recipient, blocked__username=sender).exists()
+def is_blocked(sender_user, recipient_user):
+    return BlockedUser.objects.filter(blocker=recipient_user, blocked=sender_user).exists()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Extract room_name from URL route
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = f"room_{self.room_name}"
-
         # Extract username from query string
         query_string = self.scope['query_string'].decode('utf-8')
         params = dict(param.split('=') for param in query_string.split('&') if '=' in param)
         self.username = params.get('username')
 
-        # Debugging statement after assigning attributes
-        print(f"User connected: {self.username} in room '{self.room_name}'")
+        print(f"User attempting to connect: {self.username}")
 
         # Reject connection if no username provided
         if not self.username:
@@ -77,59 +65,53 @@ class ChatConsumer(AsyncWebsocketConsumer):
             print(f"Connection rejected: User '{self.username}' does not exist.")
             return
 
-        # Initialize room in online_users if not present
-        if self.room_name not in online_users:
-            online_users[self.room_name] = {}
-
-        # Reject connection if username already exists in the same room
-        if self.username in online_users[self.room_name]:
+        # Prevent duplicate connections
+        if self.username in online_users:
             await self.close()
-            print(f"Duplicate username '{self.username}' rejected in room '{self.room_name}'.")
+            print(f"Connection rejected: Duplicate username '{self.username}'.")
             return
 
         # Add user to online_users
-        online_users[self.room_name][self.username] = self.channel_name
-        print(f"User connected: {self.username} in room '{self.room_name}', Online users: {online_users[self.room_name]}")
+        online_users[self.username] = self.channel_name
+        print(f"User connected: {self.username}, Online users: {list(online_users.keys())}")
 
-        # Add user to room group
+        # Add user to the global group
         await self.channel_layer.group_add(
-            self.room_group_name,
+            "global",
             self.channel_name
         )
 
         await self.accept()
 
-        # Update online users list for all clients in the room
+        # Notify all users about updated online users
         await self.channel_layer.group_send(
-            self.room_group_name,
+            "global",
             {
                 "type": "update_online_users",
-                "users": list(online_users[self.room_name].keys()),
+                "users": list(online_users.keys()),
             }
         )
 
     async def disconnect(self, close_code):
         # Remove user from online_users
-        if hasattr(self, 'room_name') and hasattr(self, 'username'):
-            if self.room_name in online_users and self.username in online_users[self.room_name]:
-                del online_users[self.room_name][self.username]
-                print(f"User disconnected: {self.username} from room '{self.room_name}', Online users: {online_users[self.room_name]}")
+        if self.username in online_users:
+            del online_users[self.username]
+            print(f"User disconnected: {self.username}, Online users: {list(online_users.keys())}")
 
-        # Remove from group only if 'self.room_group_name' is set
-        if hasattr(self, 'room_group_name'):
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
+        # Remove from global group
+        await self.channel_layer.group_discard(
+            "global",
+            self.channel_name
+        )
 
-            # Update online users list for all clients in the room
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "update_online_users",
-                    "users": list(online_users[self.room_name].keys()),
-                }
-            )
+        # Notify all users about updated online users
+        await self.channel_layer.group_send(
+            "global",
+            {
+                "type": "update_online_users",
+                "users": list(online_users.keys()),
+            }
+        )
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -137,8 +119,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if "command" in data:
             # Handle block and unblock commands
             command = data["command"]
-            target_user = data.get("target_user")
-            if command == "block" and target_user:
+            target_username = data.get("target_user")
+            if command == "block" and target_username:
+                # Get target user
+                try:
+                    target_user = await get_user(target_username)
+                except User.DoesNotExist:
+                    await self.send(text_data=json.dumps({
+                        "type": "error",
+                        "message": f"User '{target_username}' does not exist."
+                    }))
+                    return
+
                 success, message = await block_user(self.user, target_user)
                 if success:
                     await self.send(text_data=json.dumps({
@@ -150,7 +142,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         "type": "error",
                         "message": message
                     }))
-            elif command == "unblock" and target_user:
+            elif command == "unblock" and target_username:
+                # Get target user
+                try:
+                    target_user = await get_user(target_username)
+                except User.DoesNotExist:
+                    await self.send(text_data=json.dumps({
+                        "type": "error",
+                        "message": f"User '{target_username}' does not exist."
+                    }))
+                    return
+
                 success, message = await unblock_user(self.user, target_user)
                 if success:
                     await self.send(text_data=json.dumps({
@@ -170,34 +172,37 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }))
         elif "recipient" in data:
             # Handle direct message
-            recipient = data["recipient"]
+            recipient_username = data["recipient"]
             message = data["message"]
 
-            print(f"Direct message from '{self.username}' to '{recipient}' in room '{self.room_name}': {message}")
-            print(f"Online users mapping in room '{self.room_name}': {online_users[self.room_name]}")
+            print(f"Direct message from '{self.username}' to '{recipient_username}': {message}")
+            print(f"Online users mapping: {online_users}")
 
             # Check if recipient exists
             try:
-                recipient_user = await get_user(recipient)
+                recipient_user = await get_user(recipient_username)
             except User.DoesNotExist:
                 await self.send(text_data=json.dumps({
                     "type": "error",
-                    "message": f"User '{recipient}' does not exist."
+                    "message": f"User '{recipient_username}' does not exist."
                 }))
                 return
 
             # Check if recipient has blocked the sender
-            blocked = await is_blocked(self.username, recipient)
+            blocked = await is_blocked(self.user, recipient_user)
             if blocked:
                 await self.send(text_data=json.dumps({
                     "type": "error",
-                    "message": f"You are blocked by '{recipient}'."
+                    "message": f"You are blocked by '{recipient_username}'."
                 }))
                 return
 
             # Check if recipient is online
-            recipient_channel = online_users[self.room_name].get(recipient)
+            recipient_channel = online_users.get(recipient_username)
             if recipient_channel:
+                # Save DM message
+                await create_message(sender=self.user, recipient=recipient_user, text=message, is_announcement=False)
+
                 # Send direct message to recipient
                 await self.channel_layer.send(
                     recipient_channel,
@@ -207,68 +212,58 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         "message": message,
                     }
                 )
-                # Optionally, send acknowledgment to sender
+                # Send acknowledgment to sender
                 await self.send(text_data=json.dumps({
                     "type": "dm_sent",
-                    "message": f"Direct message sent to '{recipient}'."
+                    "message": f"Direct message sent to '{recipient_username}'."
                 }))
             else:
                 # Send error message if recipient is not online
-                print(f"Recipient '{recipient}' not found in room '{self.room_name}'")
+                print(f"Recipient '{recipient_username}' not found online.")
                 await self.send(text_data=json.dumps({
                     "type": "error",
-                    "message": f"User '{recipient}' is not online in room '{self.room_name}'."
+                    "message": f"User '{recipient_username}' is not online."
                 }))
         elif "message" in data:
-            # Handle general message
+            # Handle global message
             message = data["message"]
 
-            room = await get_or_create_room(self.room_name)
-            await create_message(room, self.user, message)
+            # Save the message
+            await create_message(sender=self.user, recipient=None, text=message, is_announcement=False)
 
-            # Broadcast message to all clients in the room
+            # Broadcast message to all clients in the global group
             await self.channel_layer.group_send(
-                self.room_group_name,
+                "global",
                 {
                     "type": "chat_message",
                     "sender": self.username,
                     "message": message,
                 }
             )
-        elif "invite_game" in data:
-            # Handle game invitation
-            target_user = data.get("target_user")
-            if target_user:
-                # For now, open a new tab with nu.nl (handled on frontend)
-                await self.send(text_data=json.dumps({
-                    "type": "invite_game",
-                    "target_user": target_user,
-                    "message": f"You have been invited to play Pong by '{self.username}'.",
-                    "url": "https://www.nu.nl"  # Placeholder URL
-                }))
-            else:
-                await self.send(text_data=json.dumps({
-                    "type": "error",
-                    "message": "Missing target_user for game invitation."
-                }))
         elif "announce" in data:
-            # Handle global tournament announcement
+            # Handle server announcement
             announcement = data["announce"]
+
+            # Save the announcement
+            await create_message(sender=self.user, recipient=None, text=announcement, is_announcement=True)
+
+            # Broadcast announcement to all clients in the global group
             await self.channel_layer.group_send(
-                self.room_group_name,
+                "global",
                 {
-                    "type": "tournament_announcement",
+                    "type": "server_announcement",
+                    "sender": self.username,
                     "message": announcement,
                 }
             )
         elif "view_profile" in data:
             # Handle profile viewing
-            target_user = data.get("target_user")
-            if target_user:
+            target_username = data.get("target_user")
+            if target_username:
                 # For now, open a new tab with nu.nl (handled on frontend)
                 await self.send(text_data=json.dumps({
                     "type": "view_profile",
-                    "target_user": target_user,
+                    "target_user": target_username,
                     "url": "https://www.nu.nl"  # Placeholder URL
                 }))
             else:
@@ -284,8 +279,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "message": "Invalid message format."
             }))
 
+    # Event handlers for messages sent via channel layer
+
     async def direct_message(self, event):
-        # Send direct message to the client in question
+        # Send direct message to the recipient
         await self.send(text_data=json.dumps({
             "type": "direct",
             "sender": event["sender"],
@@ -293,22 +290,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def chat_message(self, event):
-        # Broadcast message to all clients in the room
+        # Broadcast global message to all clients
         await self.send(text_data=json.dumps({
             "type": "chat",
             "sender": event["sender"],
             "message": event["message"],
         }))
 
-    async def tournament_announcement(self, event):
-        # Send tournament announcement to all clients
+    async def server_announcement(self, event):
+        # Broadcast server announcement to all clients
         await self.send(text_data=json.dumps({
             "type": "announcement",
+            "sender": event["sender"],
             "message": event["message"],
         }))
 
     async def update_online_users(self, event):
-        print(f"Updating online users in room '{self.room_name}': {event['users']}")
+        print(f"Updating online users: {event['users']}")
         # Send updated online users list to clients
         await self.send(text_data=json.dumps({
             "type": "update_users",

@@ -29,17 +29,17 @@ const MainChat = styled.div`
   flex-direction: column;
 `;
 
-function Chat({ username, roomName }) {
+function Chat({ username }) {
   const [messages, setMessages] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const ws = useRef(null);
 
   useEffect(() => {
-    // Construct WebSocket URL
+    // Construct WebSocket URL pointing to the backend server
     const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const wsUrl = `ws://localhost:8000/ws/chat/${roomName}/?username=${username}`;
-    
+    const wsUrl = `${wsProtocol}://localhost:8000/ws/chat/?username=${username}`; // Changed port to 8000
+
     ws.current = new WebSocket(wsUrl);
   
     ws.current.onopen = () => {
@@ -61,15 +61,16 @@ function Chat({ username, roomName }) {
       ws.current.close();
     };
     // eslint-disable-next-line
-  }, []);  
+  }, []);   
 
   const handleMessage = (data) => {
     switch (data.type) {
       case 'chat':
-        addMessage({ sender: data.sender, message: data.message });
+        addMessage({ sender: data.sender, message: data.message, isAnnouncement: false });
         break;
       case 'direct':
-        addMessage({ sender: `DM from ${data.sender}`, message: data.message });
+        // Handle incoming DM
+        addDMMessage(data.sender, data.message);
         break;
       case 'update_users':
         setOnlineUsers(data.users);
@@ -89,7 +90,7 @@ function Chat({ username, roomName }) {
         window.open(data.url, '_blank');
         break;
       case 'announcement':
-        addNotification(`Announcement: ${data.message}`);
+        addMessage({ sender: data.sender, message: data.message, isAnnouncement: true });
         break;
       case 'view_profile':
         window.open(data.url, '_blank');
@@ -101,6 +102,11 @@ function Chat({ username, roomName }) {
 
   const addMessage = (msg) => {
     setMessages((prev) => [...prev, { id: uuidv4(), ...msg }]);
+  };
+
+  const addDMMessage = (sender, message) => {
+    addMessage({ sender: `DM from ${sender}`, message, isDM: true });
+    addNotification(`New DM from '${sender}'.`);
   };
 
   const addNotification = (note) => {
@@ -131,6 +137,8 @@ function Chat({ username, roomName }) {
   const sendDirectMessage = (recipient, message) => {
     if (ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ recipient, message }));
+      // Optionally, add the sent DM to the messages
+      addMessage({ sender: `DM to ${recipient}`, message, isDM: true });
     } else {
       addNotification('WebSocket is not connected.');
     }
@@ -174,7 +182,7 @@ function Chat({ username, roomName }) {
             inviteToGame={inviteToGame}
             viewProfile={viewProfile}
           />
-          <h3>Announcements</h3>
+          <h3>Server Announcements</h3>
           <AnnouncementForm sendAnnouncement={sendAnnouncement} />
         </Sidebar>
         <MainChat>
