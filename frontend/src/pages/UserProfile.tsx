@@ -6,6 +6,7 @@ import axiosInstance from "../components/AxiosInstance";
 import { useAuth } from "../components/AuthContext";
 import { useNavigate } from "react-router-dom";
 import ChangeDetails from "../components/ChangeDetails";
+import SpinningLogo from "../components/SpinningLogo";
 
 type UserProfileProps = {
   userId: number;
@@ -103,7 +104,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   }, [user]);
 
   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!user) return <div></div>;
+  if (!user) return <SpinningLogo />;
   //   if (currentUser === null) return <div className="text-center mt-5">Currentuser not loaded</div>;
 
   const logoutLink = () => {

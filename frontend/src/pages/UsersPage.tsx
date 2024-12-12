@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../components/AxiosInstance";
 import "../css/UserProfile.css";
 import { Link } from "react-router-dom";
+import SpinningLogo from "../components/SpinningLogo";
 
 interface User {
   id: number;
@@ -26,7 +27,7 @@ const UsersPage: React.FC = () => {
         setError("Failed to load users.");
         console.error(err);
       } finally {
-        setLoading(false);
+        setTimeout(() => setLoading(false), 400);
       }
     };
 
@@ -65,8 +66,8 @@ const UsersPage: React.FC = () => {
   }, [users]);
 
   if (loading) {
-    return <div>Loading users...</div>;
-  }
+    return <SpinningLogo />;
+  } 
 
   if (error) {
     return <div>Error: {error}</div>;

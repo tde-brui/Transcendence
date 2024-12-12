@@ -4,6 +4,7 @@ import UserProfile from "../pages/UserProfile";
 import NotFoundPage from "../error_pages/404NotFound";
 import axiosInstance from "./AxiosInstance";
 import axios from "axios";
+import SpinningLogo from "./SpinningLogo";
 
 // Define your axios instance
 
@@ -43,7 +44,8 @@ const UserProfileWrapper = () => {
         try {
           const id = await getUsername(username);
           if (id !== null) {
-            setUserId(Number(id));
+
+            setTimeout(() => setUserId(Number(id)), 100);
           } else {
             setUserId(null);
           }
@@ -62,7 +64,7 @@ const UserProfileWrapper = () => {
   }
 
   if (userId === null) {
-    return <NotFoundPage />;
+    return <SpinningLogo />;
   }
 
   return <UserProfile userId={userId} />;
