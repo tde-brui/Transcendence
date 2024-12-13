@@ -176,7 +176,7 @@ def send_otp_email(email, otp):
 
 class resend_otp(APIView):
 	permission_classes = [AllowAny]
-	def post(self, request, *args, **kwargs):
+	def get(self, request, *args, **kwargs):
 		user_data = request.session.get('pending_user_data')
 		user_id = request.session.get('pending_user_id')
 		user_email = request.session.get('pending_user_email')
