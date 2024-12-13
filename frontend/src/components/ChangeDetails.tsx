@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axiosInstance from "./AxiosInstance";
 import "../css/UserProfile.css";
+import { useNavigate } from "react-router-dom";
 
 interface ChangeDetailsProps {
   username: string;
@@ -11,12 +12,8 @@ interface ChangeDetailsProps {
   userId: number;
   onEditAvatar: () => void;
   onChangePassword: () => void;
-  onSubmit: (updatedDetails: {
-    username: string;
-    firstName: string;
-    email: string;
-    twoFactorEnabled: boolean;
-  }) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
 }
 
 const ChangeDetails: React.FC<ChangeDetailsProps> = ({
@@ -29,6 +26,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
   onEditAvatar,
   onChangePassword,
   onSubmit,
+  onCancel,
 }) => {
   const [formData, setFormData] = useState({
     username,
@@ -44,8 +42,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
     firstName: "",
   });
 
-  const [showDetails, setShowDetails] = useState(false);
-
+  const navigate = useNavigate();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -106,13 +103,17 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
         formData,
         config
       );
-      console.info(response);
-      if (response.status === 200 && response.data?.user_id) {
-        console.log("User details updated successfully:", response);
+      if (response.status === 200 && response.data?.user_id)
+		{
+		onCancel();
       }
     } catch (error) {
       console.error("Error submitting form:", error);
     }
+  };
+
+  const handleCancel = () => {
+	onCancel();
   };
 
   return (
@@ -207,7 +208,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
                 Change Password
               </button>
               <div>
-                <button type="button" className="btn btn-danger">
+                <button type="button" className="btn btn-danger" onClick={handleCancel}>
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-success ms-2">

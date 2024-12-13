@@ -47,7 +47,6 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
         <Navbar
           bg="transparent"
           variant="dark"
-          expand="lg"
           className="w-100 fs-4"
         >
           <Nav className="mx-auto text-center glass-nav">
