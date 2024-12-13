@@ -181,19 +181,20 @@ class resend_otp(APIView):
 		user_id = request.session.get('pending_user_id')
 		user_email = request.session.get('pending_user_email')
 		if user_data:
-			otp = OTP.generate_code(email=user_data['email'])
-			send_otp_email(user_data['email'], otp)
-			return Response({
-				"message": "Sent OTP code to email",
-				"email": user_data['email']
-				}, status=status.HTTP_202_ACCEPTED)
+			email = user_data['email']
 		elif user_id:
-			otp = OTP.generate_code(email=user_email)
-			send_otp_email(user_email, otp)
+			email = user_email
+		else:
 			return Response({
-				"message": "Sent OTP code to email",
-				"email": user_email
-				}, status=status.HTTP_202_ACCEPTED)
+				"error": "No pending user data found"
+				}, status=status.HTTP_400_BAD_REQUEST)
+		OTP.objects.filter(email=email).delete()
+		otp = OTP.generate_code(email=email)
+		send_otp_email(email, otp)
+		return Response({
+			"message": "Sent OTP code to email",
+			"email": email
+		}, status=status.HTTP_202_ACCEPTED)
 
 class verify_otp(APIView):
 	permission_classes = [AllowAny]
