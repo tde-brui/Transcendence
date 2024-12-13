@@ -1,5 +1,0 @@
-// const uniqueKey = 'alex'
-const urlParams = new URLSearchParams(window.location.search);
-const uniqueKey = urlParams.get('key') || 'defaultKey';
-//Tab 1: http://localhost:3000?key=alex
-//Tab 2: http://localhost:3000?key=bob
