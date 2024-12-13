@@ -174,6 +174,27 @@ def send_otp_email(email, otp):
 	recipients = [email]
 	send_mail(subject, message, settings.EMAIL_HOST_USER, recipients)
 
+class resend_otp(APIView):
+	permission_classes = [AllowAny]
+	def post(self, request, *args, **kwargs):
+		user_data = request.session.get('pending_user_data')
+		user_id = request.session.get('pending_user_id')
+		user_email = request.session.get('pending_user_email')
+		if user_data:
+			otp = OTP.generate_code(email=user_data['email'])
+			send_otp_email(user_data['email'], otp)
+			return Response({
+				"message": "Sent OTP code to email",
+				"email": user_data['email']
+				}, status=status.HTTP_202_ACCEPTED)
+		elif user_id:
+			otp = OTP.generate_code(email=user_email)
+			send_otp_email(user_email, otp)
+			return Response({
+				"message": "Sent OTP code to email",
+				"email": user_email
+				}, status=status.HTTP_202_ACCEPTED)
+
 class verify_otp(APIView):
 	permission_classes = [AllowAny]
 	def post(self, request, *args, **kwargs):
