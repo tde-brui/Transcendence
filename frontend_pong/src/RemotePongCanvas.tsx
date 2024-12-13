@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 
-// const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8000/ws/pong/`;ter-dom';
-
 const WS_URL = 'ws://localhost:8000/ws/pong/';
 
 export const RemotePongCanvas: React.FC = () => {
@@ -17,9 +15,13 @@ export const RemotePongCanvas: React.FC = () => {
   const [assignedPaddle, setAssignedPaddle] = useState<'a' | 'b' | null>(null);
   const [gameID, setGameID] = useState<string>('');
   const [playerKeys, setPlayerKeys] = useState<{ a?: string; b?: string }>({});
-  const [winner, setWinner] = useState<string | null>(null); // New state for winner
-  const [isReady, setIsReady] = useState<boolean>(false); // Track if this player is ready
-  const [otherPlayerReady, setOtherPlayerReady] = useState<boolean>(false); // Track if other player is ready
+  const [winner, setWinner] = useState<string | null>(null);
+
+  // Ready states (according to the server). Example: { a: false, b: true }
+  const [readyStates, setReadyStates] = useState<{ a: boolean; b: boolean }>({ a: false, b: false });
+
+  // Track local player's "ready" status for simpler UI logic (optional):
+  const [isLocalReady, setIsLocalReady] = useState<boolean>(false);
 
   // WebSocket reference
   const websocketRef = useRef<WebSocket | null>(null);
@@ -30,9 +32,6 @@ export const RemotePongCanvas: React.FC = () => {
   const urlParams = new URLSearchParams(location.search);
   const uniqueKey = urlParams.get('key') || 'defaultKey';
 
-  // Ref for assigned paddle
-  const assignedPaddleRef = useRef<'a' | 'b' | null>(null);
-
   // Store unique key in sessionStorage
   useEffect(() => {
     if (!sessionStorage.getItem('uniqueKey')) {
@@ -41,11 +40,6 @@ export const RemotePongCanvas: React.FC = () => {
     }
   }, [uniqueKey]);
 
-  // Update ref when assignedPaddle changes
-  useEffect(() => {
-    assignedPaddleRef.current = assignedPaddle;
-  }, [assignedPaddle]);
-
   // Connect to WebSocket
   useEffect(() => {
     const connectWebSocket = () => {
@@ -53,7 +47,6 @@ export const RemotePongCanvas: React.FC = () => {
       const wsUrl = lobbyId ? `${WS_URL}?key=${uniqueKey}&lobby=${lobbyId}` : `${WS_URL}?key=${uniqueKey}`;
       console.log('Connecting to WebSocket at:', wsUrl);
       const websocket = new WebSocket(wsUrl);
-      console.log('Connecting with key:', uniqueKey, 'lobby:', lobbyId);
 
       websocketRef.current = websocket;
 
@@ -73,7 +66,7 @@ export const RemotePongCanvas: React.FC = () => {
               setGameID(data.game_id);
             }
             if (data.players) {
-              setPlayerKeys(data.players); // data.players should look like {a: 'alex', b: 'bob'}
+              setPlayerKeys(data.players);
               console.log('Player keys:', data.players);
             }
           }
@@ -81,44 +74,34 @@ export const RemotePongCanvas: React.FC = () => {
           if (data.type === 'playersConnected') {
             console.log('Players connected:', data.count);
             setPlayersConnected(data.count);
-            setGamePaused(data.count < 2);
+            // If less than 2 players or if the game isn't started yet, we show "gamePaused" overlay
+            setGamePaused(true);
             if (data.players) {
               setPlayerKeys(data.players);
               console.log('Updated player keys:', data.players);
             }
           }
 
+          if (data.type === 'playerReadyState') {
+            // Server broadcasts readiness states of both paddles
+            console.log('Ready states updated:', data.readyPlayers);
+            setReadyStates(data.readyPlayers);
+          }
+
           if (data.type === 'update') {
-            console.log('Game update received:', data);
             setPaddleAPosition(data.paddles.a);
             setPaddleBPosition(data.paddles.b);
-            setBallPosition(data.ball);
+            setBallPosition({ x: data.ball.x, y: data.ball.y });
             setScore(data.score);
+            // Once updates are streaming in, the game is effectively unpaused
+            setGamePaused(false);
           }
 
           if (data.type === 'gameOver') {
             console.log('Game over. Winner:', data.winner);
             setGameOver(true);
             setGamePaused(true);
-            setWinner(data.winner); // Set the winner
-          }
-
-          if (data.type === 'playerReady') {
-            console.log(`Player ${data.paddle} is ready.`);
-            // Update other player's ready state
-            if ((data.paddle === 'a' && assignedPaddle === 'b') || (data.paddle === 'b' && assignedPaddle === 'a')) {
-              setOtherPlayerReady(true);
-            }
-          }
-
-          if (data.type === 'gameRestart') {
-            console.log(data.message);
-            setGameOver(false);
-            setIsReady(false);
-            setOtherPlayerReady(false);
-            setScore({ a: 0, b: 0 });
-            setGamePaused(false);
-            // Optionally reset other state variables here
+            setWinner(data.winner);
           }
         } catch (err) {
           console.error('Error parsing message:', err);
@@ -151,10 +134,8 @@ export const RemotePongCanvas: React.FC = () => {
       if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
 
       if (event.key === 'w' || event.key === 'ArrowUp') {
-        console.log('Key down: Moving paddle up');
         websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: 'up' }));
       } else if (event.key === 's' || event.key === 'ArrowDown') {
-        console.log('Key down: Moving paddle down');
         websocketRef.current.send(JSON.stringify({ type: 'paddleMove', key: 'down' }));
       }
     };
@@ -162,8 +143,7 @@ export const RemotePongCanvas: React.FC = () => {
     const handleKeyUp = (event: KeyboardEvent) => {
       if (!websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) return;
 
-      if (event.key === 'w' || event.key === 's' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-        console.log('Key up: Stopping paddle movement');
+      if (['w','s','ArrowUp','ArrowDown'].includes(event.key)) {
         websocketRef.current.send(JSON.stringify({ type: 'paddleStop' }));
       }
     };
@@ -171,25 +151,25 @@ export const RemotePongCanvas: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // Cleanup event listeners on component unmount
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 
-  // Handle "Ready Up" button click
+  // Send "playerReady" event to the server
   const handleReadyUp = () => {
-    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
-      websocketRef.current.send(JSON.stringify({ type: 'playerReady' }));
-      setIsReady(true);
-    }
+    if (!websocketRef.current) return;
+    websocketRef.current.send(JSON.stringify({ type: 'playerReady' }));
+    setIsLocalReady(true);
   };
 
   // Helper function to map paddle to position
   const getPaddlePosition = (paddle: 'a' | 'b') => {
     return paddle === 'a' ? 'left' : 'right';
   };
+
+  const bothPlayersReady = readyStates.a && readyStates.b;
 
   return (
     <div className="pong">
@@ -205,7 +185,7 @@ export const RemotePongCanvas: React.FC = () => {
           <div className="ball" style={{ left: `${ballPosition.x}px`, top: `${ballPosition.y}px` }} />
           
           {/* Scoreboard */}
-          <div className="overlap">  {/* Changed from "scoreboard" to "overlap" */}
+          <div className="overlap">
             <div className="score">{score.a} - {score.b}</div>
           </div>
         </div>
@@ -218,25 +198,36 @@ export const RemotePongCanvas: React.FC = () => {
           <div className="player-name-b">{playerKeys.b}</div>
         )}
 
-        {/* Game Paused Overlay */}
-        {gamePaused && (
-          <div className="game-paused">
-            <h2>{playersConnected < 2 ? 'Waiting for another player...' : 'Game Paused'}</h2>
-            <p>Players connected: {playersConnected}/2</p>
-          </div>
-        )}
-
-        {/* Game Over Display */}
+        {/* Show 'Game Over' overlay if the game is over */}
         {gameOver && (
           <div className="game-over">
             <h2>{winner ? `${winner} wins!` : 'No one wins!'}</h2>
-            {!isReady && (
-              <button className="ready-button" onClick={handleReadyUp}>
-                Ready Up
-              </button>
+          </div>
+        )}
+
+        {/* Show overlay if game paused or waiting for players */}
+        {gamePaused && !gameOver && (
+          <div className="game-paused">
+            {playersConnected < 2 ? (
+              <h2>Waiting for another player...</h2>
+            ) : (
+              <h2>Waiting for players to ready up...</h2>
             )}
-            {isReady && <p>You are ready. Waiting for the other player...</p>}
-            {otherPlayerReady && <p>The other player is ready.</p>}
+            <p>Players connected: {playersConnected}/2</p>
+            {/* Show ready states */}
+            {assignedPaddle && (
+              <>
+                <p>
+                  Player A Ready: {readyStates.a ? 'Yes' : 'No'}<br />
+                  Player B Ready: {readyStates.b ? 'Yes' : 'No'}
+                </p>
+                {!isLocalReady && (
+                  <button onClick={handleReadyUp}>
+                    Ready Up
+                  </button>
+                )}
+              </>
+            )}
           </div>
         )}
 

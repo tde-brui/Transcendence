@@ -42,12 +42,13 @@ class Game:
         self.ball = {"x": 462, "y": 278, "dx": 1, "dy": 1}
         self.score = {"a": 0, "b": 0}
         self.MAX_SCORE = 3
-        self.players = {}  # Map from paddle to browser_key
-        self.connections = {}  # Map from browser_key to WebSocket connection
+        self.players = {}  # Map from paddle ('a','b') -> browser_key
+        self.connections = {}  # Map from browser_key -> WebSocket connection
         self.game_started = False
         # Dictionary to track paddle directions: -1 = up, 0 = stop, 1 = down
         self.paddle_directions = {"a": 0, "b": 0}
-        self.ready = {"a": False, "b": False}  # Track readiness
+        # Track whether each paddle has clicked "Ready"
+        self.ready_players = {"a": False, "b": False}
 
     def reset_ball(self):
         self.ball = {"x": 462, "y": 278, "dx": -1 if self.ball["dx"] > 0 else 1, "dy": 1}
@@ -58,7 +59,7 @@ class Game:
         self.reset_ball()
         self.game_started = False
         self.paddle_directions = {"a": 0, "b": 0}
-        self.ready = {"a": False, "b": False}  # Reset readiness
+        self.ready_players = {"a": False, "b": False}  # Reset ready states
 
 class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -120,7 +121,7 @@ class PongConsumer(AsyncWebsocketConsumer):
             "type": "assignPaddle",
             "paddle": paddle,
             "game_id": self.game_id,
-            "players": self.game.players  # This should be a dict: {'a': usernameA, 'b': usernameB}
+            "players": self.game.players  # e.g., {'a': keyA, 'b': keyB}
         }))
 
         print(f"Player connected: {paddle.upper()} with key {browser_key} to game {self.game_id}")
@@ -134,21 +135,13 @@ class PongConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'players_connected',
                 'count': len(game.players),
-                'players': game.players  # Include the updated players dict
+                'players': game.players
             }
         )
-
-        # Start the game if two players are connected and game hasn't started
-        if len(game.players) == 2 and not game.game_started:
-            game.game_started = True
-            print(f"Game {self.game_id} started!")
-            self.update_ball_task = create_task(self.update_ball())
-            self.broadcast_game_state_task = create_task(self.broadcast_game_state())
 
     async def disconnect(self, close_code):
         game_manager = GameManager.get_instance()
 
-        # Remove from global mappings
         if hasattr(self, 'browser_key'):
             if self.browser_key in game_manager.browser_key_to_channel:
                 del game_manager.browser_key_to_channel[self.browser_key]
@@ -167,63 +160,53 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(self.game_group_name, self.channel_name)
 
             # Broadcast updated players to all in the group
-            await self.channel_layer.group_send(
-                self.game_group_name,
-                {
-                    'type': 'players_connected',
-                    'count': len(self.game.players) if hasattr(self, 'game') else 0,
-                    'players': self.game.players if hasattr(self, 'game') else {}
-                }
-            )
-
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        if hasattr(self, 'paddle'):  # Ensure we have a paddle assigned
-            game = self.game
-            # Handle paddle movement
-            if data.get("type") == "paddleMove":
-                if data.get("key") == "up":
-                    if self.paddle == "a":
-                        game.paddle_directions["a"] = -1
-                    elif self.paddle == "b":
-                        game.paddle_directions["b"] = -1
-                elif data.get("key") == "down":
-                    if self.paddle == "a":
-                        game.paddle_directions["a"] = 1
-                    elif self.paddle == "b":
-                        game.paddle_directions["b"] = 1
-            elif data.get("type") == "paddleStop":
-                if self.paddle == "a":
-                    game.paddle_directions["a"] = 0
-                elif self.paddle == "b":
-                    game.paddle_directions["b"] = 0
-            elif data.get("type") == "playerReady":
-                # Handle player ready message
-                game.ready[self.paddle] = True
-                print(f"Player {self.paddle.upper()} is ready.")
-                # Broadcast to all players the ready status
+            if hasattr(self, 'game'):
                 await self.channel_layer.group_send(
                     self.game_group_name,
                     {
-                        'type': 'player_ready',
-                        'paddle': self.paddle
+                        'type': 'players_connected',
+                        'count': len(self.game.players),
+                        'players': self.game.players
                     }
                 )
-                # Check if both players are ready
-                if game.ready['a'] and game.ready['b']:
-                    # Reset game state
-                    game.reset_game()
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        if not hasattr(self, 'paddle'):
+            return  # Ignore messages if no paddle assigned
+
+        game = self.game
+
+        msg_type = data.get("type")
+
+        if msg_type == "paddleMove":
+            if data.get("key") == "up":
+                game.paddle_directions[self.paddle] = -1
+            elif data.get("key") == "down":
+                game.paddle_directions[self.paddle] = 1
+
+        elif msg_type == "paddleStop":
+            game.paddle_directions[self.paddle] = 0
+
+        elif msg_type == "playerReady":
+            # Mark this player's paddle as ready
+            game.ready_players[self.paddle] = True
+            print(f"Player {self.paddle.upper()} is ready in game {self.game_id}.")
+
+            # Broadcast updated ready state
+            await self.channel_layer.group_send(
+                self.game_group_name,
+                {
+                    'type': 'player_ready_state',
+                    'readyPlayers': game.ready_players
+                }
+            )
+
+            # Check if both players are ready
+            if len(game.players) == 2:
+                if game.ready_players['a'] and game.ready_players['b'] and not game.game_started:
                     game.game_started = True
-                    print(f"Both players ready. Restarting game {self.game_id}.")
-                    # Notify clients that game is restarting
-                    await self.channel_layer.group_send(
-                        self.game_group_name,
-                        {
-                            'type': 'game_restart',
-                            'message': 'Game is restarting...'
-                        }
-                    )
-                    # Restart game loops
+                    print(f"Both players ready in {self.game_id}. Starting game!")
                     self.update_ball_task = create_task(self.update_ball())
                     self.broadcast_game_state_task = create_task(self.broadcast_game_state())
 
@@ -238,64 +221,53 @@ class PongConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(f"Error sending players_connected message: {e}")
 
+    async def player_ready_state(self, event):
+        """
+        Broadcasts which players are ready. 
+        event['readyPlayers'] should look like {'a': True/False, 'b': True/False}.
+        """
+        try:
+            await self.send(text_data=json.dumps({
+                "type": "playerReadyState",
+                "readyPlayers": event["readyPlayers"]
+            }))
+        except Exception as e:
+            print(f"Error sending player_ready_state: {e}")
+
     async def send_update(self, event):
         try:
             await self.send(text_data=json.dumps(event['message']))
         except Exception as e:
             print(f"Error sending game update: {e}")
 
-    async def player_ready(self, event):
-        try:
-            paddle = event['paddle']
-            await self.send(text_data=json.dumps({
-                "type": "playerReady",
-                "paddle": paddle
-            }))
-        except Exception as e:
-            print(f"Error sending player_ready message: {e}")
-
-    async def game_restart(self, event):
-        try:
-            message = event['message']
-            await self.send(text_data=json.dumps({
-                "type": "gameRestart",
-                "message": message
-            }))
-        except Exception as e:
-            print(f"Error sending game_restart message: {e}")
-
     async def update_ball(self):
         game = self.game
 
-        # Define paddle movement speed per tick
         paddle_speed = 5
-        # Define bounds for paddle positions
         min_paddle_pos = 0
-        max_paddle_pos = 456  # 556 (field height) - 100 (paddle height)
+        max_paddle_pos = 456  # 556 field height - 100 paddle height
 
         while game.game_started:
             ball = game.ball
             paddles = game.paddles
             score = game.score
 
-            # Move the paddles at a fixed rate based on their direction
+            # Move paddles
             paddles["a"] += game.paddle_directions["a"] * paddle_speed
             paddles["b"] += game.paddle_directions["b"] * paddle_speed
-
-            # Clamp paddle positions
+            # Clamp
             paddles["a"] = max(min_paddle_pos, min(max_paddle_pos, paddles["a"]))
             paddles["b"] = max(min_paddle_pos, min(max_paddle_pos, paddles["b"]))
 
-            # Move the ball
+            # Move ball
             ball["x"] += ball["dx"] * 5
             ball["y"] += ball["dy"] * 5
 
-            # Ball collision with top/bottom walls
+            # Collisions with top/bottom
             if ball["y"] <= 0 or ball["y"] >= 556:
                 ball["dy"] *= -1
 
-            # Ball collision with paddles
-            # Paddle A is at x=0 to ~20, Paddle B is at x=~904 to 924
+            # Collisions with paddles
             if ball["x"] <= 20 and paddles["a"] <= ball["y"] <= paddles["a"] + 100:
                 ball["dx"] *= -1
             elif ball["x"] >= 904 and paddles["b"] <= ball["y"] <= paddles["b"] + 100:
@@ -305,7 +277,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             if ball["x"] < 0:
                 score["b"] += 1
                 print(f"Player B scored! Score: {score['a']} - {score['b']}")
-                # Send an 'update' message with the new score
                 await self.channel_layer.group_send(
                     self.game_group_name,
                     {
@@ -322,7 +293,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             elif ball["x"] > 924:
                 score["a"] += 1
                 print(f"Player A scored! Score: {score['a']} - {score['b']}")
-                # Send an 'update' message with the new score
                 await self.channel_layer.group_send(
                     self.game_group_name,
                     {
