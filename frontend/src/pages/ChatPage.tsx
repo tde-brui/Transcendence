@@ -1,20 +1,68 @@
-import React, { useState, useEffect } from "react";
-import "../css/UserProfile.css";
+// src/components/ChatPage.tsx
 
-const ChatPage: React.FC = () => {
+import React, { useState, useEffect } from 'react';
+import Chat from '../components/chat/Chat';
+import styled from 'styled-components';
+import axiosInstance from '../components/AxiosInstance';
+import SpinningLogo from '../components/SpinningLogo';
+
+const AppContainer = styled.div`
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+`;
+
+const LoginContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+
+  input {
+    margin: 5px;
+    padding: 10px;
+    width: 200px;
+  }
+
+  button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    cursor: pointer;
+  }
+`;
+
+interface ChatPageProps {
+	userId: number;
+}
+
+const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
+  const [username, setUsername] = useState<string>('');
+  const [isConnected, setIsConnected] = useState(false);
+
   
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axiosInstance.get(`/users/${userId}/`);
+        if (response.status === 200 && response.data) 
+			setUsername(response.data.username);
+			setIsConnected(true);
+      } catch (error) {
+        console.error('Failed to fetch user data', error);
+      }
+    };
+
+    fetchUser();
+  }, [userId]);
+
+  if (username === '' || !isConnected)
+	return (<SpinningLogo />);
+
   return (
-    <div className="container d-flex flex-column align-items-center justify-content-center">
-      <div className="card profile-card mx-auto"> 
-	  	<div className="card-header profile-header text-center">
-          <h4 className="profile-title text-white">Chat </h4>
-        </div>
-		<div className="card-body profile-body">
-			<h4> Hier komt binnenkort de geweldige chatpage</h4>
-			<img src="/images/logo192.png" alt="Under construction"/>
-		</div>
-	  </div>
-    </div>
+    <AppContainer>
+      <Chat username={username} />
+    </AppContainer>
   );
 };
 

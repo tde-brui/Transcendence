@@ -117,6 +117,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     setShowDetails(true);
   };
 
+  const handleReturnToProfile = () => {
+	setShowDetails(false);
+};
+
   return (
     <div className="container d-flex align-items-center justify-content-center">
       {!showDetails ? (
@@ -179,9 +183,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
           userId={user.id}
           onEditAvatar={() => console.log("Edit avatar clicked")}
           onChangePassword={() => console.log("Change password clicked")}
-          onSubmit={(updatedDetails: any) =>
-            console.log("Updated details:", updatedDetails)
-          }
+          onSubmit={handleReturnToProfile}
+		  onCancel={handleReturnToProfile}
         />
       )}
     </div>
