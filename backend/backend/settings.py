@@ -51,11 +51,14 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+	'daphne',
+	'chat',
 	'corsheaders',
 	'users',
 	'friends',
 	'rest_framework',
 	'rest_framework_simplejwt',
+	'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -97,6 +100,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -153,7 +161,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-AUTH_USER_MODEL = "users.PongUser"
+# AUTH_USER_MODEL = "users.PongUser"
 OTP_EXPIRATION_TIME = 300
 
 REST_FRAMEWORK = {
@@ -175,3 +183,4 @@ EMAIL_HOST_PASSWORD = "skdo zrbx kvfz qpnn"
 #settings for storing user pictures
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+ASGI_APPLICATION = 'backend.asgi.application'
