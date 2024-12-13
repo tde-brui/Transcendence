@@ -212,3 +212,9 @@ ul {
 	align-items: center;
   height: 25vh;
 }
+
+.userpage{
+  height: 400px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}

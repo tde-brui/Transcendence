@@ -75,11 +75,11 @@ const UsersPage: React.FC = () => {
 
   return (
     <div className="container d-flex align-items-center justify-content-center">
-      <div className="card profile-card mx-auto">
+      <div className="card profile-card mx-auto ">
         <div className="card-header profile-header text-center">
           <h4 className="profile-title text-white">Users list </h4>
         </div>
-        <div className="card-body profile-body">
+        <div className="card-body profile-body userpage">
           <ul className="d-flex flex-column align-items-center justify-content-center">
             {users.map((user) => (
               <li
