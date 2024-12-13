@@ -13,6 +13,44 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import sys
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': ('%(asctime)s [%(process)d] [%(levelname)s] '
+                       'pathname=%(pathname)s lineno=%(lineno)s '
+                       'funcname=%(funcName)s %(message)s'),
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'simple': {'format': '%(levelname)s %(message)s'},
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',  # Set to 'DEBUG' to capture all types of logs
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'stream': sys.stdout,  # Ensure logs are output to stdout
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG',  # Set to 'DEBUG' to capture detailed logs
+        },
+        'channels': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'pong': {  # Replace with your app name
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
 
 load_dotenv()
 
@@ -45,6 +83,7 @@ ALLOWED_HOSTS = [
 	'localhost',
 	'10.11.6.4',
 	'127.0.0.1',
+	'0.0.0.0'
 ]
 
 
@@ -52,8 +91,10 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
 	'daphne',
-	'chat',
 	'corsheaders',
+	'channels',
+	'chat',
+	'pong',
 	'users',
 	'friends',
 	'rest_framework',
@@ -67,6 +108,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 
 MIDDLEWARE = [
 	'corsheaders.middleware.CorsMiddleware',
