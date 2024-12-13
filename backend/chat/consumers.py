@@ -3,16 +3,14 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from django.contrib.auth import get_user_model
 from .models import Message, BlockedUser
-
-User = get_user_model()
+from users.models import PongUser
 
 online_users = {}  # {username: channel_name}
 
 @database_sync_to_async
 def get_user(username):
-    return User.objects.get(username=username)
+    return PongUser.objects.get(username=username)
 
 @database_sync_to_async
 def create_message(sender, recipient, text, is_announcement=False):
@@ -57,7 +55,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         try:
             self.user = await get_user(self.username)
-        except User.DoesNotExist:
+        except PongUser.DoesNotExist:
             await self.close()
             print(f"Connection rejected: User '{self.username}' does not exist.")
             return
@@ -112,7 +110,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if command == "block" and target_username:
                 try:
                     target_user = await get_user(target_username)
-                except User.DoesNotExist:
+                except PongUser.DoesNotExist:
                     await self.send(text_data=json.dumps({
                         "type": "error",
                         "message": f"User '{target_username}' does not exist."
@@ -133,7 +131,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             elif command == "unblock" and target_username:
                 try:
                     target_user = await get_user(target_username)
-                except User.DoesNotExist:
+                except PongUser.DoesNotExist:
                     await self.send(text_data=json.dumps({
                         "type": "error",
                         "message": f"User '{target_username}' does not exist."
@@ -165,7 +163,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             try:
                 recipient_user = await get_user(recipient_username)
-            except User.DoesNotExist:
+            except PongUser.DoesNotExist:
                 await self.send(text_data=json.dumps({
                     "type": "error",
                     "message": f"User '{recipient_username}' does not exist."

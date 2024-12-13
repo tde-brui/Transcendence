@@ -1,17 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User
-from django.contrib.auth import get_user_model
+from users.models import PongUser
 
-# chat/models.py
-
-from django.db import models
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
 
 class Message(models.Model):
-    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
-    recipient = models.ForeignKey(User, related_name='received_messages', null=True, blank=True, on_delete=models.CASCADE)
+    sender = models.ForeignKey(PongUser, related_name='sent_messages', on_delete=models.CASCADE)
+    recipient = models.ForeignKey(PongUser, related_name='received_messages', null=True, blank=True, on_delete=models.CASCADE)
     text = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     is_announcement = models.BooleanField(default=False)  # Indicates if the message is an announcement
@@ -24,11 +17,11 @@ class Message(models.Model):
         return f'{self.sender}: {self.text}'
 
 class BlockedUser(models.Model):
-    blocker = models.ForeignKey(User, related_name='blocking', on_delete=models.CASCADE)
-    blocked = models.ForeignKey(User, related_name='blocked_by', on_delete=models.CASCADE)
+    blocker = models.ForeignKey(PongUser, related_name='blocking', on_delete=models.CASCADE)
+    blocked = models.ForeignKey(PongUser, related_name='blocked_by', on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ('blocker', 'blocked')  # Ensure that a user can block another user only once
+        unique_together = ('blocker', 'blocked')  # Ensure that a PongUser can block another user only once
 
     def __str__(self):
         return f"{self.blocker.username} blocked {self.blocked.username}"

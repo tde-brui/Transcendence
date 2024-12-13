@@ -180,6 +180,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'transcendence4000@gmail.com'
 EMAIL_HOST_PASSWORD = "skdo zrbx kvfz qpnn"
 
+AUTH_USER_MODEL = 'users.PongUser'
+
 #settings for storing user pictures
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
