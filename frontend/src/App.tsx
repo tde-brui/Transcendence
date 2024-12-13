@@ -15,6 +15,10 @@ import CallBack from "./pages/CallBack";
 import UsersPage from "./pages/UsersPage";
 import NavBar from "./components/NavBar";
 import SpinningLogo from "./components/SpinningLogo";
+import GameMainPage from "./pages/GameMainPage";
+import RemoteLobbyList from "./components/game/RemoteLobbyList";
+import RemotePongCanvas from "./components/game/RemotePongCanvas";
+import LocalPongCanvas from "./components/game/LocalPongCanvas";
 
 function App() {
   const userId = useAuth().userId;
@@ -50,6 +54,10 @@ function App() {
           	<Route path="/users" element={<UsersPage />} />
           	<Route path="/users/:username" element={<UserProfileWrapper />} />
 		  	<Route path="/chat" element={<ChatPage userId={userId} />} />
+		  <Route path="/play" element={<GameMainPage />} />
+		  <Route path="/play/remote" element={<RemoteLobbyList />} />
+		  <Route path="/play/remote/:lobbyId" element={<RemotePongCanvas />} />
+		  <Route path="/play/local" element={<LocalPongCanvas />} />
           </Route>
         </Routes>
       </Router>

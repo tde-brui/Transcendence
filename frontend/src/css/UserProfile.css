@@ -204,3 +204,11 @@ ul {
   padding: 0;
   list-style: none;
 }
+
+.game-body{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+  height: 25vh;
+}
