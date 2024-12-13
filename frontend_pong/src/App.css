@@ -44,15 +44,34 @@
   pointer-events: none; /* Prevent interaction */
 }
 
+.countdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 72px;
+  color: white;
+  text-align: center;
+  z-index: 10;
+}
+
+/* Ready Up Button */
+.ready-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
 /* Game Over Display */
 .game-over {
   position: absolute;
-  top: 20%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
   font-size: 24px;
-  color: green; /* Change color as needed */
+  color: lightgreen; /* Change color as needed */
   z-index: 10;
 }
 
@@ -124,13 +143,13 @@
 /* Game Paused Overlay */
 .game-paused {
   position: absolute;
-  top: 50%;
+  top: 25%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: green;
+  color: lightgreen;
   text-align: center;
-  font-size: 16px;
-  padding: 20px;
+  font-size: 14px;
+  padding: 10px;
   border-radius: 10px;
   z-index: 10;
 }
@@ -206,6 +225,12 @@
   margin: 0 0 10px 0;
   font-size: 16px;
 }
+/* Ready Up Button */
+.ready-button {
+  padding: 10px 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
 
 /* Responsive Design for Smaller Screens */
 @media (max-width: 960px) {
@@ -230,7 +255,7 @@
   }
 
   .game-paused {
-    font-size: 28px;
+    font-size: 24px;
     padding: 15px;
   }
 

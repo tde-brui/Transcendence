@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 
-const WS_URL = 'ws://localhost:8000/ws/pong/';
+const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8000/ws/pong/`;
 
 export const RemotePongCanvas: React.FC = () => {
   // Game state variables
@@ -16,6 +16,8 @@ export const RemotePongCanvas: React.FC = () => {
   const [gameID, setGameID] = useState<string>('');
   const [playerKeys, setPlayerKeys] = useState<{ a?: string; b?: string }>({});
   const [winner, setWinner] = useState<string | null>(null); // New state for winner
+  const [isReady, setIsReady] = useState<boolean>(false); // Track if this player is ready
+  const [otherPlayerReady, setOtherPlayerReady] = useState<boolean>(false); // Track if other player is ready
 
   // WebSocket reference
   const websocketRef = useRef<WebSocket | null>(null);
@@ -98,6 +100,24 @@ export const RemotePongCanvas: React.FC = () => {
             setGamePaused(true);
             setWinner(data.winner); // Set the winner
           }
+
+          if (data.type === 'playerReady') {
+            console.log(`Player ${data.paddle} is ready.`);
+            // Update other player's ready state
+            if ((data.paddle === 'a' && assignedPaddle === 'b') || (data.paddle === 'b' && assignedPaddle === 'a')) {
+              setOtherPlayerReady(true);
+            }
+          }
+
+          if (data.type === 'gameRestart') {
+            console.log(data.message);
+            setGameOver(false);
+            setIsReady(false);
+            setOtherPlayerReady(false);
+            setScore({ a: 0, b: 0 });
+            setGamePaused(false);
+            // Optionally reset other state variables here
+          }
         } catch (err) {
           console.error('Error parsing message:', err);
         }
@@ -156,6 +176,14 @@ export const RemotePongCanvas: React.FC = () => {
     };
   }, []);
 
+  // Handle "Ready Up" button click
+  const handleReadyUp = () => {
+    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+      websocketRef.current.send(JSON.stringify({ type: 'playerReady' }));
+      setIsReady(true);
+    }
+  };
+
   // Helper function to map paddle to position
   const getPaddlePosition = (paddle: 'a' | 'b') => {
     return paddle === 'a' ? 'left' : 'right';
@@ -200,6 +228,13 @@ export const RemotePongCanvas: React.FC = () => {
         {gameOver && (
           <div className="game-over">
             <h2>{winner ? `${winner} wins!` : 'No one wins!'}</h2>
+            {!isReady && (
+              <button className="ready-button" onClick={handleReadyUp}>
+                Ready Up
+              </button>
+            )}
+            {isReady && <p>You are ready. Waiting for the other player...</p>}
+            {otherPlayerReady && <p>The other player is ready.</p>}
           </div>
         )}
 

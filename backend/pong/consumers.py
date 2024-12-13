@@ -47,6 +47,7 @@ class Game:
         self.game_started = False
         # Dictionary to track paddle directions: -1 = up, 0 = stop, 1 = down
         self.paddle_directions = {"a": 0, "b": 0}
+        self.ready = {"a": False, "b": False}  # Track readiness
 
     def reset_ball(self):
         self.ball = {"x": 462, "y": 278, "dx": -1 if self.ball["dx"] > 0 else 1, "dy": 1}
@@ -57,6 +58,7 @@ class Game:
         self.reset_ball()
         self.game_started = False
         self.paddle_directions = {"a": 0, "b": 0}
+        self.ready = {"a": False, "b": False}  # Reset readiness
 
 class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -195,6 +197,35 @@ class PongConsumer(AsyncWebsocketConsumer):
                     game.paddle_directions["a"] = 0
                 elif self.paddle == "b":
                     game.paddle_directions["b"] = 0
+            elif data.get("type") == "playerReady":
+                # Handle player ready message
+                game.ready[self.paddle] = True
+                print(f"Player {self.paddle.upper()} is ready.")
+                # Broadcast to all players the ready status
+                await self.channel_layer.group_send(
+                    self.game_group_name,
+                    {
+                        'type': 'player_ready',
+                        'paddle': self.paddle
+                    }
+                )
+                # Check if both players are ready
+                if game.ready['a'] and game.ready['b']:
+                    # Reset game state
+                    game.reset_game()
+                    game.game_started = True
+                    print(f"Both players ready. Restarting game {self.game_id}.")
+                    # Notify clients that game is restarting
+                    await self.channel_layer.group_send(
+                        self.game_group_name,
+                        {
+                            'type': 'game_restart',
+                            'message': 'Game is restarting...'
+                        }
+                    )
+                    # Restart game loops
+                    self.update_ball_task = create_task(self.update_ball())
+                    self.broadcast_game_state_task = create_task(self.broadcast_game_state())
 
     async def players_connected(self, event):
         try:
@@ -212,6 +243,26 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps(event['message']))
         except Exception as e:
             print(f"Error sending game update: {e}")
+
+    async def player_ready(self, event):
+        try:
+            paddle = event['paddle']
+            await self.send(text_data=json.dumps({
+                "type": "playerReady",
+                "paddle": paddle
+            }))
+        except Exception as e:
+            print(f"Error sending player_ready message: {e}")
+
+    async def game_restart(self, event):
+        try:
+            message = event['message']
+            await self.send(text_data=json.dumps({
+                "type": "gameRestart",
+                "message": message
+            }))
+        except Exception as e:
+            print(f"Error sending game_restart message: {e}")
 
     async def update_ball(self):
         game = self.game
