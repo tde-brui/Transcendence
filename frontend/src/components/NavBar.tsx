@@ -14,10 +14,10 @@ const NavBar: React.FC<{ username: string }> = ({ username }) => {
 		<Nav.Link href="/" className="glass-navx-item">
 		  HOME
 		</Nav.Link>
-        <Nav.Link href="play" className="glass-navx-item">
+        <Nav.Link href="/play" className="glass-navx-item">
           PLAY
         </Nav.Link>
-        <Nav.Link href="chat" className="glass-navx-item">
+        <Nav.Link href="/chat" className="glass-navx-item">
           CHAT
         </Nav.Link>
         <Nav.Link href={`/users/${username}`} className="glass-navx-item">

@@ -49,7 +49,7 @@ function App() {
           <Route element={<ProtectedRoute userId={userId}/>} >
           	<Route path="/users" element={<UsersPage />} />
           	<Route path="/users/:username" element={<UserProfileWrapper />} />
-		  	<Route path="/chat" element={<ChatPage />} />
+		  	<Route path="/chat" element={<ChatPage userId={userId} />} />
           </Route>
         </Routes>
       </Router>

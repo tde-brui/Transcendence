@@ -13,14 +13,14 @@ type ProtectedRouteProps = {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({userId}) => {
   const { isAuthenticated } = useAuth();
 
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<string | null>(null);
 
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axiosInstance.get<User>(`/users/${userId}`);
-        setUser(response.data);
+        const response = await axiosInstance.get(`/users/${userId}`);
+        setUser(response.data.username);
       } catch (error) {
         console.error("Failed to fetch user data", error);
       }
@@ -33,7 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({userId}) => {
 
   return isAuthenticated ? (
     <>
-      <NavBar username={user.username}/>
+      <NavBar username={user}/>
       <Outlet />
     </>
   ) : (
