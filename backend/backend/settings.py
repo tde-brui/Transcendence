@@ -15,43 +15,6 @@ from dotenv import load_dotenv
 import os
 import sys
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': ('%(asctime)s [%(process)d] [%(levelname)s] '
-                       'pathname=%(pathname)s lineno=%(lineno)s '
-                       'funcname=%(funcName)s %(message)s'),
-            'datefmt': '%Y-%m-%d %H:%M:%S',
-        },
-        'simple': {'format': '%(levelname)s %(message)s'},
-    },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',  # Set to 'DEBUG' to capture all types of logs
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-            'stream': sys.stdout,  # Ensure logs are output to stdout
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'DEBUG',  # Set to 'DEBUG' to capture detailed logs
-        },
-        'channels': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-        'pong': {  # Replace with your app name
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-}
-
 load_dotenv()
 
 email_password = os.getenv('EMAIL_PASSWORD')
@@ -99,7 +62,6 @@ INSTALLED_APPS = [
 	'friends',
 	'rest_framework',
 	'rest_framework_simplejwt',
-	'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
