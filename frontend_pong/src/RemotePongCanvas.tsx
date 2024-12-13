@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 
-const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8000/ws/pong/`;
+// const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8000/ws/pong/`;ter-dom';
+
+const WS_URL = 'ws://localhost:8000/ws/pong/';
 
 export const RemotePongCanvas: React.FC = () => {
   // Game state variables
