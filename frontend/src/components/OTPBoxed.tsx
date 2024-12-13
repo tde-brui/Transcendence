@@ -46,11 +46,15 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
 
   const handleResendCode = async () => {
     try {
-      await axios.post(`http://localhost:8000/users/resend_otp/`, {});
-      alert("A new OTP has been sent!");
+      const response = await axiosInstance.get(`/users/resend_otp/`);
+	  if(response.status === 202)
+	  {
+     	setAlertMessage("A new OTP has been sent!");
+	    setAlertType("success");
+	  }
     } catch (err) {
-      setError("Error resending OTP.");
-      console.error(err);
+      setAlertMessage("Error resending OTP. Please try again later.");
+	  setAlertType("error");
     }
   };
 
