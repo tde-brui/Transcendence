@@ -4,6 +4,7 @@ import UserProfile from "../pages/UserProfile";
 import NotFoundPage from "../error_pages/404NotFound";
 import axiosInstance from "./AxiosInstance";
 import axios from "axios";
+import SpinningLogo from "./SpinningLogo";
 
 // Define your axios instance
 
@@ -34,7 +35,7 @@ const getUsername = async (username: string): Promise<string | null> => {
 
 const UserProfileWrapper = () => {
   const { username } = useParams<{ username: string }>();
-  const [userId, setUserId] = useState<number | null>(null); // Number state
+  const [userId, setUserId] = useState<number | null>(0); // Number state
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,9 +44,10 @@ const UserProfileWrapper = () => {
         try {
           const id = await getUsername(username);
           if (id !== null) {
-            setUserId(Number(id));
+
+            setTimeout(() => setUserId(Number(id)), 100);
           } else {
-            setUserId(null);
+            setTimeout(() => setUserId(null), 200);
           }
         } catch (err) {
           console.error(err);
@@ -63,6 +65,10 @@ const UserProfileWrapper = () => {
 
   if (userId === null) {
     return <NotFoundPage />;
+  }
+
+  if (!userId) {
+	return <SpinningLogo />;
   }
 
   return <UserProfile userId={userId} />;

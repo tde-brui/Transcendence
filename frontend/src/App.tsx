@@ -14,6 +14,7 @@ import UserProfileWrapper from "./components/UserProfileWrapper";
 import CallBack from "./pages/CallBack";
 import UsersPage from "./pages/UsersPage";
 import NavBar from "./components/NavBar";
+import SpinningLogo from "./components/SpinningLogo";
 
 function App() {
   const userId = useAuth().userId;
@@ -39,7 +40,7 @@ function App() {
           <Route path="/42-login" element={<Authenticate42 />} />
           <Route path="/42-callback" element={<CallBack />} />
           <Route path="*" element={<NotFoundPage />} />
-          <Route path="/test" element={<UsersPage />} />
+          <Route path="/test" element={<SpinningLogo />} />
 
           <Route
             path="/"

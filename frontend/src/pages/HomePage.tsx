@@ -6,6 +6,7 @@ import { User } from "../components/api";
 import { Link } from "react-router-dom";
 import axiosInstance from "../components/AxiosInstance";
 import "../index.css";
+import SpinningLogo from "../components/SpinningLogo";
 
 type UserProfileProps = {
   userId: number;
@@ -35,7 +36,7 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   }, [userId]);
 
   //   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!user) return <div className="text-center mt-5">Test</div>;
+  if (!user) return <SpinningLogo />;
 
   return (
     <div className="container">

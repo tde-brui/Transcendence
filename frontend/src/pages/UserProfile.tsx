@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import { User } from "../components/api";
 import { returnName } from "../components/userService";
 import "../css/UserProfile.css";
-import { NotLoggedIn } from "../components/notLoggedin";
 import axiosInstance from "../components/AxiosInstance";
 import { useAuth } from "../components/AuthContext";
 import { useNavigate } from "react-router-dom";
 import ChangeDetails from "../components/ChangeDetails";
-import axios from "axios";
+import SpinningLogo from "../components/SpinningLogo";
 
 type UserProfileProps = {
   userId: number;
@@ -105,12 +104,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   }, [user]);
 
   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!user) return <div></div>;
+  if (!user) return <SpinningLogo />;
   //   if (currentUser === null) return <div className="text-center mt-5">Currentuser not loaded</div>;
 
   const logoutLink = () => {
     logout();
-	setTimeout(() => navigate("/"), 1000);
+    setTimeout(() => navigate("/"), 1000);
     return <div>Logging out......</div>;
   };
 
