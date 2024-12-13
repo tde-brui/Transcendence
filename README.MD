@@ -43,4 +43,4 @@ The goal of Transcendence is to create a single-page web application where users
 - [Stijn](https://github.com/StijnScheltinga)
 - [Tristan](https://github.com/TRSTN4)
 - [Daniel](https://github.com/dvan-kle)
-- [Alex](https://github.com/aolde-mo)
+- [Alex](https://github.com/AlexOldeMonnikhof)
