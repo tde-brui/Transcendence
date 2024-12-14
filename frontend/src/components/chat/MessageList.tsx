@@ -1,4 +1,3 @@
-// src/components/MessageList.tsx
 import React, { useEffect, useRef } from 'react';
 import '../../css/chat/MessageList.css';
 
@@ -30,20 +29,21 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUser }) => {
 
   return (
     <div className="list-container">
+      {/* <div className="message-list-header">
+        Messages
+      </div> */}
       {messages.map((msg) => {
         // Determine classes based on message properties
         const isOwn = msg.sender === currentUser;
-        let classNames = 'message-item message-item-container';
-        classNames += isOwn ? ' message-own' : ' message-other';
-        if (msg.isDM) classNames += ' message-dm';
-        if (msg.isAnnouncement) classNames += ' message-announcement';
+        let bubbleClass = isOwn ? 'message-own' : 'message-other';
+        let senderClass = isOwn ? 'sender-own' : 'sender-other';
 
         return (
-          <div key={msg.id} className={classNames}>
-            <div className="sender">
-              {msg.isAnnouncement ? `Announcement by ${msg.sender}` : msg.sender}
-            </div>
-            <div>{msg.message}</div>
+          <div key={msg.id} className="message-item-container">
+            {/* Text bubble for the message */}
+            <div className={`message-bubble ${bubbleClass}`}>{msg.message}</div>
+            {/* Sender below the text bubble */}
+            <div className={`${senderClass}`}>{msg.sender}</div>
           </div>
         );
       })}

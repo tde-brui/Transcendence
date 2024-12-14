@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { User } from "../components/api";
-import { returnName } from "../components/userService";
+import { User } from "../components/utils/api";
+import { returnName } from "../components/utils/userService";
 import "../css/UserProfile.css";
-import axiosInstance from "../components/AxiosInstance";
-import { useAuth } from "../components/AuthContext";
+import axiosInstance from "../components/utils/AxiosInstance";
+import { useAuth } from "../components/utils/AuthContext";
 import { useNavigate } from "react-router-dom";
-import ChangeDetails from "../components/ChangeDetails";
+import ChangeDetails from "../components/users/ChangeDetails";
 import SpinningLogo from "../components/SpinningLogo";
 
 type UserProfileProps = {

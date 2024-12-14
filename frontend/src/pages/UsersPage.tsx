@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axiosInstance from "../components/AxiosInstance";
+import axiosInstance from "../components/utils/AxiosInstance";
 import "../css/UserProfile.css";
 import { Link } from "react-router-dom";
 import SpinningLogo from "../components/SpinningLogo";

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import axiosInstance from "./AxiosInstance";
-import "../css/UserProfile.css";
+import axiosInstance from "../utils/AxiosInstance";
+import "../../css/UserProfile.css";
+import ChangeAvatar from "./ChangeAvatar";
 import { useNavigate } from "react-router-dom";
 
 interface ChangeDetailsProps {
@@ -42,7 +43,10 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
     firstName: "",
   });
 
+  const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+
   const navigate = useNavigate();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -103,9 +107,8 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
         formData,
         config
       );
-      if (response.status === 200 && response.data?.user_id)
-		{
-		onCancel();
+      if (response.status === 200 && response.data?.user_id) {
+        onCancel();
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -113,11 +116,23 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
   };
 
   const handleCancel = () => {
-	onCancel();
+    onCancel();
   };
 
   return (
     <div className="container d-flex align-items-center justify-content-center">
+      {isEditingAvatar && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <ChangeAvatar
+              avatarUrl={avatarUrl}
+              userId={userId}
+              onClose={() => setIsEditingAvatar(false)}
+              onAvatarUpdated={(newAvatarUrl) => console.log("Avatar updated:", newAvatarUrl)}
+            />
+          </div>
+        </div>
+      )}
       <div className="card profile-card mt-4 ">
         <div className="profile-header d-flex flex-column align-items-center p-3">
           <img
@@ -126,7 +141,10 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
             className="rounded-circle"
             style={{ width: "100px", height: "100px", objectFit: "cover" }}
           />
-          <button className="btn btn-primary mt-3" onClick={onEditAvatar}>
+          <button
+            className="btn btn-primary mt-3"
+            onClick={() => setIsEditingAvatar(true)}
+          >
             Edit
           </button>
         </div>
@@ -208,7 +226,11 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
                 Change Password
               </button>
               <div>
-                <button type="button" className="btn btn-danger" onClick={handleCancel}>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleCancel}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-success ms-2">

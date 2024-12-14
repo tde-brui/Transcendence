@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../css/Utils.css";
-import axiosInstance from "../components/AxiosInstance";
+import axiosInstance from "../components/utils/AxiosInstance";
 
 const Authenticate42: React.FC = () => {
   const handleAuthentication = () => {

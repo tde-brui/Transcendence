@@ -199,12 +199,12 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
                 viewProfile={viewProfile}
               />
             </div>
-            <div className="profile-header">
+            {/* <div className="profile-header">
               <h3 className="text-white">Server Announcements</h3>
             </div>
             <div className="card-body profile-footer">
               <AnnouncementForm sendAnnouncement={sendAnnouncement} />
-            </div>
+            </div> */}
           </div>
         </div>
 
