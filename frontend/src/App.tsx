@@ -19,6 +19,7 @@ import GameMainPage from "./pages/GameMainPage";
 import RemoteLobbyList from "./components/game/RemoteLobbyList";
 import RemotePongCanvas from "./components/game/RemotePongCanvas";
 import LocalPongCanvas from "./components/game/LocalPongCanvas";
+import ChangeDetailsWrapper from "./components/users/ChangeDetailsWrapper";
 
 function App() {
   const userId = useAuth().userId;
@@ -52,6 +53,7 @@ function App() {
           />
           <Route element={<ProtectedRoute userId={userId}/>} >
           	<Route path="/users" element={<UsersPage />} />
+            <Route path="/users/edit" element={<ChangeDetailsWrapper />} />
           	<Route path="/users/:username" element={<UserProfileWrapper />} />
 		  	<Route path="/chat" element={<ChatPage userId={userId} />} />
 		  <Route path="/play" element={<GameMainPage />} />

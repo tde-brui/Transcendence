@@ -6,6 +6,7 @@
   
   .sidebar-container {
 	width: 250px;
+	height: 600px;
 	display: flex;
 	flex-direction: column;
   }
@@ -16,6 +17,23 @@
 	flex-direction: column;
   }
   
+  .sidebar-header {
+	background: radial-gradient(
+	  780px at 37.8% 100.3%,
+	  rgb(19, 55, 115) 2.2%,
+	  rgb(32, 7, 80) 20.2%,
+	  rgb(27, 88, 111) 58.6%,
+	  rgb(115, 88, 44) 75%,
+	  rgb(99, 19, 90) 89.6%,
+	  rgb(12, 51, 76) 96.1%
+	);
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+	padding: 15px;
+	width: 100%;
+	font-family: Rubik;
+  }
+
   .sidebar-body-scroll {
 	flex: 1 1 auto;
 	overflow-y: auto;
@@ -27,11 +45,28 @@
 	display: flex;
 	flex-direction: column;
 	background-color: #f0f0f0; /* Set a background color */
-	height: 600px;
+	height: 500px;
 	border-radius: 15px;
 	box-sizing: border-box;
   }
   
+
+  .main-chat-header {
+	background: radial-gradient(
+	  780px at 37.8% 100.3%,
+	  rgb(19, 55, 115) 2.2%,
+	  rgb(32, 7, 80) 20.2%,
+	  rgb(27, 88, 111) 58.6%,
+	  rgb(115, 88, 44) 75%,
+	  rgb(99, 19, 90) 89.6%,
+	  rgb(12, 51, 76) 96.1%
+	);
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+	padding: 15px;
+	width: 100%;
+	font-family: Rubik;
+  } 
   /* The card still fills the main container */
   .main-chat-card {
 	flex: 1 1 auto;
@@ -39,10 +74,10 @@
 	flex-direction: column;
 	height: 100%;
 	border: none;
- 	border-radius: 15px;
+ 	border-radius: 8px;
   	box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
   	background-color: #f9f9f9;
-	font-family: Roboto;
+	font-family: Rubik;
   }
   
   /* Make the messages area scrollable */

@@ -149,7 +149,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
           </button>
         </div>
         <div className="profile-body p-4">
-          <h2 className="mb-4">Change Details</h2>
+          <h2 className="profile-title mb-4">Change Details</h2>
           <form onSubmit={handleSubmit}>
             <div className="d-flex flex-column mb-3">
               <label htmlFor="username" className="form-label">

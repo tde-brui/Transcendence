@@ -89,8 +89,8 @@ const ChangeAvatar: React.FC<ChangeAvatarProps> = ({
   return (
     <div className="change-avatar-modal">
       <div className="modal-content">
-        <h2>Change Avatar</h2>
-        <div className="current-avatar">
+        <h2 className="profile-title">Change Avatar</h2>
+        <div className="current-avatar mt-2">
           <img
             src={avatarUrl}
             alt="Current Avatar"
@@ -98,7 +98,7 @@ const ChangeAvatar: React.FC<ChangeAvatarProps> = ({
             style={{ width: "100px", height: "100px", objectFit: "cover" }}
           />
         </div>
-        <div className="form-group mt-4">
+        <div className="form-group mt-5">
           <label htmlFor="avatarUpload">Upload New Avatar</label>
           <input
             type="file"
@@ -108,7 +108,7 @@ const ChangeAvatar: React.FC<ChangeAvatarProps> = ({
           />
         </div>
         {uploadError && <p className="text-danger mt-2">{uploadError}</p>}
-        <div className="modal-actions d-flex justify-content-between mt-4">
+        <div className="modal-actions d-flex justify-content-between mt-5">
           <button
             className="btn btn-secondary"
             onClick={onClose}
