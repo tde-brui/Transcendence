@@ -234,7 +234,8 @@ class verify_otp(APIView):
 class get_logged_in_user(APIView):
 	def get(self, request):
 		user_id = request.user.id
-		return Response({"user_id": user_id})
+		username = request.user.username
+		return Response({"user_id": user_id, "username": username}, status=status.HTTP_200_OK)
 
 class user_detail(APIView):
 	def get(self, request, pk, *args, **kwargs):
