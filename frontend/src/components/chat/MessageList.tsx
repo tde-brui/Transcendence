@@ -34,15 +34,23 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUser }) => {
       </div> */}
       {messages.map((msg) => {
         // Determine classes based on message properties
-        const isOwn = msg.sender === currentUser;
+        let isOwn = msg.sender === currentUser;
+		if (msg.isDM)
+		{
+			if (msg.sender.includes("DM to"))
+				isOwn = true;
+			else
+				isOwn = false;
+		}
         let bubbleClass = isOwn ? 'message-own' : 'message-other';
+		if (msg.isAnnouncement) { bubbleClass = 'message-announcement'; }
+		if (msg.isDM && isOwn) { bubbleClass = 'message-dm-own'; }
+		if (msg.isDM && !isOwn) { bubbleClass = 'message-dm-other'; }
         let senderClass = isOwn ? 'sender-own' : 'sender-other';
 
         return (
           <div key={msg.id} className="message-item-container">
-            {/* Text bubble for the message */}
             <div className={`message-bubble ${bubbleClass}`}>{msg.message}</div>
-            {/* Sender below the text bubble */}
             <div className={`${senderClass}`}>{msg.sender}</div>
           </div>
         );

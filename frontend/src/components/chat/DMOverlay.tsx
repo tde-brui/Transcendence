@@ -2,6 +2,7 @@
 
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import styled from 'styled-components';
+import '../../css/chat/DMOverlay.css';
 
 interface DMMessage {
   id: string;
@@ -116,11 +117,21 @@ const DMOverlay: React.FC<DMOverlayProps> = ({ dm, sendDirectMessage, closeDM, c
         <CloseButton onClick={() => closeDM(dm.id)}>×</CloseButton>
       </Header>
       <MessagesContainer>
-        {dm.messages.map(msg => (
-          <MessageItem key={msg.id} isOwn={msg.sender === currentUser}>
-            <div>{msg.message}</div>
-          </MessageItem>
-        ))}
+	  {dm.messages.map((msg) => {
+        // Determine classes based on message properties
+        const isOwn = msg.sender === currentUser;
+        let bubbleClass = isOwn ? 'message-own' : 'message-other';
+        let senderClass = isOwn ? 'sender-own' : 'sender-other';
+
+        return (
+          <div key={msg.id} className="message-item-container">
+            {/* Text bubble for the message */}
+            <div className={`message-bubble ${bubbleClass}`}>{msg.message}</div>
+            {/* Sender below the text bubble */}
+            <div className={`${senderClass}`}>{msg.sender}</div>
+          </div>
+        );
+      })}
       </MessagesContainer>
       <InputContainer onSubmit={handleSend}>
         <Input
@@ -130,7 +141,7 @@ const DMOverlay: React.FC<DMOverlayProps> = ({ dm, sendDirectMessage, closeDM, c
           onChange={handleChange}
           required
         />
-        <Button type="submit">Send</Button>
+        <Button type="submit" className="btn btn-primary">Send</Button>
       </InputContainer>
     </OverlayContainer>
   );

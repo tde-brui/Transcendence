@@ -5,63 +5,104 @@ import NotFoundPage from "../../error_pages/404NotFound";
 import axiosInstance from "../utils/AxiosInstance";
 import axios from "axios";
 import SpinningLogo from "../SpinningLogo";
+import { createBigIntLiteral } from "typescript";
+import ChangeDetails from "./ChangeDetails";
 
 // Define your axios instance
 
 interface User {
-  id: string;
-  username: string;
-  [key: string]: any; // Additional fields can be added if needed
+	username: string;
+	firstName: string;
+	email: string;
+	twoFactorEnabled: boolean;
+	avatar: string;
+	id: number;
 }
 
-/**
- * Fetches the user list and finds the corresponding userId for the given username.
- * @param username The username to find.
- * @returns The userId corresponding to the username, or null if not found.
- */
-const getUsername = async (username: string): Promise<string | null> => {
-  try {
-    const response = await axios.get<User[]>("http://localhost:8000/users/");
-    const userList = response.data;
 
-    const user = userList.find((user) => user.username === username);
-
-    return user ? user.id : null;
-  } catch (error) {
-    console.error("Error", error);
-    throw new Error("Unable to fetch user list");
-  }
-};
+const getUserId = async (): Promise<number| null> => {
+	try {
+	  const response = await axiosInstance.get("/users/me/");
+	  const userId = response.data.user_id;
+		
+	return userId;
+	} catch (error) {
+	  console.error("Error fetching username:", error);
+	  throw new Error("Unable to fetch username");
+	}
+  };
+  
+const getUser = async (userId : number): Promise<User | null> => {
+	try {
+		const response = await axiosInstance.get(`/users/${userId}/`);
+		return response.data;
+	} catch (error) {
+		console.error("Failed to fetch user data", error);
+		return null;
+	}
+}
 
 const ChangeDetailWrapper = () => {
-  const { username } = useParams<{ username: string }>();
-  const [userId, setUserId] = useState<number | null>(0); // Number state
-  const [error, setError] = useState<string | null>(null);
+ const [user, setUser] = useState<User | null>(null);
+ const [userId, setUserId] = useState<number | null>(null);
+ const [error, setError] = useState<string | null>(null);
+ const [avatar, setAvatar] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUserId = async () => {
-      if (username) {
-        try {
-          const id = await getUsername(username);
-          if (id !== null) {
+ useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const userId = await getUserId();
+      setUserId(userId);
+    };
 
-            setTimeout(() => setUserId(Number(id)), 100);
-          } else {
-            setTimeout(() => setUserId(null), 200);
-          }
-        } catch (err) {
-          console.error(err);
-          setError("Failed to fetch user information.");
-        }
+    fetchCurrentUser();
+  }, []);
+
+ useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axiosInstance.get(`/users/${userId}/`);
+        if (response.status === 200 && response.data)
+			setUser(response.data);
+      } catch (error) {
+        setError((error as Error).message);
       }
     };
 
-    fetchUserId();
-  }, [username]);
+    fetchUser();
+  }, [userId]);
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      if (!user || !user.avatar) return; // Skip if no avatar is available
+
+      try {
+        const response = await fetch(`http://localhost:8000${user.avatar}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch user avatar");
+        }
+        const avatarData = await response.blob();
+        const avatarUrl = URL.createObjectURL(avatarData);
+        setAvatar(avatarUrl);
+
+        // Debugging: Log the URL
+      } catch (error) {
+        setError((error as Error).message);
+      }
+    };
+
+    fetchAvatar();
+
+    // Cleanup: Revoke object URLs to prevent memory leaks
+    return () => {
+      if (avatar) {
+        URL.revokeObjectURL(avatar);
+      }
+    };
+  }, [user]);
+
+//   if (error) {
+//     return <div>Error: {error}</div>;
+//   }
 
   if (userId === null) {
     return <NotFoundPage />;
@@ -71,7 +112,18 @@ const ChangeDetailWrapper = () => {
 	return <SpinningLogo />;
   }
 
-  return <UserProfile userId={userId} />;
+  if (!user) {
+	return <SpinningLogo />;
+  }
+
+  return <ChangeDetails
+  username={user.username}
+  firstName={user.firstName}
+  email={user.email}
+  twoFactorEnabled={user.twoFactorEnabled}
+  avatarUrl={avatar || "/images/default_avatar.jpg"}
+  userId={user.id}
+/>;
 };
 
 export default ChangeDetailWrapper;

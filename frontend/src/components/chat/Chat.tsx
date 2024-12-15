@@ -222,7 +222,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
             </div>
           </div>
         </div>
-      </div>
+		</div>
     </>
   );
 }

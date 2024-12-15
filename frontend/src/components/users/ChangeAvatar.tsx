@@ -1,23 +1,25 @@
 import React, { useState } from "react";
 import axiosInstance from "../utils/AxiosInstance";
+import { useNavigate } from "react-router-dom";
 // import "../../css/ChangeAvatar.css";
 
 interface ChangeAvatarProps {
   avatarUrl: string;
   userId: number;
+  username: string;
   onClose: () => void;
-  onAvatarUpdated: (newAvatarUrl: string) => void;
 }
 
 const ChangeAvatar: React.FC<ChangeAvatarProps> = ({
   avatarUrl,
   userId,
+  username,
   onClose,
-  onAvatarUpdated,
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -48,9 +50,8 @@ const ChangeAvatar: React.FC<ChangeAvatarProps> = ({
         }
       );
 
-      if (response.status === 200 && response.data?.avatar_url) {
-        onAvatarUpdated(response.data.avatar_url);
-        onClose();
+      if (response.status === 200) {
+        navigate(`/users/${username}`);
       }
     } catch (error) {
       console.error("Error uploading avatar:", error);
@@ -74,9 +75,8 @@ const ChangeAvatar: React.FC<ChangeAvatarProps> = ({
         }
       );
 
-      if (response.status === 200 && response.data?.avatar_url) {
-        onAvatarUpdated(response.data.avatar_url);
-        onClose();
+      if (response.status === 200) {
+        navigate(`/users/${username}`);
       }
     } catch (error) {
       console.error("Error removing avatar:", error);

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axiosInstance from "../utils/AxiosInstance";
 import "../../css/UserProfile.css";
 import ChangeAvatar from "./ChangeAvatar";
+import ChangePassword from "./ChangePassword";
 import { useNavigate } from "react-router-dom";
 
 interface ChangeDetailsProps {
@@ -11,10 +12,6 @@ interface ChangeDetailsProps {
   twoFactorEnabled: boolean;
   avatarUrl: string;
   userId: number;
-  onEditAvatar: () => void;
-  onChangePassword: () => void;
-  onSubmit: () => void;
-  onCancel: () => void;
 }
 
 const ChangeDetails: React.FC<ChangeDetailsProps> = ({
@@ -24,10 +21,6 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
   twoFactorEnabled,
   avatarUrl,
   userId,
-  onEditAvatar,
-  onChangePassword,
-  onSubmit,
-  onCancel,
 }) => {
   const [formData, setFormData] = useState({
     username,
@@ -39,11 +32,11 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
   const [formErrors, setFormErrors] = useState({
     username: "",
     email: "",
-    password: "",
     firstName: "",
   });
 
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -67,8 +60,9 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
         email: emailRegex.test(value) ? "" : "Invalid email address",
       });
     }
+
     if (name === "firstName") {
-      const firstNameRegex = /^[A-Z][a-z]*$/; // First letter capital, rest lowercase
+      const firstNameRegex = /^[A-Z][a-z]*$/;
       setFormErrors({
         ...formErrors,
         firstName: firstNameRegex.test(value)
@@ -84,31 +78,17 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (
-      formErrors.email ||
-      formErrors.password ||
-      !formData.username ||
-      !formData.email
-    ) {
+    if (formErrors.username || formErrors.email || !formData.username || !formData.email) {
       console.log("Please fix the errors before submitting.");
       return;
     }
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
     try {
-      console.log(formData);
-      const response = await axiosInstance.patch(
-        `/users/${userId}/`,
-        formData,
-        config
-      );
-      if (response.status === 200 && response.data?.user_id) {
-        onCancel();
+      const response = await axiosInstance.patch(`/users/${userId}/`, formData, {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (response.status === 200) {
+        navigate(`/users/${formData.username}`);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -116,7 +96,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
   };
 
   const handleCancel = () => {
-    onCancel();
+    navigate(`/users/${username}`);
   };
 
   return (
@@ -127,13 +107,24 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
             <ChangeAvatar
               avatarUrl={avatarUrl}
               userId={userId}
+              username={username}
               onClose={() => setIsEditingAvatar(false)}
-              onAvatarUpdated={(newAvatarUrl) => console.log("Avatar updated:", newAvatarUrl)}
             />
           </div>
         </div>
       )}
-      <div className="card profile-card mt-4 ">
+      {isChangingPassword && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <ChangePassword
+              userId={userId}
+			  username={username}
+              onClose={() => setIsChangingPassword(false)}
+            />
+          </div>
+        </div>
+      )}
+      <div className="card profile-card mt-4">
         <div className="profile-header d-flex flex-column align-items-center p-3">
           <img
             src={avatarUrl}
@@ -221,7 +212,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={onChangePassword}
+                onClick={() => setIsChangingPassword(true)}
               >
                 Change Password
               </button>
