@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Navbar, Nav } from "react-bootstrap";
-import { returnName } from "../components/userService";
-import { NotLoggedIn } from "../components/notLoggedin";
-import { User } from "../components/api";
+import { returnName } from "../components/utils/userService";
+import { NotLoggedIn } from "../components/login/notLoggedin";
+import { User } from "../components/utils/api";
 import { Link } from "react-router-dom";
-import axiosInstance from "../components/AxiosInstance";
+import axiosInstance from "../components/utils/AxiosInstance";
 import "../index.css";
 import SpinningLogo from "../components/SpinningLogo";
 

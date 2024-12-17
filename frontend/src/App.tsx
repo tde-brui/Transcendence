@@ -5,12 +5,12 @@ import LandingPage from "./pages/LandingPage";
 import Home from "./pages/HomePage";
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { useAuth } from "./components/AuthContext";
+import { useAuth } from "./components/utils/AuthContext";
 import NotFoundPage from "./error_pages/404NotFound";
 import Authenticate42 from "./pages/Authenticate42";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/utils/ProtectedRoute";
 import ChatPage from "./pages/ChatPage";
-import UserProfileWrapper from "./components/UserProfileWrapper";
+import UserProfileWrapper from "./components/users/UserProfileWrapper";
 import CallBack from "./pages/CallBack";
 import UsersPage from "./pages/UsersPage";
 import NavBar from "./components/NavBar";
@@ -19,6 +19,7 @@ import GameMainPage from "./pages/GameMainPage";
 import RemoteLobbyList from "./components/game/RemoteLobbyList";
 import RemotePongCanvas from "./components/game/RemotePongCanvas";
 import LocalPongCanvas from "./components/game/LocalPongCanvas";
+import ChangeDetailsWrapper from "./components/users/ChangeDetailsWrapper";
 
 function App() {
   const userId = useAuth().userId;
@@ -52,6 +53,7 @@ function App() {
           />
           <Route element={<ProtectedRoute userId={userId}/>} >
           	<Route path="/users" element={<UsersPage />} />
+            <Route path="/users/edit" element={<ChangeDetailsWrapper />} />
           	<Route path="/users/:username" element={<UserProfileWrapper />} />
 		  	<Route path="/chat" element={<ChatPage userId={userId} />} />
 		  <Route path="/play" element={<GameMainPage />} />

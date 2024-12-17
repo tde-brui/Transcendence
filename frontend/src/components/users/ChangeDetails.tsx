@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import axiosInstance from "./AxiosInstance";
-import "../css/UserProfile.css";
+import axiosInstance from "../utils/AxiosInstance";
+import "../../css/UserProfile.css";
+import ChangeAvatar from "./ChangeAvatar";
+import ChangePassword from "./ChangePassword";
 import { useNavigate } from "react-router-dom";
 
 interface ChangeDetailsProps {
@@ -10,10 +12,6 @@ interface ChangeDetailsProps {
   twoFactorEnabled: boolean;
   avatarUrl: string;
   userId: number;
-  onEditAvatar: () => void;
-  onChangePassword: () => void;
-  onSubmit: () => void;
-  onCancel: () => void;
 }
 
 const ChangeDetails: React.FC<ChangeDetailsProps> = ({
@@ -23,10 +21,6 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
   twoFactorEnabled,
   avatarUrl,
   userId,
-  onEditAvatar,
-  onChangePassword,
-  onSubmit,
-  onCancel,
 }) => {
   const [formData, setFormData] = useState({
     username,
@@ -38,11 +32,14 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
   const [formErrors, setFormErrors] = useState({
     username: "",
     email: "",
-    password: "",
     firstName: "",
   });
 
+  const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   const navigate = useNavigate();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -63,8 +60,9 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
         email: emailRegex.test(value) ? "" : "Invalid email address",
       });
     }
+
     if (name === "firstName") {
-      const firstNameRegex = /^[A-Z][a-z]*$/; // First letter capital, rest lowercase
+      const firstNameRegex = /^[A-Z][a-z]*$/;
       setFormErrors({
         ...formErrors,
         firstName: firstNameRegex.test(value)
@@ -80,32 +78,17 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (
-      formErrors.email ||
-      formErrors.password ||
-      !formData.username ||
-      !formData.email
-    ) {
+    if (formErrors.username || formErrors.email || !formData.username || !formData.email) {
       console.log("Please fix the errors before submitting.");
       return;
     }
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
     try {
-      console.log(formData);
-      const response = await axiosInstance.patch(
-        `/users/${userId}/`,
-        formData,
-        config
-      );
-      if (response.status === 200 && response.data?.user_id)
-		{
-		onCancel();
+      const response = await axiosInstance.patch(`/users/${userId}/`, formData, {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (response.status === 200) {
+        navigate(`/users/${formData.username}`);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -113,12 +96,35 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
   };
 
   const handleCancel = () => {
-	onCancel();
+    navigate(`/users/${username}`);
   };
 
   return (
     <div className="container d-flex align-items-center justify-content-center">
-      <div className="card profile-card mt-4 ">
+      {isEditingAvatar && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <ChangeAvatar
+              avatarUrl={avatarUrl}
+              userId={userId}
+              username={username}
+              onClose={() => setIsEditingAvatar(false)}
+            />
+          </div>
+        </div>
+      )}
+      {isChangingPassword && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <ChangePassword
+              userId={userId}
+			  username={username}
+              onClose={() => setIsChangingPassword(false)}
+            />
+          </div>
+        </div>
+      )}
+      <div className="card profile-card mt-4">
         <div className="profile-header d-flex flex-column align-items-center p-3">
           <img
             src={avatarUrl}
@@ -126,12 +132,15 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
             className="rounded-circle"
             style={{ width: "100px", height: "100px", objectFit: "cover" }}
           />
-          <button className="btn btn-primary mt-3" onClick={onEditAvatar}>
+          <button
+            className="btn btn-primary mt-3"
+            onClick={() => setIsEditingAvatar(true)}
+          >
             Edit
           </button>
         </div>
         <div className="profile-body p-4">
-          <h2 className="mb-4">Change Details</h2>
+          <h2 className="profile-title mb-4">Change Details</h2>
           <form onSubmit={handleSubmit}>
             <div className="d-flex flex-column mb-3">
               <label htmlFor="username" className="form-label">
@@ -203,12 +212,16 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={onChangePassword}
+                onClick={() => setIsChangingPassword(true)}
               >
                 Change Password
               </button>
               <div>
-                <button type="button" className="btn btn-danger" onClick={handleCancel}>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleCancel}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-success ms-2">

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Chat from '../components/chat/Chat';
 import styled from 'styled-components';
-import axiosInstance from '../components/AxiosInstance';
+import axiosInstance from '../components/utils/AxiosInstance';
 import SpinningLogo from '../components/SpinningLogo';
 
 const AppContainer = styled.div`

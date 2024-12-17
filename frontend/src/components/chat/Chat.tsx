@@ -185,8 +185,8 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
       <div className="chat-page-container container-fluid">
         {/* Sidebar */}
         <div className="sidebar-container">
-          <div className="card profile-card mb-3 sidebar-card">
-            <div className="profile-header">
+          <div className="card mb-3 profile-card sidebar-card">
+            <div className="sidebar-header">
               <h3 className="text-white">Online Users</h3>
             </div>
             <div className="card-body profile-body sidebar-body-scroll">
@@ -199,17 +199,20 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
                 viewProfile={viewProfile}
               />
             </div>
-            <div className="profile-header">
+            {/* <div className="profile-header">
               <h3 className="text-white">Server Announcements</h3>
             </div>
             <div className="card-body profile-footer">
               <AnnouncementForm sendAnnouncement={sendAnnouncement} />
-            </div>
+            </div> */}
           </div>
         </div>
 
         {/* Main Chat Area */}
         <div className="main-chat-container ms-4">
+          <div className="main-chat-header">
+            <h1 className="text-white">Chat</h1>
+          </div>
           <div className="card main-chat-card">
             <div className="main-chat-messages">
               <MessageList messages={messages} currentUser={username} />
@@ -219,7 +222,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
             </div>
           </div>
         </div>
-      </div>
+		</div>
     </>
   );
 }

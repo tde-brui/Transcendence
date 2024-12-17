@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { useAuth } from "../components/AuthContext";
+import { useAuth } from "../components/utils/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import OTPBoxed from "../components/OTPBoxed";
+import OTPBoxed from "../components/users/OTPBoxed";
 import "../css/UserProfile.css";
 import "../css/Utils.css";
-import axiosInstance from "../components/AxiosInstance";
-import { IsLoggedIn } from "../components/isLoggedIn";
+import axiosInstance from "../components/utils/AxiosInstance";
+import { IsLoggedIn } from "../components/login/isLoggedIn";
 
 type UserProfileProps = {
   userId: number;

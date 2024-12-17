@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import UserProfile from "../pages/UserProfile";
-import NotFoundPage from "../error_pages/404NotFound";
-import axiosInstance from "./AxiosInstance";
+import UserProfile from "../../pages/UserProfile";
+import NotFoundPage from "../../error_pages/404NotFound";
+import axiosInstance from "../utils/AxiosInstance";
 import axios from "axios";
-import SpinningLogo from "./SpinningLogo";
+import SpinningLogo from "../SpinningLogo";
 
 // Define your axios instance
 

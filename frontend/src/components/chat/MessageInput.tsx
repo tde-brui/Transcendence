@@ -10,19 +10,6 @@ const InputContainer = styled.form`
   border-top: 1px solid #ddd;
 `;
 
-const Input = styled.input`
-  flex: 1;
-  padding: 10px;
-  font-size: 16px;
-`;
-
-const Button = styled.button`
-  padding: 0 20px;
-  margin-left: 10px;
-  font-size: 16px;
-  cursor: pointer;
-`;
-
 interface MessageInputProps {
   sendMessage: (message: string) => void;
 }

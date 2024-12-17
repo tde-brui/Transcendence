@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import OTPBoxed from "../components/OTPBoxed";
+import OTPBoxed from "../components/users/OTPBoxed";
 import NotFoundPage from "../error_pages/404NotFound";
 
 const CallbackPage: React.FC = () => {

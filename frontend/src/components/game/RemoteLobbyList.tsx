@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axiosInstance from '../AxiosInstance';
+import axiosInstance from '../utils/AxiosInstance';
 
 interface Lobby {
   game_id: string;

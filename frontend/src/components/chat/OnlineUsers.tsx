@@ -3,6 +3,7 @@
 import React from "react";
 import styled from "styled-components";
 import "../../css/chat/OnlineUsers.css";
+import { useNavigate } from "react-router-dom";
 
 interface UsernameProps {
   isCurrent: boolean;
@@ -45,6 +46,8 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
   inviteToGame,
   viewProfile,
 }) => {
+
+  const navigate = useNavigate();
   return (
     <div>
       {users.map((user) => (
@@ -69,7 +72,7 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
               </button>
               <button
                 className="btn btn-primary"
-                onClick={() => viewProfile(user)}
+                onClick={() => navigate(`/users/${user}`)}
               >
                 Profile
               </button>

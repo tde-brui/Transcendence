@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import axiosInstance from "./AxiosInstance";
-import { useAuth } from "./AuthContext";
+import axiosInstance from "../utils/AxiosInstance";
+import { useAuth } from "../utils/AuthContext";
 
 interface OTPBoxedProps {
   email: string;

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { User } from "../components/api";
-import { returnName } from "../components/userService";
+import { User } from "../components/utils/api";
+import { returnName } from "../components/utils/userService";
 import "../css/UserProfile.css";
-import axiosInstance from "../components/AxiosInstance";
-import { useAuth } from "../components/AuthContext";
+import axiosInstance from "../components/utils/AxiosInstance";
+import { useAuth } from "../components/utils/AuthContext";
 import { useNavigate } from "react-router-dom";
-import ChangeDetails from "../components/ChangeDetails";
+import ChangeDetails from "../components/users/ChangeDetails";
 import SpinningLogo from "../components/SpinningLogo";
+import { Link } from "react-router-dom";
 
 type UserProfileProps = {
   userId: number;
@@ -123,7 +124,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
 
   return (
     <div className="container d-flex align-items-center justify-content-center">
-      {!showDetails ? (
         <div className="card profile-card mx-auto">
           <div className="card-header profile-header text-center">
             <img
@@ -164,29 +164,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
         </div> */}
           {currentUser === userId && (
             <div className="card-footer profile-footer d-flex justify-content-between">
-              <button onClick={changeDetails} className="btn btn-primary">
-                Change details
-              </button>
+              <Link to="/users/edit" className="btn btn-primary"> Change details</Link>
               <button onClick={logoutLink} className="btn btn-danger">
                 Log out
               </button>
             </div>
           )}
         </div>
-      ) : (
-        <ChangeDetails
-          username={user.username}
-          firstName={user.firstName}
-          email={user.email}
-          twoFactorEnabled={user.twoFactorEnabled}
-          avatarUrl={avatar || "/images/default_avatar.jpg"}
-          userId={user.id}
-          onEditAvatar={() => console.log("Edit avatar clicked")}
-          onChangePassword={() => console.log("Change password clicked")}
-          onSubmit={handleReturnToProfile}
-		  onCancel={handleReturnToProfile}
-        />
-      )}
     </div>
   );
 };

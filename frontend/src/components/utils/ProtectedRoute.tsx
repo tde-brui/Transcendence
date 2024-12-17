@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { User } from "../components/api";
+import { User } from "./api";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import NavBar from "./NavBar";
+import NavBar from "../NavBar";
 import axiosInstance from "./AxiosInstance";
-import SpinningLogo from "./SpinningLogo";
+import SpinningLogo from "../SpinningLogo";
 
 type ProtectedRouteProps = {
 	userId: number;
