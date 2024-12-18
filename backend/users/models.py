@@ -5,22 +5,31 @@ from django.utils import timezone
 import random
 
 class PongUser(AbstractUser):
-	twoFactorEnabled = models.BooleanField(default=False)
-	firstName = models.CharField(blank=True, max_length=100)
-	avatar = models.ImageField(upload_to="avatars/", default="avatars/default.png")
-	friends = models.ManyToManyField("self", blank=True, symmetrical=True)
-	onlineStatus = models.BooleanField(default=False)
-	# match_history = models.CharField(blank=True)
-	oauth_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    twoFactorEnabled = models.BooleanField(default=False)
+    firstName = models.CharField(blank=True, max_length=100)
+    avatar = models.ImageField(upload_to="avatars/", default="avatars/default.png")
+    friends = models.ManyToManyField("self", blank=True, symmetrical=True)
+    blocked_users = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="blocked_by")
+    onlineStatus = models.BooleanField(default=False)
+    oauth_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
-	def add_friend(self, friend):
-		self.friends.add(friend)
+    def add_friend(self, friend):
+        self.friends.add(friend)
 
-	def remove_friend(self, friend):
-		self.friends.remove(friend)
+    def remove_friend(self, friend):
+        self.friends.remove(friend)
 
-	def __str__(self):
-		return self.username
+    def block_user(self, user):
+        self.blocked_users.add(user)
+
+    def unblock_user(self, user):
+        self.blocked_users.remove(user)
+
+    def is_blocked(self, user):
+        return self.blocked_users.filter(pk=user.pk).exists()
+
+    def __str__(self):
+        return self.username
 
 class OTP(models.Model):
 
