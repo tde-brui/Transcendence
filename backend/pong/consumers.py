@@ -168,9 +168,8 @@ class PongConsumer(AsyncWebsocketConsumer):
             )
 
             if len(game.players) == 2 and game.ready_players['a'] and game.ready_players['b'] and not game.game_started:
-                game.game_started = True
-                self.update_ball_task = create_task(self.update_ball())
-                self.broadcast_game_state_task = create_task(self.broadcast_game_state())
+                # Both players ready, start countdown before game starts
+                create_task(self.start_countdown_and_start_game())
 
     async def players_connected(self, event):
         await self.send(text_data=json.dumps({
@@ -187,6 +186,35 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def send_update(self, event):
         await self.send(text_data=json.dumps(event['message']))
+
+    async def countdown(self):
+        # Just sleep for 3 seconds, mimicking a countdown
+        await sleep(3)
+
+    async def start_countdown_and_start_game(self):
+        # Notify frontend that countdown is starting
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'countdown_start',
+            }
+        )
+
+        # Perform countdown
+        await self.countdown()
+
+        # Notify frontend that countdown has ended
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'countdown_end',
+            }
+        )
+
+        # Start the game
+        self.game.game_started = True
+        self.update_ball_task = create_task(self.update_ball())
+        self.broadcast_game_state_task = create_task(self.broadcast_game_state())
 
     async def update_ball(self):
         game = self.game
@@ -237,6 +265,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                     }
                 )
                 game.reset_ball()
+                await self.start_countdown_after_score()
 
             elif ball["x"] > 1000:
                 score["a"] += 1
@@ -253,6 +282,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                     }
                 )
                 game.reset_ball()
+                await self.start_countdown_after_score()
 
             if score["a"] >= game.MAX_SCORE or score["b"] >= game.MAX_SCORE:
                 winner_paddle = "a" if score["a"] >= game.MAX_SCORE else "b"
@@ -267,6 +297,26 @@ class PongConsumer(AsyncWebsocketConsumer):
                 game.reset_game()
 
             await sleep(1/60) # 60fps
+
+    async def start_countdown_after_score(self):
+        # Notify frontend that countdown is starting
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'countdown_start',
+            }
+        )
+
+        # Perform countdown
+        await self.countdown()
+
+        # Notify frontend that countdown has ended
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'countdown_end',
+            }
+        )
 
     async def broadcast_game_state(self):
         game = self.game
@@ -287,3 +337,10 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def game_over(self, event):
         await self.send(text_data=json.dumps({"type": "gameOver", "winner": event['winner']}))
+
+    # Handlers for countdown messages
+    async def countdown_start(self, event):
+        await self.send(text_data=json.dumps({"type": "countdownStart"}))
+
+    async def countdown_end(self, event):
+        await self.send(text_data=json.dumps({"type": "countdownEnd"}))

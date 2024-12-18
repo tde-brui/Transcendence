@@ -4,7 +4,7 @@ import '../../css/game/PongCanvas.css';
 
 const WS_URL = 'ws://localhost:8000/ws/pong/';
 
-export const RemotePongCanvas: React.FC = () => {
+const RemotePongCanvas: React.FC = () => {
   const [paddleAPosition, setPaddleAPosition] = useState<number>(250);
   const [paddleBPosition, setPaddleBPosition] = useState<number>(250);
   const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({ x: 500, y: 300 });
@@ -17,6 +17,7 @@ export const RemotePongCanvas: React.FC = () => {
   const [playerKeys, setPlayerKeys] = useState<{ a?: string; b?: string }>({});
   const [winner, setWinner] = useState<string | null>(null);
   const [readyStates, setReadyStates] = useState<{ a: boolean; b: boolean }>({ a: false, b: false });
+  const [countdown, setCountdown] = useState<boolean>(false); // New state for countdown
 
   const websocketRef = useRef<WebSocket | null>(null);
 
@@ -63,7 +64,20 @@ export const RemotePongCanvas: React.FC = () => {
             setGamePaused(true);
             setWinner(data.winner);
           }
-        } catch (err) {}
+
+          // Handle countdown messages
+          if (data.type === 'countdownStart') {
+            setCountdown(true);
+            setGamePaused(true);
+          }
+
+          if (data.type === 'countdownEnd') {
+            setCountdown(false);
+            setGamePaused(false);
+          }
+        } catch (err) {
+          console.error('Error parsing WebSocket message:', err);
+        }
       };
     };
 
@@ -107,7 +121,9 @@ export const RemotePongCanvas: React.FC = () => {
   const bothPlayersReady = readyStates.a && readyStates.b;
 
   return (
-    <div className="pong d-flex flex-column align-items-center justify-content-center vh-100">
+    <div className="pong d-flex flex-column align-items-center justify-content-center vh-100" 
+         tabIndex={0} 
+         style={{ outline: 'none' }}>
       {gameID && <div className="lobby-id mb-2">Lobby: {gameID}</div>}
 
       <div className="overlap-group-wrapper">
@@ -130,7 +146,7 @@ export const RemotePongCanvas: React.FC = () => {
           </div>
         )}
 
-        {gamePaused && !gameOver && (
+        {gamePaused && !gameOver && !countdown && ( // Hide this section during countdown
           <div className="game-paused">
             {playersConnected < 2 ? (
               <h2>Waiting for another player...</h2>
@@ -149,6 +165,12 @@ export const RemotePongCanvas: React.FC = () => {
                 )}
               </>
             )}
+          </div>
+        )}
+
+        {countdown && ( // Show countdown message
+          <div className="countdown">
+            <h2>READY UP!!!</h2>
           </div>
         )}
 
