@@ -1,169 +1,167 @@
-import React, { useEffect, useState, useRef } from 'react';
-import '../../css/game/PongCanvas.css';
+import React, { useRef, useEffect, useState } from 'react';
+
+type PaddleKey = 'a' | 'b';
+interface GameState {
+  paddles: Record<PaddleKey, number>;
+  ball: { x: number; y: number; dx: number; dy: number };
+  score: Record<PaddleKey, number>;
+  paddleDirections: Record<PaddleKey, number>;
+  gameStarted: boolean;
+}
+
+const MAX_SCORE = 3;
+const PADDLE_SPEED = 5;
+const CANVAS_WIDTH = 1000;
+const CANVAS_HEIGHT = 600;
+const PADDLE_HEIGHT = 100;
+const BALL_SIZE = 10;
 
 const LocalPongCanvas: React.FC = () => {
-  const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
-  const [paddleBPosition, setPaddleBPosition] = useState<number>(240);
-  const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({ x: 462, y: 278 });
-  const [score, setScore] = useState<{ a: number; b: number }>({ a: 0, b: 0 });
-  const [gamePaused, setGamePaused] = useState<boolean>(false);
-  const [gameOver, setGameOver] = useState<boolean>(false);
-
-  const MAX_SCORE = 3;
-  const paddleSpeed = 5;  
-  const ballSpeed = 5;
-
-  // Directions: -1 = up, 0 = stop, 1 = down
-  const paddleDirections = useRef<{ a: number; b: number }>({ a: 0, b: 0 });
-
-  // Refs for positions/states used in the game loop
-  const paddleARef = useRef<number>(240);
-  const paddleBRef = useRef<number>(240);
-  const ballRef = useRef<{ x: number; y: number; dx: number; dy: number }>({ x: 462, y: 278, dx: 1, dy: 1 });
-  const scoreRef = useRef(score);
-  const gameOverRef = useRef(gameOver);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [game, setGame] = useState<GameState>({
+    paddles: { a: 250, b: 250 },
+    ball: { x: 500, y: 300, dx: 1, dy: 1 },
+    score: { a: 0, b: 0 },
+    paddleDirections: { a: 0, b: 0 },
+    gameStarted: false,
+  });
 
   useEffect(() => {
-    scoreRef.current = score;
-  }, [score]);
+    const ctx = canvasRef.current?.getContext('2d');
+    let animationFrameId: number;
+
+    const draw = () => {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      // Draw paddles
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, game.paddles.a, 10, PADDLE_HEIGHT);
+      ctx.fillRect(CANVAS_WIDTH - 10, game.paddles.b, 10, PADDLE_HEIGHT);
+
+      // Draw ball
+      ctx.beginPath();
+      ctx.arc(game.ball.x, game.ball.y, BALL_SIZE, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // Draw score
+      ctx.font = '20px Arial';
+      ctx.fillText(`Score: ${game.score.a}`, 50, 50);
+      ctx.fillText(`Score: ${game.score.b}`, CANVAS_WIDTH - 150, 50);
+
+      animationFrameId = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [game]);
 
   useEffect(() => {
-    gameOverRef.current = gameOver;
-  }, [gameOver]);
+    let intervalId: NodeJS.Timeout;
+    if (game.gameStarted) {
+      intervalId = setInterval(() => {
+        setGame((prev) => updateGameState(prev));
+      }, 1000 / 60);
+    }
+    return () => clearInterval(intervalId);
+  }, [game.gameStarted]);
 
-  const resetBall = () => {
-    // Reverse horizontal direction and reset vertical direction
-    ballRef.current = {
-      x: 462,
-      y: 278,
-      dx: ballRef.current.dx > 0 ? -1 : 1,
-      dy: 1
+  const startGame = () => {
+    setGame((prev) => ({ ...prev, gameStarted: true }));
+  };
+
+  const resetBall = (st: GameState): GameState => {
+    return {
+      ...st,
+      ball: {
+        x: CANVAS_WIDTH / 2,
+        y: CANVAS_HEIGHT / 2,
+        dx: st.ball.dx > 0 ? -1 : 1,
+        dy: 1,
+      }
     };
   };
 
-  useEffect(() => {
-    const minPaddlePos = 0;
-    const maxPaddlePos = 456; // 556 field height - 100 paddle height
-
-    // Run the game loop every 20ms, similar to the remote server's 0.02s updates
-    const interval = setInterval(() => {
-      if (gameOverRef.current || gamePaused) return;
-
-      // Update paddle positions
-      paddleARef.current += paddleDirections.current.a * paddleSpeed;
-      paddleBRef.current += paddleDirections.current.b * paddleSpeed;
-
-      // Clamp paddle positions
-      paddleARef.current = Math.max(minPaddlePos, Math.min(maxPaddlePos, paddleARef.current));
-      paddleBRef.current = Math.max(minPaddlePos, Math.min(maxPaddlePos, paddleBRef.current));
-
-      // Update the ball
-      const ball = ballRef.current;
-      ball.x += ball.dx * ballSpeed;
-      ball.y += ball.dy * ballSpeed;
-
-      // Check collisions with top/bottom walls
-      if (ball.y <= 0 || ball.y >= 556) {
-        ball.dy *= -1;
-      }
-
-      // Check paddle collisions
-      // Paddle A: x <= 20; Paddle B: x >= 904
-      if (ball.x <= 20 && ball.y >= paddleARef.current && ball.y <= paddleARef.current + 100) {
-        ball.dx *= -1;
-      } else if (ball.x >= 904 && ball.y >= paddleBRef.current && ball.y <= paddleBRef.current + 100) {
-        ball.dx *= -1;
-      }
-
-      // Check for goals
-      let newScore = { ...scoreRef.current };
-      if (ball.x < 0) {
-        newScore.b += 1;
-        resetBall();
-      } else if (ball.x > 924) {
-        newScore.a += 1;
-        resetBall();
-      }
-
-      // Check for game over
-      let newGameOver = false;
-      if (newScore.a >= MAX_SCORE || newScore.b >= MAX_SCORE) {
-        newGameOver = true;
-      }
-
-      // Update React states once per frame
-      setPaddleAPosition(paddleARef.current);
-      setPaddleBPosition(paddleBRef.current);
-      setBallPosition({ x: ballRef.current.x, y: ballRef.current.y });
-      setScore(newScore);
-      if (newGameOver && !gameOverRef.current) {
-        setGameOver(true);
-      }
-    }, 20);
-
-    return () => {
-      clearInterval(interval);
+  const resetGame = (): GameState => {
+    return {
+      paddles: { a: 250, b: 250 },
+      ball: { x: 500, y: 300, dx: 1, dy: 1 },
+      score: { a: 0, b: 0 },
+      paddleDirections: { a: 0, b: 0 },
+      gameStarted: false,
     };
-  }, [gamePaused]);
+  };
 
-  // Handle keydown/keyup for paddle directions
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (gameOverRef.current) return;
-      if (event.key === 'w') {
-        paddleDirections.current.a = -1;
-      } else if (event.key === 's') {
-        paddleDirections.current.a = 1;
-      } else if (event.key === 'ArrowUp') {
-        paddleDirections.current.b = -1;
-      } else if (event.key === 'ArrowDown') {
-        paddleDirections.current.b = 1;
-      }
-    };
+  const updateGameState = (st: GameState): GameState => {
+    if (!st.gameStarted) return st;
+    let { paddles, ball, score, paddleDirections } = JSON.parse(JSON.stringify(st));
 
-    const handleKeyUp = (event: KeyboardEvent) => {
-      if (event.key === 'w' || event.key === 's') {
-        paddleDirections.current.a = 0;
-      } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-        paddleDirections.current.b = 0;
-      }
-    };
+    // Move paddles
+    paddles.a += paddleDirections.a * PADDLE_SPEED;
+    paddles.b += paddleDirections.b * PADDLE_SPEED;
+    paddles.a = Math.max(0, Math.min(500, paddles.a));
+    paddles.b = Math.max(0, Math.min(500, paddles.b));
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    // Move ball
+    ball.x += ball.dx * 5;
+    ball.y += ball.dy * 5;
 
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
+    // Bounce ball off top/bottom
+    if (ball.y <= 0 || ball.y >= CANVAS_HEIGHT - BALL_SIZE) {
+      ball.dy *= -1;
+    }
+
+    // Paddle collision
+    if (ball.x <= 10 && ball.y >= paddles.a && ball.y <= paddles.a + PADDLE_HEIGHT) {
+      ball.dx *= -1.05;
+      ball.dy *= 1.05;
+    } else if (ball.x >= CANVAS_WIDTH - 10 && ball.y >= paddles.b && ball.y <= paddles.b + PADDLE_HEIGHT) {
+      ball.dx *= -1.05;
+      ball.dy *= 1.05;
+    }
+
+    // Scoring
+    if (ball.x < 0) {
+      score.b += 1;
+      ({ ball } = resetBall({ ...st, ball, score, paddles, paddleDirections }));
+    } else if (ball.x > CANVAS_WIDTH) {
+      score.a += 1;
+      ({ ball } = resetBall({ ...st, ball, score, paddles, paddleDirections }));
+    }
+
+    // Check game over
+    if (score.a >= MAX_SCORE || score.b >= MAX_SCORE) {
+      return resetGame();
+    }
+
+    return { ...st, paddles, ball, score };
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!game.gameStarted) return;
+    setGame((prev) => {
+      const pd = { ...prev.paddleDirections };
+      if (e.key === 'w') pd.a = -1;
+      if (e.key === 's') pd.a = 1;
+      if (e.key === 'ArrowUp') pd.b = -1;
+      if (e.key === 'ArrowDown') pd.b = 1;
+      return { ...prev, paddleDirections: pd };
+    });
+  };
+
+  const handleKeyUp = (e: React.KeyboardEvent) => {
+    setGame((prev) => {
+      const pd = { ...prev.paddleDirections };
+      if (e.key === 'w' || e.key === 's') pd.a = 0;
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') pd.b = 0;
+      return { ...prev, paddleDirections: pd };
+    });
+  };
 
   return (
-    <div className="pong d-flex align-items-center justify-content-center vh-100">
-      <div className="overlap-group-wrapper">
-        <div className="overlap-group">
-          <div className="paddle-a" style={{ top: `${paddleAPosition}px` }} />
-          <div className="paddle-b" style={{ top: `${paddleBPosition}px` }} />
-          <div className="ball" style={{ left: `${ballPosition.x}px`, top: `${ballPosition.y}px` }} />
-          <div className="overlap">
-            <div className="scoreboard" />
-            <div className="score">{score.a} - {score.b}</div>
-          </div>
-        </div>
-        {gamePaused && (
-          <div className="game-paused">
-            <h2>Game Paused</h2>
-          </div>
-        )}
-        {gameOver && (
-          <div className="game-over">
-            <h2>{score.a > score.b ? 'Player A wins!' : 'Player B wins!'}</h2>
-          </div>
-        )}
-        <div className="player-info">
-          <h3>Local Mode: Player A (W/S), Player B (↑/↓)</h3>
-        </div>
-      </div>
+    <div tabIndex={0} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} style={{ outline: 'none' }}>
+      <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} style={{ background: 'black' }} />
+      {!game.gameStarted && <button onClick={startGame}>Start Game</button>}
     </div>
   );
 };
