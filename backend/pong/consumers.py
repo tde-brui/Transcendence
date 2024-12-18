@@ -283,7 +283,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                     }
                 }
             )
-            await sleep(0.02)
+            await sleep(1/60)
 
     async def game_over(self, event):
         await self.send(text_data=json.dumps({"type": "gameOver", "winner": event['winner']}))
