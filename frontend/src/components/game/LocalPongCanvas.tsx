@@ -26,6 +26,9 @@ const LocalPongCanvas: React.FC = () => {
     gameStarted: false,
   });
 
+
+  const gameOver = game.score.a >= MAX_SCORE || game.score.b >= MAX_SCORE;
+
   useEffect(() => {
     const ctx = canvasRef.current?.getContext('2d');
     let animationFrameId: number;
@@ -107,7 +110,7 @@ const LocalPongCanvas: React.FC = () => {
     ball.y += ball.dy * 5;
 
     // Bounce ball off top/bottom
-    if (ball.y <= 0 || ball.y >= CANVAS_HEIGHT - BALL_SIZE) {
+    if (ball.y <= 0 || ball.y >= CANVAS_HEIGHT - BALL_SIZE - 20) {
       ball.dy *= -1;
     }
 
@@ -115,7 +118,7 @@ const LocalPongCanvas: React.FC = () => {
     if (ball.x <= 10 && ball.y >= paddles.a && ball.y <= paddles.a + PADDLE_HEIGHT) {
       ball.dx *= -1.05;
       ball.dy *= 1.05;
-    } else if (ball.x >= CANVAS_WIDTH - 10 && ball.y >= paddles.b && ball.y <= paddles.b + PADDLE_HEIGHT) {
+    } else if (ball.x >= CANVAS_WIDTH - 40 && ball.y >= paddles.b && ball.y <= paddles.b + PADDLE_HEIGHT) {
       ball.dx *= -1.05;
       ball.dy *= 1.05;
     }
@@ -158,10 +161,32 @@ const LocalPongCanvas: React.FC = () => {
     });
   };
 
+
   return (
-    <div tabIndex={0} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} style={{ outline: 'none' }}>
-      <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} style={{ background: 'black' }} />
-      {!game.gameStarted && <button onClick={startGame}>Start Game</button>}
+    <div className="pong d-flex flex-column align-items-center justify-content-center vh-100" 
+         tabIndex={0} 
+         onKeyDown={handleKeyDown} 
+         onKeyUp={handleKeyUp} 
+         style={{ outline: 'none' }}>
+      <div className="overlap-group-wrapper">
+        <div className="overlap-group">
+          <div className="paddle-a" style={{ top: `${game.paddles.a}px` }} />
+          <div className="paddle-b" style={{ top: `${game.paddles.b}px` }} />
+          <div className="ball" style={{ left: `${game.ball.x}px`, top: `${game.ball.y}px` }} />
+          <div className="overlap"><div className="score">{game.score.a} - {game.score.b}</div></div>
+        </div>
+      </div>
+      {gameOver && (
+        <div className="game-over">
+          <h2>Game Over</h2>
+        </div>
+      )}
+      {!game.gameStarted && !gameOver && (
+        <div className="game-paused">
+          <h2>Press "Start Game" to begin</h2>
+          <button className="glass-button" onClick={startGame}>Start Game</button>
+        </div>
+      )}
     </div>
   );
 };
