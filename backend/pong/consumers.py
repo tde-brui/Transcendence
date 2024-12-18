@@ -38,8 +38,8 @@ class GameManager:
 class Game:
     def __init__(self, game_id):
         self.game_id = game_id
-        self.paddles = {"a": 240, "b": 240}
-        self.ball = {"x": 462, "y": 278, "dx": 1, "dy": 1}
+        self.paddles = {"a": 250, "b": 250}
+        self.ball = {"x": 500, "y": 300, "dx": 1, "dy": 1}
         self.score = {"a": 0, "b": 0}
         self.MAX_SCORE = 3
         self.players = {}  # Map from paddle ('a','b') -> browser_key
@@ -245,7 +245,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
         paddle_speed = 5
         min_paddle_pos = 0
-        max_paddle_pos = 456  # 556 field height - 100 paddle height
+        max_paddle_pos = 500  # 600 height - 100 paddle height
 
         while game.game_started:
             ball = game.ball
@@ -267,11 +267,14 @@ class PongConsumer(AsyncWebsocketConsumer):
             if ball["y"] <= 0 or ball["y"] >= 556:
                 ball["dy"] *= -1
 
-            # Collisions with paddles
-            if ball["x"] <= 20 and paddles["a"] <= ball["y"] <= paddles["a"] + 100:
+            # Left paddle collision (paddle at x=0 to x=10)
+            if ball["x"] <= 10 and paddles["a"] <= ball["y"] <= paddles["a"] + 100:
                 ball["dx"] *= -1
-            elif ball["x"] >= 904 and paddles["b"] <= ball["y"] <= paddles["b"] + 100:
+            
+            # Right paddle collision (paddle at x=990 to x=1000)
+            if ball["x"] >= 970 and paddles["b"] <= ball["y"] <= paddles["b"] + 100:
                 ball["dx"] *= -1
+
 
             # Check for goals
             if ball["x"] < 0:
@@ -290,7 +293,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                     }
                 )
                 game.reset_ball()
-            elif ball["x"] > 924:
+            elif ball["x"] > 1000:
                 score["a"] += 1
                 print(f"Player A scored! Score: {score['a']} - {score['b']}")
                 await self.channel_layer.group_send(

@@ -67,16 +67,15 @@
 	z-index: 10;
   }
   
-  /* Wrapper for the Game Field */
-  .overlap-group-wrapper {
+.overlap-group-wrapper {
 	position: relative;
-	width: 924px;
-	height: 556px;
+	width: 1000px;
+	height: 600px;
 	border: 5px solid white;
 	background-color: black;
-	margin: 0 auto; /* Center the game field horizontally */
-  }
-  
+	margin: 0 auto;
+}
+
   /* Game Field Container */
   .overlap-group {
 	position: relative;

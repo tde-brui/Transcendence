@@ -6,9 +6,9 @@ const WS_URL = 'ws://localhost:8000/ws/pong/';
 
 export const RemotePongCanvas: React.FC = () => {
   // Game state variables
-  const [paddleAPosition, setPaddleAPosition] = useState<number>(240);
-  const [paddleBPosition, setPaddleBPosition] = useState<number>(240);
-  const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({ x: 462, y: 278 });
+  const [paddleAPosition, setPaddleAPosition] = useState<number>(250);
+  const [paddleBPosition, setPaddleBPosition] = useState<number>(250);
+  const [ballPosition, setBallPosition] = useState<{ x: number; y: number }>({ x: 500, y: 300 });
   const [score, setScore] = useState<{ a: number; b: number }>({ a: 0, b: 0 });
   const [gamePaused, setGamePaused] = useState<boolean>(true);
   const [gameOver, setGameOver] = useState<boolean>(false);
