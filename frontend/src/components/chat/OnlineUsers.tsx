@@ -50,6 +50,7 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
     return blockedUsers.includes(user);
   };
   
+  const navigate = useNavigate();
   return (
     <div>
       {users.map((user) => (
@@ -78,7 +79,7 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
               </button>
               <button
                 className="btn btn-primary"
-                onClick={() => viewProfile(user)}
+                onClick={() => navigate(`/users/${user}`)}
               >
                 Profile
               </button>
