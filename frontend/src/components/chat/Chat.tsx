@@ -95,20 +95,19 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
           setBlockedUsers(data.blocked_users);
         }
         break;
-      case "chat_history":
-        if (data.messages) {
-          setMessages(
-            data.messages
-              .map((msg) => ({
+        case "chat_history":
+          if (data.messages) {
+            // Reset all messages regardless of filtering
+            setMessages(
+              data.messages.map((msg) => ({
                 id: uuidv4(),
                 sender: msg.sender,
                 message: msg.text,
                 isAnnouncement: msg.is_announcement,
               }))
-              .reverse()
-          );
-        }
-        break;
+            );
+          }
+          break;               
       case 'chat':
         if (data.sender && data.message && !blockedUsers.includes(data.sender)) {
           addMessage({ sender: data.sender, message: data.message, isAnnouncement: false });
@@ -187,15 +186,19 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   const blockUser = (action: "block" | "unblock", user: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ command: action, target_user: user }));
+  
       if (action === "block") {
         setBlockedUsers((prev) => [...prev, user]);
       } else {
         setBlockedUsers((prev) => prev.filter((blockedUser) => blockedUser !== user));
+  
+        // Fetch complete chat history after unblocking
+        ws.current.send(JSON.stringify({ command: "fetch_chat_history", include_blocked: true }));
       }
     } else {
       addNotification("WebSocket is not connected.");
     }
-  };   
+  };  
 
   const sendCommand = (command: string, target_user: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
@@ -275,7 +278,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
           </div>
           <div className="card main-chat-card">
             <div className="main-chat-messages">
-              <MessageList messages={messages} currentUser={username} />
+            <MessageList messages={messages} currentUser={username} blockedUsers={blockedUsers} />
             </div>
             <div className="main-chat-input">
               <MessageInput sendMessage={sendMessage} />

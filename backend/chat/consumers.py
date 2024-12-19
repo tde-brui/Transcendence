@@ -30,8 +30,16 @@ def is_user_blocked(blocker, blocked_user):
     return blocker.is_blocked(blocked_user)
 
 @database_sync_to_async
-def get_last_messages(limit=50):
-    messages = Message.objects.order_by('-timestamp')[:limit]
+def get_last_messages(user, limit=50, include_blocked=False):
+    if include_blocked:
+        # Fetch all messages without excluding blocked users
+        messages = Message.objects.order_by('-timestamp')[:limit]
+    else:
+        # Exclude messages from blocked users
+        blocked_users = user.blocked_users.all()
+        messages = Message.objects.exclude(sender__in=blocked_users).order_by('-timestamp')[:limit]
+
+    # Reverse the messages to have the most recent ones at the bottom
     return [
         {
             "sender": msg.sender.username,
@@ -39,60 +47,44 @@ def get_last_messages(limit=50):
             "is_announcement": msg.is_announcement,
             "timestamp": msg.timestamp.isoformat(),
         }
-        for msg in messages
+        for msg in reversed(messages)
     ]
+
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         query_string = self.scope['query_string'].decode('utf-8')
         params = dict(param.split('=') for param in query_string.split('&') if '=' in param)
         self.username = params.get('username')
 
-        print(f"User attempting to connect: {self.username}")
-
         if not self.username:
             await self.close()
-            print("Connection rejected: No username provided.")
             return
 
         try:
             self.user = await get_user(self.username)
         except PongUser.DoesNotExist:
             await self.close()
-            print(f"Connection rejected: User '{self.username}' does not exist.")
             return
 
         if self.username in online_users:
             await self.close()
-            print(f"Connection rejected: Duplicate username '{self.username}'.")
             return
 
-        # Accept the WebSocket connection before sending any data
         await self.accept()
 
-        # Add the user to the online users list
         online_users[self.username] = self.channel_name
-        print(f"User connected: {self.username}, Online users: {list(online_users.keys())}")
 
-        # Fetch the last 50 messages and send them after accepting the connection
-        last_messages = await get_last_messages()
+        last_messages = await get_last_messages(self.user)
         await self.send(text_data=json.dumps({
             "type": "chat_history",
             "messages": last_messages,
         }))
 
-        # Notify about the updated online users
-        await self.channel_layer.group_add(
-            "global",
-            self.channel_name
-        )
-
-        await self.channel_layer.group_send(
-            "global",
-            {
-                "type": "update_online_users",
-                "users": list(online_users.keys()),
-            }
-        )
+        await self.channel_layer.group_add("global", self.channel_name)
+        await self.channel_layer.group_send("global", {
+            "type": "update_online_users",
+            "users": list(online_users.keys()),
+        })
 
     async def disconnect(self, close_code):
         if self.username in online_users:
@@ -132,18 +124,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         "message": f"User '{target_username}' does not exist."
                     }))
             elif command == "unblock" and target_username:
-                try:
-                    target_user = await get_user(target_username)
-                    await unblock_user(self.user, target_user)
-                    await self.send(text_data=json.dumps({
-                        "type": "unblock_success",
-                        "message": f"You have unblocked '{target_username}'."
-                    }))
-                except PongUser.DoesNotExist:
-                    await self.send(text_data=json.dumps({
-                        "type": "error",
-                        "message": f"User '{target_username}' does not exist."
-                    }))
+                target_username = data.get("target_user")
+                if target_username:
+                    try:
+                        target_user = await get_user(target_username)
+                        await unblock_user(self.user, target_user)
+                        await self.send(text_data=json.dumps({
+                            "type": "unblock_success",
+                            "message": f"You have unblocked '{target_username}'."
+                        }))
+                        # Fetch full chat history to include unblocked user's messages
+                        last_messages = await get_last_messages(self.user, include_blocked=True)
+                        await self.send(text_data=json.dumps({
+                            "type": "chat_history",
+                            "messages": last_messages,
+                        }))
+                    except PongUser.DoesNotExist:
+                        await self.send(text_data=json.dumps({
+                            "type": "error",
+                            "message": f"User '{target_username}' does not exist."
+                        }))
+
         elif "recipient" in data:
             recipient_username = data["recipient"]
             message = data["message"]

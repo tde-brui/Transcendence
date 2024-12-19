@@ -12,9 +12,10 @@ interface Message {
 interface MessageListProps {
   messages: Message[];
   currentUser: string;
+  blockedUsers: string[];
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages, currentUser }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, currentUser, blockedUsers }) => {
   const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
@@ -27,12 +28,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUser }) => {
     scrollToBottom();
   }, [messages]);
 
-  const blockedUsers: string[] = []; // Define blockedUsers as an empty array or fetch from a source
-
+  // Filter out messages from blocked users dynamically
   const filteredMessages = messages.filter(
-    (msg) => !blockedUsers.includes(msg.sender.replace('DM from ', '').replace('DM to ', ''))
+    (msg) => !blockedUsers.includes(msg.sender)
   );
-  
+
   return (
     <div className="list-container">
       {filteredMessages.map((msg) => {
@@ -41,7 +41,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUser }) => {
         if (msg.isAnnouncement) bubbleClass = 'message-announcement';
         if (msg.isDM && isOwn) bubbleClass = 'message-dm-own';
         if (msg.isDM && !isOwn) bubbleClass = 'message-dm-other';
-  
+
         return (
           <div key={msg.id} className="message-item-container">
             <div className={`message-bubble ${bubbleClass}`}>{msg.message}</div>
@@ -51,7 +51,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUser }) => {
       })}
       <div ref={endOfMessagesRef} />
     </div>
-  );  
+  );
 };
 
 export default MessageList;
