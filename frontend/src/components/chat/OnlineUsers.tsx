@@ -44,13 +44,12 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
   blockUser,
   inviteToGame,
   viewProfile,
-  blockedUsers, // Destructure blockedUsers prop
+  blockedUsers,
 }) => {
-  const isBlocked = (user: string) => {
-    return blockedUsers.includes(user);
-  };
-  
   const navigate = useNavigate();
+
+  const isBlocked = (user: string) => blockedUsers.includes(user);
+
   return (
     <div>
       {users.map((user) => (
@@ -113,5 +112,6 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
     </div>
   );
 };
+
 
 export default OnlineUsers;

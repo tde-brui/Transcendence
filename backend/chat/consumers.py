@@ -282,9 +282,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def update_online_users(self, event):
-        print(f"Updating online users: {event['users']}")
+        users = event["users"]
+        blocked_users = [user.username for user in await database_sync_to_async(list)(self.user.blocked_users.all())]
+
+        print(f"Updating online users: {users}")
 
         await self.send(text_data=json.dumps({
             "type": "update_users",
-            "users": event["users"],
+            "users": users,
+            "blocked_users": blocked_users,
         }))

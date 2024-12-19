@@ -75,6 +75,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   }, []);
 
   interface IncomingData {
+    blocked_users: any;
     type: string;
     sender?: string;
     message?: string;
@@ -89,6 +90,9 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
       case "update_users":
         if (data.users) {
           setOnlineUsers(data.users);
+        }
+        if (data.blocked_users) {
+          setBlockedUsers(data.blocked_users);
         }
         break;
       case "chat_history":
@@ -148,7 +152,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
       default:
         console.log('Unknown message type:', data.type);
     }
-  };
+  };  
 
   const addMessage = (msg: Omit<Message, 'id'>) => {
     setMessages((prev) => [...prev, { id: uuidv4(), ...msg }]);
