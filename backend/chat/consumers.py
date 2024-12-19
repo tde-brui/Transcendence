@@ -4,6 +4,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .models import Message
 from users.models import PongUser
+from django.db.models import Q
 
 online_users = {}  # {username: channel_name}
 
@@ -29,21 +30,30 @@ def unblock_user(blocker, blocked_user):
 def is_user_blocked(blocker, blocked_user):
     return blocker.is_blocked(blocked_user)
 
+from django.db.models import Q
+
 @database_sync_to_async
 def get_last_messages(user, limit=50, include_blocked=False):
     if include_blocked:
-        # Fetch all messages without excluding blocked users
-        messages = Message.objects.order_by('-timestamp')[:limit]
+        # Fetch all messages (public and DMs) involving the user
+        messages = Message.objects.filter(
+            Q(recipient=None) | Q(recipient=user) | Q(sender=user)
+        ).order_by('-timestamp')[:limit]
     else:
         # Exclude messages from blocked users
         blocked_users = user.blocked_users.all()
-        messages = Message.objects.exclude(sender__in=blocked_users).order_by('-timestamp')[:limit]
+        messages = Message.objects.filter(
+            (Q(recipient=None) | Q(recipient=user) | Q(sender=user)) &
+            ~Q(sender__in=blocked_users)
+        ).order_by('-timestamp')[:limit]
 
-    # Reverse the messages to have the most recent ones at the bottom
+    # Reverse messages to have the most recent at the bottom
     return [
         {
             "sender": msg.sender.username,
+            "recipient": msg.recipient.username if msg.recipient else None,
             "text": msg.text,
+            "is_dm": bool(msg.recipient),
             "is_announcement": msg.is_announcement,
             "timestamp": msg.timestamp.isoformat(),
         }
@@ -145,7 +155,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             "message": f"User '{target_username}' does not exist."
                         }))
 
-        elif "recipient" in data:
+        if "recipient" in data:  # Check if it's a DM
             recipient_username = data["recipient"]
             message = data["message"]
 
@@ -170,27 +180,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }))
                 return
 
-            recipient_channel = online_users.get(recipient_username)
-            if recipient_channel:
-                await create_message(sender=self.user, recipient=recipient_user, text=message, is_announcement=False)
+            # Save the message in the database
+            await create_message(sender=self.user, recipient=recipient_user, text=message, is_announcement=False)
 
+            # Send the message to the recipient's channel
+            if recipient_username in online_users:
+                recipient_channel = online_users[recipient_username]
                 await self.channel_layer.send(
                     recipient_channel,
                     {
                         "type": "direct_message",
                         "sender": self.username,
+                        "recipient": recipient_username,
                         "message": message,
                     }
                 )
-                await self.send(text_data=json.dumps({
-                    "type": "dm_sent",
-                    "message": f"Direct message sent to '{recipient_username}'."
-                }))
-            else:
-                await self.send(text_data=json.dumps({
-                    "type": "error",
-                    "message": f"User '{recipient_username}' is not online."
-                }))
+
+            # Send the message back to the sender
+            await self.send(text_data=json.dumps({
+                "type": "direct_message",
+                "sender": self.username,
+                "recipient": recipient_username,
+                "message": message,
+            }))
+
         elif "message" in data:
             message = data["message"]
 
@@ -234,27 +247,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "type": "error",
                     "message": "Missing target_user for profile viewing."
                 }))
-        else:
-            print("Received unknown message format.")
-            await self.send(text_data=json.dumps({
-                "type": "error",
-                "message": "Invalid message format."
-            }))
+        # else:
+        #     print("Received unknown message format.")
+        #     await self.send(text_data=json.dumps({
+        #         "type": "error",
+        #         "message": "Invalid message format."
+        #     }))
 
     async def direct_message(self, event):
         sender = event["sender"]
+        recipient = event["recipient"]
         message = event["message"]
 
-        # Check if the sender is blocked by the current user
-        sender_user = await get_user(sender)
-        if await is_user_blocked(self.user, sender_user):
-            print(f"DM from blocked user '{sender}' ignored.")
-            return
-
-        # Send the DM if not blocked
+        # Send the DM to the client
         await self.send(text_data=json.dumps({
             "type": "direct",
             "sender": sender,
+            "recipient": recipient,
             "message": message,
         }))
 

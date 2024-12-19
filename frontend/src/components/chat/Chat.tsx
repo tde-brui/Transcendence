@@ -12,9 +12,9 @@ interface Message {
   id: string;
   sender: string;
   message: string;
-  isAnnouncement?: boolean;
   isDM?: boolean;
-  messages?: { sender: string; text: string; is_announcement?: boolean }[];
+  isAnnouncement?: boolean;
+  recipient: string; // Ensure recipient is always defined
 }
 
 interface NotificationItem {
@@ -75,11 +75,15 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   }, []);
 
   interface IncomingData {
+    recipient: string | undefined;
     blocked_users: any;
     type: string;
     sender?: string;
     message?: string;
-    messages?: { sender: string; text: string; is_announcement?: boolean }[]; // Add messages here
+    messages?: {
+      recipient: any;
+      is_dm: any; sender: string; text: string; is_announcement?: boolean 
+}[]; // Add messages here
     users?: string[];
     target_user?: string;
     url?: string;
@@ -97,25 +101,36 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
         break;
         case "chat_history":
           if (data.messages) {
-            // Reset all messages regardless of filtering
             setMessages(
               data.messages.map((msg) => ({
                 id: uuidv4(),
                 sender: msg.sender,
+                recipient: msg.recipient || '', // Ensure recipient is included
                 message: msg.text,
+                isDM: msg.is_dm,
                 isAnnouncement: msg.is_announcement,
               }))
             );
           }
           break;               
-      case 'chat':
-        if (data.sender && data.message && !blockedUsers.includes(data.sender)) {
-          addMessage({ sender: data.sender, message: data.message, isAnnouncement: false });
-        }
-        break;
+          case 'chat':
+            if (data.sender && data.message && !blockedUsers.includes(data.sender)) {
+              addMessage({
+                sender: data.sender, 
+                message: data.message, 
+                isAnnouncement: false,
+                recipient: ''
+              });
+            }
+            break;
       case 'direct':
-        if (data.sender && data.message && !blockedUsers.includes(data.sender)) {
-          addDMMessage(data.sender, data.message);
+        if (data.sender && data.message && data.recipient) {
+          addMessage({
+            sender: data.sender,
+            recipient: data.recipient,
+            message: data.message,
+            isDM: true,
+          });
         }
         break;
       case 'error':
@@ -140,7 +155,10 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
         break;
       case 'announcement':
         if (data.sender && data.message) {
-          addMessage({ sender: data.sender, message: data.message, isAnnouncement: true });
+          addMessage({
+            sender: data.sender, message: data.message, isAnnouncement: true,
+            recipient: ''
+          });
         }
         break;
       case 'view_profile':
@@ -158,7 +176,10 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   };
 
   const addDMMessage = (sender: string, message: string) => {
-    addMessage({ sender: `DM from ${sender}`, message, isDM: true });
+    addMessage({
+      sender: `DM from ${sender}`, message, isDM: true,
+      recipient: ''
+    });
     addNotification(`New DM from '${sender}'.`);
   };
 
@@ -210,8 +231,21 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
 
   const sendDirectMessage = (recipient: string, message: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ recipient, message }));
-      addMessage({ sender: `DM to ${recipient}`, message, isDM: true });
+      const newMessage = {
+        sender: username,
+        recipient: recipient,
+        message: message,
+        isDM: true,
+        isAnnouncement: false,
+      };
+  
+      ws.current.send(JSON.stringify(newMessage));
+  
+      // Add the DM instantly to the local state
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { ...newMessage, id: uuidv4() },
+      ]);
     } else {
       addNotification('WebSocket is not connected.');
     }

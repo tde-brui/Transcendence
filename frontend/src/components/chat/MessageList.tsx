@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import '../../css/chat/MessageList.css';
 
 interface Message {
+  recipient: string;
   id: string;
   sender: string;
   message: string;
@@ -28,24 +29,27 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUser, blocke
     scrollToBottom();
   }, [messages]);
 
-  // Filter out messages from blocked users dynamically
+  // Filter messages dynamically
   const filteredMessages = messages.filter(
-    (msg) => !blockedUsers.includes(msg.sender)
+    (msg) =>
+      (!blockedUsers.includes(msg.sender) &&
+      (!msg.isDM || msg.sender === currentUser || msg.recipient === currentUser))
   );
 
   return (
     <div className="list-container">
       {filteredMessages.map((msg) => {
-        let isOwn = msg.sender === currentUser || msg.sender.includes("DM to");
-        let bubbleClass = isOwn ? 'message-own' : 'message-other';
-        if (msg.isAnnouncement) bubbleClass = 'message-announcement';
-        if (msg.isDM && isOwn) bubbleClass = 'message-dm-own';
-        if (msg.isDM && !isOwn) bubbleClass = 'message-dm-other';
+        const isOwn = msg.sender === currentUser;
+        const bubbleClass = isOwn ? 'message-own' : 'message-other';
+
+        const senderText = msg.isDM
+          ? `DM ${isOwn ? "to" : "from"} ${isOwn ? msg.recipient : msg.sender}`
+          : msg.sender;
 
         return (
           <div key={msg.id} className="message-item-container">
             <div className={`message-bubble ${bubbleClass}`}>{msg.message}</div>
-            <div className={isOwn ? 'sender-own' : 'sender-other'}>{msg.sender}</div>
+            <div className={isOwn ? 'sender-own' : 'sender-other'}>{senderText}</div>
           </div>
         );
       })}
