@@ -16,17 +16,22 @@ interface MessageInputProps {
 
 const MessageInput: React.FC<MessageInputProps> = ({ sendMessage }) => {
   const [message, setMessage] = useState('');
+  const [charCount, setCharCount] = useState(0);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (message.trim() !== '') {
       sendMessage(message);
       setMessage('');
+      setCharCount(0);
     }
   };
+  
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setMessage(e.target.value);
+    const value = e.target.value;
+    setMessage(value);
+    setCharCount(value.length);
   };
 
   return (
@@ -36,8 +41,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ sendMessage }) => {
         placeholder="Type your message..."
         value={message}
         onChange={handleChange}
+        maxLength={200}
         required
       />
+      <small>{charCount}/200</small>
       <button className="btn btn-primary send-button" type="submit">Send</button>
     </InputContainer>
   );
