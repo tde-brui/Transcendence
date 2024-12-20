@@ -66,7 +66,7 @@ const RemoteLobbyList: React.FC = () => {
             <p>Players: {Object.values(lobby.players).length > 0 ? Object.values(lobby.players).join(', ') : 'No players yet'}</p>
             {!isFull ? (
               <Link to={`${lobby.game_id}?key=${encodeURIComponent(username)}`}>
-                <button className="reset-button" disabled={!username}>Join Lobby</button>
+                <button className="reset-button btn btn-success" disabled={!username}>Join Lobby</button>
               </Link>
             ) : (
               <button className="reset-button" disabled>Lobby is Full</button>
@@ -78,7 +78,7 @@ const RemoteLobbyList: React.FC = () => {
       <div className='mb-3'>
         <h3>Create or join a new lobby:</h3>
         <Link to={`game_${Math.floor(Math.random() * 1000)}?key=${encodeURIComponent(username)}`}>
-          <button className="reset-button" disabled={!username}>Create Random Lobby</button>
+          <button className="reset-button btn btn-primary" disabled={!username}>Create Random Lobby</button>
         </Link>
       </div>
 	  <div className='profile-footer'>
