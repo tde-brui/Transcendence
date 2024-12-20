@@ -123,8 +123,6 @@ const RemotePongCanvas: React.FC = () => {
     websocketRef.current.send(JSON.stringify({ type: 'playerReady' }));
   };
 
-  const bothPlayersReady = readyStates.a && readyStates.b;
-
   return (
     <div className="pong d-flex flex-column align-items-center justify-content-center vh-100" 
          tabIndex={0} 

@@ -195,7 +195,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             )
             await sleep(1)
 
-
     async def start_countdown_and_start_game(self):
         # Notify frontend that countdown is starting
         await self.channel_layer.group_send(

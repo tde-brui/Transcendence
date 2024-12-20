@@ -175,18 +175,23 @@ const LocalPongCanvas: React.FC = () => {
           <div className="ball" style={{ left: `${game.ball.x}px`, top: `${game.ball.y}px` }} />
           <div className="overlap"><div className="score">{game.score.a} - {game.score.b}</div></div>
         </div>
+
+
+        {<div className="player-name-a">{"Player A"}</div>}
+        {<div className="player-name-b">{"Player B"}</div>}
+        {gameOver && (
+          <div className="game-over">
+            <h2>Game Over</h2>
+          </div>
+        )}
+
+        {!game.gameStarted && !gameOver && (
+          <div className="game-paused">
+            <h2>Press "Start Game" to begin</h2>
+            <button className="glass-button" onClick={startGame}>Start Game</button>
+          </div>
+        )}
       </div>
-      {gameOver && (
-        <div className="game-over">
-          <h2>Game Over</h2>
-        </div>
-      )}
-      {!game.gameStarted && !gameOver && (
-        <div className="game-paused">
-          <h2>Press "Start Game" to begin</h2>
-          <button className="glass-button" onClick={startGame}>Start Game</button>
-        </div>
-      )}
     </div>
   );
 };
