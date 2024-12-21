@@ -18,15 +18,6 @@ const Username = styled.span<UsernameProps>`
   font-weight: ${({ isCurrent }) => (isCurrent ? "bold" : "normal")};
 `;
 
-const Actions = styled.div`
-  button {
-    margin-left: 5px;
-    padding: 5px;
-    font-size: 12px;
-    cursor: pointer;
-  }
-`;
-
 interface OnlineUsersProps {
   users: string[];
   currentUser: string;
@@ -59,9 +50,9 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
         >
           <Username isCurrent={user === currentUser}>{user}</Username>
           {user !== currentUser && (
-            <Actions className="d-flex mt-2 user-card-item">
+            <div className="d-flex mt-2 user-card-item">
               <button
-                className="btn btn-primary"
+                className="btn btn-primary actions-button"
                 disabled={isBlocked(user)} // Disable DM if the user is blocked
                 onClick={() => {
                   const message = prompt(`Send a DM to ${user}:`);
@@ -71,20 +62,20 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
                 DM
               </button>
               <button
-                className="btn btn-primary"
+                className="btn btn-primary actions-button"
                 onClick={() => inviteToGame(user)}
               >
                 Invite Pong
               </button>
               <button
-                className="btn btn-primary"
+                className="btn btn-primary actions-button"
                 onClick={() => navigate(`/users/${user}`)}
               >
                 Profile
               </button>
               {isBlocked(user) ? (
                 <button
-                  className="btn btn-warning"
+                  className="btn btn-warning actions-button"
                   onClick={() => {
                     if (window.confirm(`Unblock user '${user}'?`)) {
                       blockUser("unblock", user);
@@ -95,7 +86,7 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
                 </button>
               ) : (
                 <button
-                  className="btn btn-danger"
+                  className="btn btn-danger actions-button"
                   onClick={() => {
                     if (window.confirm(`Block user '${user}'?`)) {
                       blockUser("block", user);
@@ -105,7 +96,7 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
                   Block
                 </button>
               )}
-            </Actions>
+            </div>
           )}
         </UserItem>
       ))}
