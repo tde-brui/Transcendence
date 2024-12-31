@@ -249,6 +249,11 @@ class user_detail(APIView):
 			serializer.save()
 			return Response(serializer.data, status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	#temporary function, users can delete other users accounts
+	def delete(self, request, pk):
+		user = get_object_or_404(PongUser, pk=pk)
+		user.delete()
+		return Response("User account has been succesfully deleted", status.HTTP_204_NO_CONTENT)
 	
 class logout(APIView):
 	def delete(self, request):
