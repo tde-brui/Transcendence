@@ -30,6 +30,21 @@ class PongUser(AbstractUser):
 
     def __str__(self):
         return self.username
+    
+class MatchHistory(models.Model):
+
+    RESULT_CHOICES = [
+        ('win', 'Win'),
+        ('loss', 'Loss'),
+    ]
+
+    player = models.ForeignKey(PongUser, on_delete=models.CASCADE, related_name="match_history")
+    opponent = models.ForeignKey(PongUser, on_delete=models.CASCADE, related_name="opponent_history")
+    result = models.CharField(max_length=4, choices=RESULT_CHOICES)
+    date_played = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.player.username} vs {self.opponent.username} - {self.result}"
 
 class OTP(models.Model):
 

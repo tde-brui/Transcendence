@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import PongUser
+from .models import PongUser, MatchHistory
 import re
 
 class UserSerializer(serializers.ModelSerializer):
@@ -56,7 +56,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 		return value
 
-	
 	def create(self, validated_data):
 			# Create a new user with hashed password
 			user = PongUser.objects.create_user(
@@ -71,3 +70,10 @@ class UserSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
 	username = serializers.CharField()
 	password = serializers.CharField(write_only=True)
+
+class MatchHistorySerializer(serializers.ModelSerializer):
+    opponent_username = serializers.CharField(source='opponent.username', read_only=True)
+
+    class Meta:
+        model = MatchHistory
+        fields = ['id', 'opponent', 'opponent_username', 'result', 'date_played']
