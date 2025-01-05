@@ -31,11 +31,13 @@ class PongUser(AbstractUser):
     def __str__(self):
         return self.username
     
-class MatchHistory(models.Model):
+class MatchHistory(models.Model): 
+    WIN = 'win'
+    LOSS = 'loss'
 
     RESULT_CHOICES = [
-        ('win', 'Win'),
-        ('loss', 'Loss'),
+        (WIN, 'Win'),
+        (LOSS, 'Loss'),
     ]
 
     player = models.ForeignKey(PongUser, on_delete=models.CASCADE, related_name="match_history")
