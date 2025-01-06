@@ -19,6 +19,7 @@ import GameMainPage from "./pages/GameMainPage";
 import RemoteLobbyList from "./components/game/RemoteLobbyList";
 import RemotePongCanvas from "./components/game/RemotePongCanvas";
 import LocalPongCanvas from "./components/game/LocalPongCanvas";
+import TournamentPage from "./components/game/TournamentPage";
 import ChangeDetailsWrapper from "./components/users/ChangeDetailsWrapper";
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
 		  <Route path="/play/remote" element={<RemoteLobbyList />} />
 		  <Route path="/play/remote/:lobbyId" element={<RemotePongCanvas />} />
 		  <Route path="/play/local" element={<LocalPongCanvas />} />
+      <Route path="/play/tournaments" element={<TournamentPage />} />
           </Route>
         </Routes>
       </Router>

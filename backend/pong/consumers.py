@@ -2,6 +2,21 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asyncio import create_task, sleep
 from urllib.parse import parse_qs
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from .tournament_manager import TournamentManager
+
+class TournamentConsumer(AsyncJsonWebsocketConsumer):
+    async def connect(self):
+        await self.channel_layer.group_add("tournament_updates", self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard("tournament_updates", self.channel_name)
+
+    async def tournament_update(self, event):
+        await self.send_json(event["message"])
 
 class GameManager:
     instance = None
@@ -336,7 +351,26 @@ class PongConsumer(AsyncWebsocketConsumer):
             await sleep(1/60)
 
     async def game_over(self, event):
-        await self.send(text_data=json.dumps({"type": "gameOver", "winner": event['winner']}))
+        winner = event['winner']
+        score = self.game.score
+        match_id = self.game.game_id.split("_")[-1]  # Extract match ID
+
+        # Update match result in the tournament
+        manager = TournamentManager.get_instance()
+        manager.update_match_result(match_id, winner, [score["a"], score["b"]])
+
+        # Broadcast updated tournament state to all clients
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "tournament_updates",
+            {
+                "type": "tournament_update",
+                "message": manager.get_tournament()
+            },
+        )
+
+        # Notify players in the game
+        await self.send(text_data=json.dumps({"type": "gameOver", "winner": winner}))
 
     # Handlers for countdown messages
     async def countdown_start(self, event):
@@ -344,3 +378,11 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def countdown_end(self, event):
         await self.send(text_data=json.dumps({"type": "countdownEnd"}))
+
+    def broadcast_update(self):
+        """Broadcast tournament updates to all clients via WebSocket."""
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "tournament_updates",
+            {"type": "tournament_update", "message": self.tournament or {}},
+        )
