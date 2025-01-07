@@ -5,6 +5,9 @@ from urllib.parse import parse_qs
 from django.utils.timezone import now
 from asgiref.sync import sync_to_async
 from users.models import PongUser, MatchHistory
+from channels.db import database_sync_to_async
+from django.contrib.auth.models import AnonymousUser
+from rest_framework.authtoken.models import Token
 
 class GameManager:
     instance = None
@@ -307,24 +310,15 @@ class PongConsumer(AsyncWebsocketConsumer):
 
             await sleep(1/60) # 60fps
     
-    async def save_match_result(self, winner_username, loser_username):
+    async def save_match_result(self, player_username, opponent_username, result):
         """ Saves the match result in the database asynchronously """
-        winner = await sync_to_async(PongUser.objects.get)(username=winner_username)
-        loser = await sync_to_async(PongUser.objects.get)(username=loser_username)
-
-        print("goes in the save match result")
+        player = await sync_to_async(PongUser.objects.get)(username=player_username)
+        opponent = await sync_to_async(PongUser.objects.get)(username=opponent_username)
 
         await sync_to_async(MatchHistory.objects.create)(
-            player=winner,
-            opponent=loser,
-            result=MatchHistory.WIN,
-            date_played=now()
-        )
-
-        await sync_to_async(MatchHistory.objects.create)(
-            player=loser,
-            opponent=winner,
-            result=MatchHistory.LOSS,
+            player=player,
+            opponent=opponent,
+            result=result,
             date_played=now()
         )
 
@@ -370,12 +364,11 @@ class PongConsumer(AsyncWebsocketConsumer):
         winner_username = event.get('winner')
         loser_username = event.get('loser')
 
-        print("actually goes into the game_over function")
-        print("winner: " + winner_username)
-        print("loser: " + loser_username)
+        if winner_username == self.browser_key:
+            await self.save_match_result(winner_username, loser_username, MatchHistory.WIN)
         
-        if winner_username and loser_username:
-            await self.save_match_result(winner_username, loser_username)
+        elif loser_username == self.browser_key:
+            await self.save_match_result(loser_username, winner_username, MatchHistory.LOSS)
 
         await self.send(text_data=json.dumps({"type": "gameOver", "winner": event['winner']}))
 
