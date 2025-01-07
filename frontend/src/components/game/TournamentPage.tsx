@@ -28,8 +28,8 @@ const TournamentPage: React.FC = () => {
     const socket = new WebSocket("ws://localhost:8000/ws/tournament/");
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setTournament(data.timer !== undefined ? data : null); // Handle deleted tournaments
-    };
+      setTournament(data.timer !== undefined ? data : null); // If there's no timer, data = null
+    };    
 
     return () => {
       socket.close();
@@ -98,6 +98,7 @@ const TournamentPage: React.FC = () => {
   };  
 
   const isSignedIn = tournament && tournament.players.includes(username);
+  console.log("Tournament data after game:", tournament);
 
   return (
     <div className="container d-flex flex-column align-items-center justify-content-center">
@@ -137,26 +138,21 @@ const TournamentPage: React.FC = () => {
   <h3>Matches</h3>
   {tournament.matches.map((match) => (
     <div key={match.id} className="match-container">
-      <p>
-        {match.players[0]} vs {match.players[1]}
-      </p>
-      <p>Winner: {match.winner || "Undecided"}</p>
-      <p>
-        Score: {match.score[0]} - {match.score[1]}
-      </p>
-      {/* Allow both players to see the Play button */}
-      {match.winner === null && (
-        <button
-          className="play-button"
-          onClick={() => handlePlayMatch(match.id)}
-        >
-          Play
-        </button>
-      )}
-    </div>
+  <p>
+    {match.players[0]} vs {match.players[1]}
+  </p>
+  <p>Winner: {match.winner || "Undecided"}</p>
+  <p>
+    Score: {match.score[0]} - {match.score[1]}
+  </p>
+  {match.winner === null && (
+    <button className="play-button" onClick={() => handlePlayMatch(match.id)}>
+      Play
+    </button>
+  )}
+</div>
   ))}
 </div>
-
               )}
             </>
           )}
