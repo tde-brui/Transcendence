@@ -2,6 +2,12 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asyncio import create_task, sleep
 from urllib.parse import parse_qs
+from django.utils.timezone import now
+from asgiref.sync import sync_to_async
+from users.models import PongUser, MatchHistory
+from channels.db import database_sync_to_async
+from django.contrib.auth.models import AnonymousUser
+from rest_framework.authtoken.models import Token
 
 class GameManager:
     instance = None
@@ -286,17 +292,36 @@ class PongConsumer(AsyncWebsocketConsumer):
 
             if score["a"] >= game.MAX_SCORE or score["b"] >= game.MAX_SCORE:
                 winner_paddle = "a" if score["a"] >= game.MAX_SCORE else "b"
+                loser_paddle = "b" if winner_paddle == "a" else "b"
+
                 winner_username = game.players.get(winner_paddle, "Unknown")
+                loser_username = game.players.get(loser_paddle, "Unknown")
+                
                 await self.channel_layer.group_send(
                     self.game_group_name,
                     {
                         'type': 'game_over',
-                        'winner': winner_username
+                        'winner': winner_username,
+                        'loser': loser_username
                     }
                 )
+
                 game.reset_game()
 
             await sleep(1/60) # 60fps
+    
+    async def save_match_result(self, player_username, opponent_username, result):
+        """ Saves the match result in the database asynchronously """
+        player = await sync_to_async(PongUser.objects.get)(username=player_username)
+        opponent = await sync_to_async(PongUser.objects.get)(username=opponent_username)
+
+        await sync_to_async(MatchHistory.objects.create)(
+            game_id=self.game_id,
+            player=player,
+            opponent=opponent,
+            result=result,
+            date_played=now()
+        )
 
     async def start_countdown_after_score(self):
         # Notify frontend that countdown is starting
@@ -336,6 +361,16 @@ class PongConsumer(AsyncWebsocketConsumer):
             await sleep(1/60)
 
     async def game_over(self, event):
+        """Handles the game over event and saves match history."""
+        winner_username = event.get('winner')
+        loser_username = event.get('loser')
+
+        if winner_username == self.browser_key:
+            await self.save_match_result(winner_username, loser_username, MatchHistory.WIN)
+        
+        elif loser_username == self.browser_key:
+            await self.save_match_result(loser_username, winner_username, MatchHistory.LOSS)
+
         await self.send(text_data=json.dumps({"type": "gameOver", "winner": event['winner']}))
 
     # Handlers for countdown messages
