@@ -197,11 +197,11 @@ const FriendPage: React.FC = () => {
 				  </li>
 				))
 			  ) : (
-				<li className="text-center">No friends found</li>
+				<li className="text-center">You currently don't have any friends. Visit the users page to search for them!</li>
 			  )}
 			</ul>
 		  </div>
-		  <div className="card-body profile-body">
+		  <div className="card-footer profile-footer">
 			<h6>Incoming Requests</h6>
 			<ul className="d-flex flex-column align-items-center justify-content-center">
 			  {incomingRequests.length > 0 ? (
@@ -233,7 +233,7 @@ const FriendPage: React.FC = () => {
 				  );
 				})
 			  ) : (
-				<li className="text-center">No incoming friend requests found</li>
+				<li className="text-center">You have no incoming requests</li>
 			  )}
 			</ul>
   
@@ -262,12 +262,9 @@ const FriendPage: React.FC = () => {
 				  );
 				})
 			  ) : (
-				<li className="text-center">No sent friend requests found</li>
+				<li className="text-center">You have no sent requests</li>
 			  )}
 			</ul>
-		  </div>
-		  <div className="card-footer profile-footer d-flex">
-			Total requests: {friendRequests.length}
 		  </div>
 		</div>
 	  </div>

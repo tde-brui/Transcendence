@@ -224,7 +224,7 @@ ul {
 }
 
 .userpage{
-  height: 600px;
+  height: 40vh;
   overflow-y: auto;
   scroll-behavior: smooth;
 }
