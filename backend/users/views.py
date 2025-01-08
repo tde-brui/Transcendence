@@ -11,14 +11,13 @@ from django.db import transaction
 from rest_framework.views import APIView
 from django.core.mail import send_mail
 from django.conf import settings
-from rest_framework import status, viewsets, generics
+from rest_framework import status, viewsets
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 from rest_framework.renderers import JSONRenderer
 from django.db import IntegrityError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 import requests
-from rest_framework import generics
 
 class get_users(APIView):
 	permission_classes = [AllowAny]
@@ -256,11 +255,12 @@ class user_detail(APIView):
 		user.delete()
 		return Response("User account has been succesfully deleted", status.HTTP_204_NO_CONTENT)
 	
-class get_match_history(generics.ListAPIView):
-	serializer_class = MatchHistorySerializer
-
-	def get_queryset(self):
-		return MatchHistory.objects.filter(player=self.request.user).order_by('-date_played')
+class get_match_history(APIView):
+	def get(self, request, pk):
+		player = get_object_or_404(PongUser, pk=pk);
+		matchhistory_models = MatchHistory.objects.filter(player=player).order_by('-date_played')
+		matchhistory = MatchHistorySerializer(matchhistory_models, many=True)
+		return Response(matchhistory.data, status.HTTP_200_OK)
 	
 class logout(APIView):
 	def delete(self, request):
