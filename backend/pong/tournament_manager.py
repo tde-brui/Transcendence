@@ -32,11 +32,11 @@ class TournamentManager:
             self.tournament = {
                 "organizer": organizer,
                 "players": [],
-                "timer": 30,  # 30 seconds countdown
+                "timer": 30,
                 "is_started": False,
-                "matches": [],  # Store match data here
+                "matches": [],
             }
-            self.broadcast_update()  # Notify clients immediately
+            self.broadcast_update()
             self.start_timer()
         return self.tournament
 
@@ -81,7 +81,6 @@ class TournamentManager:
         self.timer_thread.start()
 
     def start_tournament(self):
-        """Start the tournament by creating matches."""
         self.tournament["is_started"] = True
         players = self.tournament["players"]
         matches = []
@@ -91,7 +90,6 @@ class TournamentManager:
         self.broadcast_update()
 
     def broadcast_update(self):
-        """Broadcast tournament updates to all clients via WebSocket."""
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             "tournament_updates",
@@ -103,7 +101,6 @@ class TournamentManager:
             return self.tournament
 
     def assign_game_to_match(self, match_id):
-        """Assign a unique game ID to a match."""
         with self.lock:
             if not self.tournament:
                 return {"error": "No active tournament"}
@@ -112,12 +109,11 @@ class TournamentManager:
                 return {"error": "Match not found"}
             if "game_id" in match:
                 return {"error": "Match already has an assigned game"}
-            match["game_id"] = f"game_{match_id}"  # Generate a unique game ID
+            match["game_id"] = f"game_{match_id}"
             self.broadcast_update()
         return match
 
     def update_match_result(self, match_id, winner, score):
-        """Update the result of a match."""
         with self.lock:
             if not self.tournament:
                 return {"error": "No active tournament"}

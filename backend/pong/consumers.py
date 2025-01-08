@@ -361,8 +361,6 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def broadcast_game_state(self):
         game = self.game
         while game.game_started:
-            # (Optional) Debug print
-            # print(f"[broadcast_game_state] Broadcasting game state. Score: A={game.score['a']} B={game.score['b']}")
             await self.channel_layer.group_send(
                 self.game_group_name,
                 {
@@ -379,19 +377,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def game_over(self, event):
         winner = event['winner']
-        score = self.game.score  # This is already reset if we called reset_game() above.
+        score = self.game.score
         match_id = self.game.game_id.split("_")[-1]
         print(f"[game_over] match_id={match_id}, winner={winner}, final scoreboard (post-reset) A={score['a']}, B={score['b']}")
 
-        # Update match result in the tournament
         manager = TournamentManager.get_instance()
-
-        # If you want the final scoreboard from BEFORE reset, you must pass it from update_ball:
-        # For example, pass 'final_score' as an event param. 
-        # For now, let's just pass [score["a"], score["b"]] (which might be 0,0 if reset happened)
         manager.update_match_result(match_id, winner, [score["a"], score["b"]])
 
-        # Broadcast updated tournament state to all clients
         await self.channel_layer.group_send(
             "tournament_updates",
             {
@@ -400,7 +392,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             },
         )
 
-        # Notify players in the game
         await self.send(text_data=json.dumps({"type": "gameOver", "winner": winner}))
 
     async def countdown_start(self, event):

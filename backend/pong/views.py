@@ -70,20 +70,17 @@ def play_match(request):
     if not tournament or not tournament.get("is_started"):
         return Response({"error": "Tournament not started"}, status=400)
 
-    # Find the match
     match = next((m for m in tournament["matches"] if m["id"] == match_id), None)
     if not match:
         return Response({"error": "Match not found"}, status=404)
 
-    # Allow both players to click play during the match
     if username not in match["players"]:
         return Response({"error": "User not authorized to play this match"}, status=403)
 
-    # Ensure a game ID is assigned to the match
     if "game_id" not in match:
         match["game_id"] = f"game_{match_id}"
 
-    manager.broadcast_update()  # Notify all clients of updated match state
+    manager.broadcast_update()
 
     return Response({
         "message": "Match started",
@@ -103,21 +100,17 @@ def assign_game(request):
     match_id = request.data.get("match_id")
     manager = TournamentManager.get_instance()
 
-    # Validate tournament
     tournament = manager.get_tournament()
     if not tournament:
         return Response({"error": "No active tournament"}, status=400)
 
-    # Validate match
     match = next((m for m in tournament["matches"] if m["id"] == match_id), None)
     if not match:
         return Response({"error": "Match not found"}, status=400)
 
-    # Ensure game is assigned to match
     if "game_id" not in match:
-        match["game_id"] = f"game_{match_id}"  # Assign unique game ID
+        match["game_id"] = f"game_{match_id}"
 
-    # Broadcast updated match state to all clients
     manager.broadcast_update()
 
     return Response({"message": "Game assigned", "game_id": match["game_id"], "match_id": match_id})
