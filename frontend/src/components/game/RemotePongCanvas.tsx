@@ -71,6 +71,14 @@ const RemotePongCanvas: React.FC = () => {
             setGamePaused(true);
           }
 
+          if (data.type === "redirectToTournament") {
+            window.location.href = "/play/tournaments";
+          }
+
+          if (data.type === "redirectToPlay") {
+            window.location.href = "/play";
+          }
+
           if (data.type === 'countdownEnd') {
             setCountdown(false);
             setGamePaused(false);

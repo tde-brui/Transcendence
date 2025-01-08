@@ -371,6 +371,12 @@ class PongConsumer(AsyncWebsocketConsumer):
             )
             await sleep(1/60)
 
+    async def redirect_tournament(self, event):
+        await self.send(text_data=json.dumps({"type": "redirectToTournament"}))
+
+    async def redirect_play(self, event):
+        await self.send(text_data=json.dumps({"type": "redirectToPlay"}))
+
     async def game_over(self, event):
         winner_username = event.get('winner')
         loser_username = event.get('loser')
@@ -383,10 +389,34 @@ class PongConsumer(AsyncWebsocketConsumer):
         from .tournament_manager import TournamentManager
         manager = TournamentManager.get_instance()
         tournament = manager.get_tournament()
-        if tournament:
-            await manager.update_match_result_by_game_id_async(self.game_id, winner_username)
+        is_tournament_game = False
 
-        await self.send(text_data=json.dumps({"type": "gameOver", "winner": winner_username}))
+        if tournament:
+            result = await manager.update_match_result_by_game_id_async(self.game_id, winner_username)
+            if not result.get("error"):
+                is_tournament_game = True
+
+        await self.send(text_data=json.dumps({
+            "type": "gameOver",
+            "winner": winner_username
+        }))
+
+        if is_tournament_game:
+            await sleep(3)
+            await self.channel_layer.group_send(
+                self.game_group_name,
+                {
+                    "type": "redirect_tournament"
+                }
+            )
+        else:
+            await sleep(3)
+            await self.channel_layer.group_send(
+                self.game_group_name,
+                {
+                    "type": "redirect_play"
+                }
+            )
 
     async def countdown_start(self, event):
         await self.send(text_data=json.dumps({"type": "countdownStart"}))
