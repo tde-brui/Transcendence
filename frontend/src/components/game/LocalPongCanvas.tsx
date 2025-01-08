@@ -18,10 +18,14 @@ const BALL_SIZE = 10;
 
 const LocalPongCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null); // container ref
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [countdown, setCountdown] = useState(0);
   const [countingDown, setCountingDown] = useState(false);
+
+  // New states for winner screen
+  const [winner, setWinner] = useState<"A" | "B" | null>(null);
+  const [showWinnerScreen, setShowWinnerScreen] = useState(false);
 
   const [game, setGame] = useState<GameState>({
     paddles: { a: 250, b: 250 },
@@ -33,7 +37,6 @@ const LocalPongCanvas: React.FC = () => {
 
   const gameOver = game.score.a >= MAX_SCORE || game.score.b >= MAX_SCORE;
 
-  // Handle countdown
   useEffect(() => {
     if (countingDown && countdown > 0) {
       const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -45,7 +48,6 @@ const LocalPongCanvas: React.FC = () => {
     }
   }, [countdown, countingDown]);
 
-  // Draw only
   useEffect(() => {
     const ctx = canvasRef.current?.getContext('2d');
     let animationFrameId: number;
@@ -53,14 +55,17 @@ const LocalPongCanvas: React.FC = () => {
     const draw = () => {
       if (!ctx) return;
       ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
       // paddles
       ctx.fillStyle = 'white';
       ctx.fillRect(0, game.paddles.a, 10, PADDLE_HEIGHT);
       ctx.fillRect(CANVAS_WIDTH - 10, game.paddles.b, 10, PADDLE_HEIGHT);
+
       // ball
       ctx.beginPath();
       ctx.arc(game.ball.x, game.ball.y, BALL_SIZE, 0, 2 * Math.PI);
       ctx.fill();
+
       // score
       ctx.font = '20px Arial';
       ctx.fillText(`Score: ${game.score.a}`, 50, 50);
@@ -73,27 +78,38 @@ const LocalPongCanvas: React.FC = () => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [game]);
 
-  // Game loop only if gameStarted
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
-    if (game.gameStarted) {
+    if (game.gameStarted && !showWinnerScreen) {
       intervalId = setInterval(() => {
         setGame((prev) => updateGameState(prev));
       }, 1000 / 60);
     }
     return () => clearInterval(intervalId);
-  }, [game.gameStarted]);
+  }, [game.gameStarted, showWinnerScreen]);
 
-  // Focus container on mount so it can capture keystrokes
+  // If showWinnerScreen is true, wait 3s then reset
+  useEffect(() => {
+    if (showWinnerScreen) {
+      const timer = setTimeout(() => {
+        handleFullReset();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showWinnerScreen]);
+
+  // Focus so we can listen to keyboard
   useEffect(() => {
     containerRef.current?.focus();
   }, []);
 
   const startGame = () => {
+    // If there's a winner screen, ignore until it resets
+    if (winner) return;
     if (gameOver) return;
+
     setCountdown(3);
     setCountingDown(true);
-    // Also focus container so it can listen to key events immediately
     containerRef.current?.focus();
   };
 
@@ -119,28 +135,47 @@ const LocalPongCanvas: React.FC = () => {
     };
   };
 
+  // Called after the 3-second winner screen
+  const handleFullReset = () => {
+    setWinner(null);
+    setShowWinnerScreen(false);
+    setGame(resetGame());
+  };
+
+  // pause game, start new countdown
+  const pauseAndCountdown = (st: GameState) => {
+    setCountingDown(true);
+    setCountdown(3);
+    return { ...st, gameStarted: false };
+  };
+
   const updateGameState = (st: GameState): GameState => {
+    // If the game hasn't started, do nothing
     if (!st.gameStarted) return st;
-
+  
     let { paddles, ball, score, paddleDirections } = JSON.parse(JSON.stringify(st));
-
+  
     // Move paddles
     paddles.a += paddleDirections.a * PADDLE_SPEED;
     paddles.b += paddleDirections.b * PADDLE_SPEED;
     paddles.a = Math.max(0, Math.min(500, paddles.a));
     paddles.b = Math.max(0, Math.min(500, paddles.b));
-
+  
     // Move ball
     ball.x += ball.dx * 5;
     ball.y += ball.dy * 5;
-
-    // Bounce
+  
+    // Bounce off top/bottom
     if (ball.y <= 0 || ball.y >= CANVAS_HEIGHT - BALL_SIZE - 20) {
       ball.dy *= -1;
     }
-
+  
     // Paddle collision
-    if (ball.x <= 10 && ball.y >= paddles.a && ball.y <= paddles.a + PADDLE_HEIGHT) {
+    if (
+      ball.x <= 10 &&
+      ball.y >= paddles.a &&
+      ball.y <= paddles.a + PADDLE_HEIGHT
+    ) {
       ball.dx *= -1.05;
       ball.dy *= 1.05;
     } else if (
@@ -151,32 +186,49 @@ const LocalPongCanvas: React.FC = () => {
       ball.dx *= -1.05;
       ball.dy *= 1.05;
     }
-
-    // Scoring
+  
+    // Scoring logic
     if (ball.x < 0) {
       score.b += 1;
-      ball = resetBall({ ...st, ball, score, paddles, paddleDirections }).ball;
-      return pauseAndCountdown({ ...st, paddles, ball, score });
+  
+      // Create an updatedState so the scoreboard can re-render to show 3
+      const updatedState = { ...st, paddles, ball, score, paddleDirections };
+  
+      // If winner, show scoreboard update THEN winner screen
+      if (score.b >= MAX_SCORE) {
+        // Return the updated scoreboard first
+        setTimeout(() => {
+          setWinner("B");
+          setShowWinnerScreen(true);
+        }, 0);
+        return { ...updatedState, gameStarted: false };
+      } else {
+        updatedState.ball = resetBall(updatedState).ball;
+        return pauseAndCountdown(updatedState);
+      }
     }
+  
     if (ball.x > CANVAS_WIDTH) {
       score.a += 1;
-      ball = resetBall({ ...st, ball, score, paddles, paddleDirections }).ball;
-      return pauseAndCountdown({ ...st, paddles, ball, score });
+  
+      const updatedState = { ...st, paddles, ball, score, paddleDirections };
+  
+      if (score.a >= MAX_SCORE) {
+        setTimeout(() => {
+          setWinner("A");
+          setShowWinnerScreen(true);
+        }, 0);
+        return { ...updatedState, gameStarted: false };
+      } else {
+        updatedState.ball = resetBall(updatedState).ball;
+        return pauseAndCountdown(updatedState);
+      }
     }
-
-    if (score.a >= MAX_SCORE || score.b >= MAX_SCORE) return resetGame();
-
+  
+    // Return updated state
     return { ...st, paddles, ball, score };
   };
-
-  // Pause game, trigger a new countdown
-  const pauseAndCountdown = (st: GameState) => {
-    setCountingDown(true);
-    setCountdown(3);
-    return { ...st, gameStarted: false };
-  };
-
-  // KeyDown
+  
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!game.gameStarted) return;
     setGame((prev) => {
@@ -189,7 +241,6 @@ const LocalPongCanvas: React.FC = () => {
     });
   };
 
-  // KeyUp
   const handleKeyUp = (e: React.KeyboardEvent) => {
     setGame((prev) => {
       const pd = { ...prev.paddleDirections };
@@ -203,7 +254,7 @@ const LocalPongCanvas: React.FC = () => {
     <div
       className="pong d-flex flex-column align-items-center justify-content-center vh-100"
       ref={containerRef}
-      tabIndex={0}                // important so this container can capture keystrokes
+      tabIndex={0}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
       style={{ outline: 'none' }}
@@ -226,23 +277,23 @@ const LocalPongCanvas: React.FC = () => {
         <div className="player-name-a">Player A</div>
         <div className="player-name-b">Player B</div>
 
-        {gameOver && (
+        {/* Winner screen */}
+        {showWinnerScreen && winner && (
           <div className="game-over">
-            <h2>Game Over</h2>
+            <h2>Player {winner} Won!</h2>
           </div>
         )}
 
+        {/* Countdown */}
         {countingDown && countdown > 0 && (
           <div className="countdown">{countdown}</div>
         )}
 
-        {!game.gameStarted && !gameOver && !countingDown && (
+        {/* Start button */}
+        {!game.gameStarted && !countingDown && !showWinnerScreen && (
           <div className="game-paused">
             <h2>Press "Start Game" to begin</h2>
-            <button
-              className="glass-button"
-              onClick={startGame}
-            >
+            <button className="glass-button" onClick={startGame}>
               Start Game
             </button>
           </div>
