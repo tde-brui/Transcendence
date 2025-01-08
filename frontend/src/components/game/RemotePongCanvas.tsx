@@ -18,6 +18,7 @@ const RemotePongCanvas: React.FC = () => {
   const [winner, setWinner] = useState<string | null>(null);
   const [readyStates, setReadyStates] = useState<{ a: boolean; b: boolean }>({ a: false, b: false });
   const [countdown, setCountdown] = useState<boolean>(false); // New state for countdown
+  const [countdownValue, setCountdownValue] = useState<number|string>('ggaaaaaa!!')
 
   const websocketRef = useRef<WebSocket | null>(null);
 
@@ -71,9 +72,21 @@ const RemotePongCanvas: React.FC = () => {
             setGamePaused(true);
           }
 
+          if (data.type === "redirectToTournament") {
+            window.location.href = "/play/tournaments";
+          }
+
+          if (data.type === "redirectToPlay") {
+            window.location.href = "/play";
+          }
+
           if (data.type === 'countdownEnd') {
             setCountdown(false);
             setGamePaused(false);
+          }
+
+          if (data.type === 'countdown_tick') {
+            setCountdownValue(data.value);
           }
         } catch (err) {
           console.error('Error parsing WebSocket message:', err);
@@ -118,16 +131,14 @@ const RemotePongCanvas: React.FC = () => {
     websocketRef.current.send(JSON.stringify({ type: 'playerReady' }));
   };
 
-  const bothPlayersReady = readyStates.a && readyStates.b;
-
   return (
     <div className="pong d-flex flex-column align-items-center justify-content-center vh-100" 
          tabIndex={0} 
          style={{ outline: 'none' }}>
-      {gameID && <div className="lobby-id mb-2">Lobby: {gameID}</div>}
 
       <div className="overlap-group-wrapper">
         <div className="overlap-group">
+          {gameID && <div className="lobby">{gameID}</div>}
           <div className="paddle-a" style={{ top: `${paddleAPosition}px` }} />
           <div className="paddle-b" style={{ top: `${paddleBPosition}px` }} />
           <div className="ball" style={{ left: `${ballPosition.x}px`, top: `${ballPosition.y}px` }} />
@@ -170,13 +181,13 @@ const RemotePongCanvas: React.FC = () => {
 
         {countdown && ( // Show countdown message
           <div className="countdown">
-            <h2>READY UP!!!</h2>
+            <h2>{countdownValue}</h2>
           </div>
         )}
 
         {assignedPaddle && (
           <div className="player-info">
-            <h3>You are controlling the {assignedPaddle === 'a' ? 'left' : 'right'} paddle</h3>
+            <h5>You are controlling the {assignedPaddle === 'a' ? 'left' : 'right'} paddle</h5>
           </div>
         )}
       </div>

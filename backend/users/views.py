@@ -1,9 +1,9 @@
 from django.http import Http404
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
-from .models import PongUser, OTP
+from .models import PongUser, OTP, MatchHistory
 from friends.models import FriendRequest
-from .serializers import UserSerializer, LoginSerializer
+from .serializers import UserSerializer, LoginSerializer, MatchHistorySerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
@@ -18,6 +18,8 @@ from rest_framework.renderers import JSONRenderer
 from django.db import IntegrityError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 import requests
+from .authentication import CookieJWTAuthentication
+from rest_framework import generics
 
 class get_users(APIView):
 	permission_classes = [AllowAny]
@@ -92,13 +94,51 @@ def jwtCookie(user):
 				# secure=True,  # HTTPS only, doesnt work when testing locally
 				samesite='Lax',
 			)
+
+			response.set_cookie(
+				'refresh_token',
+				str(refresh),
+				max_age=86400 , # 1 day
+				httponly=True,
+				# secure=True,  # HTTPS only, doesnt work when testing locally
+				samesite='Lax',
+			)
 			return response
 		else:
 			return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 		
 class verify_user(APIView):
+	permission_classes = [AllowAny]
 	def get(self, request):
-		return Response({"message": "User is verified"}, status=status.HTTP_200_OK)
+		auth = CookieJWTAuthentication()
+		user_token_pair = auth.authenticate(request)
+
+		if user_token_pair is None:
+			refresh_token = request.COOKIES.get('refresh_token')
+			if not refresh_token:
+				return self.logout(request)
+			try:
+				new_token = RefreshToken(refresh_token)
+				response = Response({
+					"message": "Token refreshed successfully",
+				}, status=status.HTTP_200_OK)
+				response.set_cookie(
+					'access_token',
+					str(new_token.access_token),
+					max_age=3600, # 1 hour
+					httponly=True,
+					# secure=True,  # HTTPS only, doesnt work when testing locally
+					samesite='Lax',
+				)
+				return response
+			except Exception as e:
+				return self.logout(request)
+			
+	def logout(self, request):
+		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/")
+		response.delete_cookie('access_token')
+		response.delete_cookie('refresh_token')
+		return response
 
 def user_42_login(request):
 	authorization_url = f"{settings.AUTHORIZATION_URL}?client_id={settings.CLIENT_ID}&redirect_uri={settings.REDIRECT_URI}&response_type=code"
@@ -152,6 +192,14 @@ def user_42_callback(request):
 			'access_token',
 			str(refresh.access_token),
 			max_age=3600, # 1 hour
+			httponly=True,
+			# secure=True,  # HTTPS only, doesnt work when testing locally
+			samesite='Lax',
+		)
+		response.set_cookie(
+			'refresh_token',
+			str(refresh),
+			max_age=86400 , # 1 day
 			httponly=True,
 			# secure=True,  # HTTPS only, doesnt work when testing locally
 			samesite='Lax',
@@ -249,9 +297,21 @@ class user_detail(APIView):
 			serializer.save()
 			return Response(serializer.data, status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	#temporary function, users can delete other users accounts
+	def delete(self, request, pk):
+		user = get_object_or_404(PongUser, pk=pk)
+		user.delete()
+		return Response("User account has been succesfully deleted", status.HTTP_204_NO_CONTENT)
+	
+class get_match_history(generics.ListAPIView):
+	serializer_class = MatchHistorySerializer
+
+	def get_queryset(self):
+		return MatchHistory.objects.filter(player=self.request.user).order_by('-date_played')
 	
 class logout(APIView):
 	def delete(self, request):
 		response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/")
 		response.delete_cookie('access_token')
+		response.delete_cookie('refresh_token')
 		return response

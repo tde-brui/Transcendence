@@ -5,6 +5,7 @@
 	border: 5px solid white;
 	background-color: black;
 	margin: 0 auto;
+	margin-top: 6rem;
 }
 
 .overlap-group {
@@ -48,6 +49,7 @@
 	border-radius: 50%;
 	background-color: white;
 }
+  
 
 .overlap {
 	position: absolute;
@@ -61,22 +63,22 @@
 }
 
 .score {
-	font-size: 50px;
+	padding-top: 10%;
+	font-size: 80px;
 	font-weight: bold;
 	text-align: center;
 	margin: 0;
+	color: white
 }
 
 .game-paused {
 	position: absolute;
-	top: 25%;
+	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
 	color: lightgreen;
 	text-align: center;
-	font-size: 14px;
-	padding: 10px;
-	border-radius: 10px;
+	font-size: 15px;
 	z-index: 10;
 }
 
@@ -94,8 +96,9 @@
 .player-name-a,
 .player-name-b {
 	position: absolute;
-	font-size: 16px;
+	font-size: 25px;
 	font-weight: bold;
+	color: white;
 }
 
 .player-name-a {
@@ -110,15 +113,12 @@
 
 .player-info {
 	position: absolute;
-	bottom: 10px;
+	bottom: 5px;
 	left: 50%;
 	transform: translateX(-50%);
 	color: white;
 	text-align: center;
-	font-size: 15px;
-	background: rgba(0, 0, 0, 0.5);
-	padding: 10px 20px;
-	border-radius: 5px;
+	font-size: 12px;
 }
 
 .glass-button {
@@ -131,6 +131,16 @@
 	cursor: pointer;
 }
 
+.lobby {
+	position: absolute;
+	top: 10px; /* Adjust as needed for spacing from the top */
+	left: 50%;
+	transform: translateX(-50%);
+	color: white;
+	font-size: 16px; /* Adjust font size as desired */
+	z-index: 10; /* Ensure it appears above other elements */
+}
+  
 /* Responsive */
 @media (max-width: 960px) {
 	.overlap-group-wrapper {

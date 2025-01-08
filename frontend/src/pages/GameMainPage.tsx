@@ -17,6 +17,9 @@ const GameMainPage: React.FC = () => {
       <Link to="/play/local" style={{ marginLeft: '10px' }}>
         <button className="btn btn-primary glass-button">Local Play</button>
       </Link>
+      <Link to="/play/tournaments" style={{ marginLeft: '10px' }}>
+        <button className="btn btn-primary glass-button">Tournaments</button>
+      </Link>
 	  </div>
     </div>
   );
