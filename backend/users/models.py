@@ -40,6 +40,7 @@ class MatchHistory(models.Model):
         (LOSS, 'Loss'),
     ]
 
+    game_id = models.CharField(max_length=8, default="game_0")
     player = models.ForeignKey(PongUser, on_delete=models.CASCADE, related_name="match_history")
     opponent = models.ForeignKey(PongUser, on_delete=models.CASCADE, related_name="opponent_history")
     result = models.CharField(max_length=4, choices=RESULT_CHOICES)

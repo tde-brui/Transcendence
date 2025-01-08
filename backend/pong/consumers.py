@@ -316,6 +316,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         opponent = await sync_to_async(PongUser.objects.get)(username=opponent_username)
 
         await sync_to_async(MatchHistory.objects.create)(
+            game_id=self.game_id,
             player=player,
             opponent=opponent,
             result=result,
