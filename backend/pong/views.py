@@ -32,14 +32,19 @@ def sign_in_to_tournament(request):
     username = request.user.username
     manager = TournamentManager.get_instance()
     tournament = manager.get_tournament()
+
     if not tournament:
         return Response({"message": "No active tournament"}, status=404)
+
+    display_name = request.data.get("display_name", "")
 
     try:
         if username in tournament.get("players", []):
             result = manager.unsign_player(username)
         else:
-            result = manager.sign_in_player(username)
+            if not display_name.strip():
+                return Response({"message": "Missing or empty display_name."}, status=400)
+            result = manager.sign_in_player(username, display_name)
     except Exception as e:
         print("Error toggling sign-in:", str(e))
         return Response({"message": "Error toggling sign-in"}, status=500)
@@ -80,7 +85,8 @@ def play_match(request):
     if "game_id" not in match:
         match["game_id"] = f"game_{match_id}"
 
-    manager.broadcast_update()
+    # Replaced with async call:
+    async_to_sync(manager.broadcast_update_async)()
 
     return Response({
         "message": "Match started",
@@ -92,7 +98,6 @@ def play_match(request):
 def get_username(request):
     if not request.user.is_authenticated:
         return Response({"error": "User is not authenticated"}, status=401)
-    
     return Response({"username": request.user.username})
 
 @api_view(['POST'])
@@ -116,7 +121,8 @@ def assign_game(request):
     else:
         game_id = match["game_id"]
 
-    manager.broadcast_update()
+    # Replaced with async call:
+    async_to_sync(manager.broadcast_update_async)()
 
     return Response({
         "message": "Game assigned",
@@ -130,7 +136,9 @@ def update_match_result(request):
     winner = request.data.get("winner")
 
     manager = TournamentManager.get_instance()
+    # If you have an updated manager.update_match_result, ensure you call it properly:
     result = manager.update_match_result(match_id, winner)
+
     if "error" in result:
         return Response({"error": result["error"]}, status=400)
     return Response(result)

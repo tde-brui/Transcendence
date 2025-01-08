@@ -36,7 +36,8 @@ class TournamentManager:
                 return {"error": "Tournament already exists"}
             self.tournament = {
                 "organizer": organizer,
-                "players": [],
+                "players": [],       # just storing usernames for logic
+                "display_names": {}, # { username: "CustomDisplayName" }
                 "timer": 30,
                 "is_started": False,
                 "matches": [],
@@ -46,13 +47,21 @@ class TournamentManager:
             self._start_timer_in_thread()
         return self.tournament
 
-    def sign_in_player(self, username):
+    def sign_in_player(self, username, display_name):
         with self.lock:
             if not self.tournament:
                 return {"error": "No active tournament"}
+
             if username in self.tournament["players"]:
-                return {"error": "Player already signed in"}
+                return {"error": "You are already signed in."}
+
+            # Enforce display_name uniqueness
+            if display_name in self.tournament["display_names"].values():
+                return {"error": "That display name is already taken."}
+
             self.tournament["players"].append(username)
+            self.tournament["display_names"][username] = display_name
+
             async_to_sync(self._broadcast_update_async)()
         return self.tournament
 
@@ -62,7 +71,14 @@ class TournamentManager:
                 return {"error": "No active tournament"}
             if username not in self.tournament["players"]:
                 return {"error": "Player not signed in"}
+
+            # Remove the player from the tournament
             self.tournament["players"].remove(username)
+            
+            # Remove the associated display name
+            if username in self.tournament["display_names"]:
+                del self.tournament["display_names"][username]
+
             async_to_sync(self._broadcast_update_async)()
         return self.tournament
 
@@ -174,9 +190,15 @@ class TournamentManager:
             },
         )
 
-    def broadcast_update(self):
+    async def broadcast_update_async(self):
+        """
+        Send the updated tournament state asynchronously.
+        This avoids using async_to_sync in an already-async context.
+        """
         channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
+        if not channel_layer:
+            return
+        await channel_layer.group_send(
             "tournament_updates",
             {
                 "type": "tournament_update",

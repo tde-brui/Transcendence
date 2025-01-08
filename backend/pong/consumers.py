@@ -24,6 +24,38 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
     async def tournament_update(self, event):
         await self.send_json(event["message"])
 
+class Game:
+    def __init__(self, game_id):
+        self.game_id = game_id
+        self.paddles = {"a": 250, "b": 250}
+        self.ball = {"x": 500, "y": 300, "dx": 1, "dy": 1}
+        self.score = {"a": 0, "b": 0}
+        self.MAX_SCORE = 3
+        self.players = {}       # 'a' -> browser_key, 'b' -> browser_key
+        self.players_info = {}  # 'a' -> {"username": "bob", "display_name": "CustomName" (optional)}
+        self.game_started = False
+        self.paddle_directions = {"a": 0, "b": 0}
+        self.ready_players = {"a": False, "b": False}
+
+    def reset_ball(self):
+        # Flip direction so next serve is from the opposite side
+        self.ball = {
+            "x": 500, 
+            "y": 300, 
+            "dx": -1 if self.ball["dx"] > 0 else 1, 
+            "dy": 1
+        }
+
+    def reset_game(self):
+        """Optionally used if you want to re-start, but we've removed repeated usage after a real game-over."""
+        self.paddles = {"a": 250, "b": 250}
+        self.score = {"a": 0, "b": 0}
+        self.reset_ball()
+        self.game_started = False
+        self.paddle_directions = {"a": 0, "b": 0}
+        self.ready_players = {"a": False, "b": False}
+
+
 class GameManager:
     instance = None
 
@@ -33,9 +65,6 @@ class GameManager:
         self.browser_key_to_channel = {}
         self.browser_key_to_game = {}
         
-        # Example: store final results keyed by game_id
-        self.game_results = {}  # { "game_1": {"final_score": [3,1], "winner": "bob"}, ... }
-
     @classmethod
     def get_instance(cls):
         if not cls.instance:
@@ -43,6 +72,7 @@ class GameManager:
         return cls.instance
 
     def get_or_create_game(self):
+        # Return an existing game if it has a free slot, else create new
         for game_id, game in self.games.items():
             if len(game.players) < 2:
                 return game
@@ -52,28 +82,9 @@ class GameManager:
         self.games[game_id] = new_game
         return new_game
 
-class Game:
-    def __init__(self, game_id):
-        self.game_id = game_id
-        self.paddles = {"a": 250, "b": 250}
-        self.ball = {"x": 500, "y": 300, "dx": 1, "dy": 1}
-        self.score = {"a": 0, "b": 0}
-        self.MAX_SCORE = 3
-        self.players = {}
-        self.game_started = False
-        self.paddle_directions = {"a": 0, "b": 0}
-        self.ready_players = {"a": False, "b": False}
-
-    def reset_ball(self):
-        self.ball = {"x": 500, "y": 300, "dx": -1 if self.ball["dx"] > 0 else 1, "dy": 1}
-
-    def reset_game(self):
-        self.paddles = {"a": 250, "b": 250}
-        self.score = {"a": 0, "b": 0}
-        self.reset_ball()
-        self.game_started = False
-        self.paddle_directions = {"a": 0, "b": 0}
-        self.ready_players = {"a": False, "b": False}
+    def delete_game(self, game_id):
+        if game_id in self.games:
+            del self.games[game_id]
 
 class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -87,7 +98,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 
         game_manager = GameManager.get_instance()
 
-        # If a lobby_id was provided, try to join or create that specific game.
         if lobby_id:
             if lobby_id in game_manager.games:
                 game = game_manager.games[lobby_id]
@@ -108,7 +118,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         game_manager.browser_key_to_channel[browser_key] = self.channel_name
         game_manager.browser_key_to_game[browser_key] = game
 
-        # Decide which paddle the new player gets
+        # Decide which paddle
         if browser_key not in game.players.values():
             if len(game.players) < 2:
                 paddle = 'a' if 'a' not in game.players else 'b'
@@ -118,49 +128,116 @@ class PongConsumer(AsyncWebsocketConsumer):
                 return
         else:
             paddle = next(k for k, v in game.players.items() if v == browser_key)
-
         self.paddle = paddle
 
+        # Tournament logic
+        manager = TournamentManager.get_instance()
+        tournament = manager.get_tournament()
+        match_for_this_game = None
+        display_name_for_this_user = None
+        is_tournament_game = False
+
+        if tournament:
+            match_for_this_game = next(
+                (m for m in tournament.get("matches", []) if m.get("game_id") == self.game_id),
+                None
+            )
+            if match_for_this_game:
+                is_tournament_game = True
+
+                # Mark match as 'in_progress'
+                match_for_this_game["in_progress"] = True
+
+                # Update connected count
+                current_count = match_for_this_game.get("connected_count", 0)
+                match_for_this_game["connected_count"] = current_count + 1
+
+                await manager.broadcast_update_async()
+
+                display_name_for_this_user = tournament.get("display_names", {}).get(browser_key)
+
+        # Fallback to normal username if no display name
+        user_label = display_name_for_this_user if display_name_for_this_user else browser_key
+
+        # Store it in the game object
+        if paddle not in game.players_info:
+            game.players_info[paddle] = {
+                "username": browser_key,
+                "display_name": user_label,
+            }
+
         await self.accept()
+
+        # Assign paddle message
         await self.send(json.dumps({
             "type": "assignPaddle",
             "paddle": paddle,
             "game_id": self.game_id,
-            "players": self.game.players
+            "players": {
+                pad: (game.players_info[pad]["display_name"] or game.players_info[pad]["username"])
+                for pad in game.players_info
+            }
         }))
 
         await self.channel_layer.group_add(self.game_group_name, self.channel_name)
 
+        # Notify group
         await self.channel_layer.group_send(
             self.game_group_name,
             {
                 'type': 'players_connected',
                 'count': len(game.players),
-                'players': game.players
+                'players': {
+                    pad: (game.players_info[pad]["display_name"] or game.players_info[pad]["username"])
+                    for pad in game.players_info
+                },
             }
         )
 
     async def disconnect(self, close_code):
         game_manager = GameManager.get_instance()
+        game = getattr(self, 'game', None)
 
         if hasattr(self, 'browser_key'):
+            # Remove from dict
             if self.browser_key in game_manager.browser_key_to_channel:
                 del game_manager.browser_key_to_channel[self.browser_key]
             if self.browser_key in game_manager.browser_key_to_game:
-                game = game_manager.browser_key_to_game[self.browser_key]
-                if hasattr(self, 'paddle') and self.paddle in game.players:
-                    del game.players[self.paddle]
+                if game:
+                    if hasattr(self, 'paddle') and self.paddle in game.players:
+                        del game.players[self.paddle]
+                        if self.paddle in game.players_info:
+                            del game.players_info[self.paddle]
+
+                    # If there's exactly 1 player left in an active game
+                    if game.game_started and len(game.players) == 1:
+                        game.game_started = False
+                        remaining_paddle = list(game.players.keys())[0]
+                        winner_username = game.players.get(remaining_paddle, "Unknown")
+
+                        await self.channel_layer.group_send(
+                            self.game_group_name,
+                            {
+                                'type': 'game_over',
+                                'winner': winner_username,
+                                'loser': self.browser_key
+                            }
+                        )
                 del game_manager.browser_key_to_game[self.browser_key]
 
         if hasattr(self, 'game_group_name'):
             await self.channel_layer.group_discard(self.game_group_name, self.channel_name)
-            if hasattr(self, 'game'):
+
+            if game:
                 await self.channel_layer.group_send(
                     self.game_group_name,
                     {
                         'type': 'players_connected',
-                        'count': len(self.game.players),
-                        'players': self.game.players
+                        'count': len(game.players),
+                        'players': {
+                            pad: (game.players_info[pad]["display_name"] or game.players_info[pad]["username"])
+                            for pad in game.players_info
+                        },
                     }
                 )
 
@@ -193,11 +270,12 @@ class PongConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-            # If both players are ready, start the countdown
+            # If both players are ready and the game hasn't started, start the countdown
             if len(game.players) == 2 and game.ready_players['a'] and game.ready_players['b'] and not game.game_started:
                 create_task(self.start_countdown_and_start_game())
 
     async def players_connected(self, event):
+        # The 'type' field is "players_connected", so Channels calls this method
         await self.send(text_data=json.dumps({
             "type": "playersConnected",
             "count": event['count'],
@@ -214,6 +292,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(event['message']))
 
     async def countdown(self):
+        # Wait for 3 seconds between a ready-up and the ball moving
         await sleep(3)
 
     async def start_countdown_and_start_game(self):
@@ -241,7 +320,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         min_paddle_pos = 0
         max_paddle_pos = 500
 
-        while game.game_started:
+        while game.game_started and len(game.players) > 0:
             ball = game.ball
             paddles = game.paddles
             score = game.score
@@ -286,8 +365,11 @@ class PongConsumer(AsyncWebsocketConsumer):
                     }
                 )
                 game.reset_ball()
-                await self.start_countdown_after_score()
+                # Only do next countdown if we haven't reached MAX_SCORE
+                if score["b"] < game.MAX_SCORE and score["a"] < game.MAX_SCORE:
+                    await self.start_countdown_after_score()
 
+            # If ball goes out on the right
             elif ball["x"] > 1000:
                 score["a"] += 1
                 await self.channel_layer.group_send(
@@ -303,14 +385,15 @@ class PongConsumer(AsyncWebsocketConsumer):
                     }
                 )
                 game.reset_ball()
-                await self.start_countdown_after_score()
+                # Only do next countdown if we haven't reached MAX_SCORE
+                if score["a"] < game.MAX_SCORE and score["b"] < game.MAX_SCORE:
+                    await self.start_countdown_after_score()
 
+            # Check if game is over
             if score["a"] >= game.MAX_SCORE or score["b"] >= game.MAX_SCORE:
                 winner_paddle = "a" if score["a"] >= game.MAX_SCORE else "b"
-                loser_paddle = "b" if winner_paddle == "a" else "b"
-
+                loser_paddle = "b" if winner_paddle == "a" else "a"
                 winner_username = game.players.get(winner_paddle, "Unknown")
-
                 loser_username = game.players.get(loser_paddle, "Unknown")
 
                 await self.channel_layer.group_send(
@@ -321,23 +404,26 @@ class PongConsumer(AsyncWebsocketConsumer):
                         'loser': loser_username
                     }
                 )
-
-                game.reset_game()
+                # Stop the loop
+                break
 
             await sleep(1/60)
     
     async def save_match_result(self, player_username, opponent_username, result):
-        """ Saves the match result in the database asynchronously """
-        player = await sync_to_async(PongUser.objects.get)(username=player_username)
-        opponent = await sync_to_async(PongUser.objects.get)(username=opponent_username)
+        """Saves the match result in the database asynchronously"""
+        try:
+            player = await sync_to_async(PongUser.objects.get)(username=player_username)
+            opponent = await sync_to_async(PongUser.objects.get)(username=opponent_username)
 
-        await sync_to_async(MatchHistory.objects.create)(
-            game_id=self.game_id,
-            player=player,
-            opponent=opponent,
-            result=result,
-            date_played=now()
-        )
+            await sync_to_async(MatchHistory.objects.create)(
+                game_id=self.game_id,
+                player=player,
+                opponent=opponent,
+                result=result,
+                date_played=now()
+            )
+        except PongUser.DoesNotExist:
+            pass  # If using display names or something, skip actual DB save
 
     async def start_countdown_after_score(self):
         await self.channel_layer.group_send(
@@ -356,7 +442,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def broadcast_game_state(self):
         game = self.game
-        while game.game_started:
+        while game.game_started and len(game.players) > 0:
             await self.channel_layer.group_send(
                 self.game_group_name,
                 {
@@ -381,12 +467,13 @@ class PongConsumer(AsyncWebsocketConsumer):
         winner_username = event.get('winner')
         loser_username = event.get('loser')
 
+        # Attempt to save in MatchHistory if we have valid PongUsers
         if winner_username == self.browser_key:
             await self.save_match_result(winner_username, loser_username, MatchHistory.WIN)
         elif loser_username == self.browser_key:
             await self.save_match_result(loser_username, winner_username, MatchHistory.LOSS)
-        
-        from .tournament_manager import TournamentManager
+
+        # Check if it's a tournament game
         manager = TournamentManager.get_instance()
         tournament = manager.get_tournament()
         is_tournament_game = False
@@ -396,13 +483,15 @@ class PongConsumer(AsyncWebsocketConsumer):
             if not result.get("error"):
                 is_tournament_game = True
 
+        # Send "gameOver" to *this* client
         await self.send(text_data=json.dumps({
             "type": "gameOver",
             "winner": winner_username
         }))
 
+        # Delay a bit, then redirect everyone
+        await sleep(3)
         if is_tournament_game:
-            await sleep(3)
             await self.channel_layer.group_send(
                 self.game_group_name,
                 {
@@ -410,13 +499,15 @@ class PongConsumer(AsyncWebsocketConsumer):
                 }
             )
         else:
-            await sleep(3)
             await self.channel_layer.group_send(
                 self.game_group_name,
                 {
                     "type": "redirect_play"
                 }
             )
+
+        # --- Cleanly delete the game after the result
+        GameManager.get_instance().delete_game(self.game_id)
 
     async def countdown_start(self, event):
         await self.send(text_data=json.dumps({"type": "countdownStart"}))
