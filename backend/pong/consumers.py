@@ -292,8 +292,12 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(event['message']))
 
     async def countdown(self):
-        # Wait for 3 seconds between a ready-up and the ball moving
-        await sleep(3)
+        for val in [3, 2, 1, "GO!"]:
+            await self.channel_layer.group_send(
+                self.game_group_name,
+                {"type": "countdown_tick", "value": val}
+            )
+            await sleep(1)
 
     async def start_countdown_and_start_game(self):
         await self.channel_layer.group_send(
@@ -303,6 +307,7 @@ class PongConsumer(AsyncWebsocketConsumer):
             }
         )
         await self.countdown()
+
         await self.channel_layer.group_send(
             self.game_group_name,
             {
@@ -514,3 +519,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def countdown_end(self, event):
         await self.send(text_data=json.dumps({"type": "countdownEnd"}))
+    
+    async def countdown_tick(self, event):
+        await self.send(json.dumps({
+            "type": "countdown_tick",
+            "value": event["value"]
+        }))
