@@ -111,6 +111,8 @@ class TournamentManager:
                 "id": i,
                 "players": list(pair),
                 "winner": None,
+                "in_progress": False,
+                "connected_count": 0,  # track how many have joined the websocket
             })
         self.tournament["matches"] = matches
 

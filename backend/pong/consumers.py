@@ -198,6 +198,28 @@ class PongConsumer(AsyncWebsocketConsumer):
         game_manager = GameManager.get_instance()
         game = getattr(self, 'game', None)
 
+        # Tournament logic
+        manager = TournamentManager.get_instance()
+        tournament = manager.get_tournament()
+        match_for_this_game = None
+
+        if tournament:
+            match_for_this_game = next(
+                (m for m in tournament.get("matches", []) if m.get("game_id") == self.game_id),
+                None
+            )
+            if match_for_this_game:
+                match_for_this_game["in_progress"] = True
+
+                current_count = match_for_this_game.get("connected_count", 0)
+                match_for_this_game["connected_count"] = max(0, current_count - 1)
+
+                if match_for_this_game["connected_count"] == 0:
+                    match_for_this_game["in_progress"] = False
+
+                await manager.broadcast_update_async()
+
+
         if hasattr(self, 'browser_key'):
             # Remove from dict
             if self.browser_key in game_manager.browser_key_to_channel:

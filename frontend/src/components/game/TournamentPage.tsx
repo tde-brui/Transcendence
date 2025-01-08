@@ -9,6 +9,7 @@ interface Match {
   winner: string | null;
   game_id?: string;
   in_progress?: boolean;  // If your backend sets this when someone joins
+  connected_count?: number;
 }
 
 interface FinalResult {
@@ -199,6 +200,16 @@ const TournamentPage: React.FC = () => {
                 <div className="matches-container">
                   <h3>Matches</h3>
                   {tournament.matches.map((match) => {
+                    const matchIndex = tournament.matches.findIndex(m => m.id === match.id);
+                    const allPreviousMatchesHaveWinners = tournament.matches
+                      .filter(m => m.id < match.id)
+                      .every(m => m.winner !== null);
+
+                    const canPlay =
+                      match.players.includes(username) &&
+                      !match.winner &&
+                      allPreviousMatchesHaveWinners;
+
                     const matchWinner = match.winner
                       ? tournament.display_names?.[match.winner] || match.winner
                       : "Undecided";
@@ -206,26 +217,27 @@ const TournamentPage: React.FC = () => {
                     const player1 = tournament.display_names?.[match.players[0]] || match.players[0];
                     const player2 = tournament.display_names?.[match.players[1]] || match.players[1];
 
-                    const canPlay = match.players.includes(username) && !match.winner;
-
-                    const matchStyle: React.CSSProperties = {};
-                    if (match.in_progress) {
-                      matchStyle.color = "orange";
-                      matchStyle.fontWeight = "bold";
-                    }
-
-                    const playersInGame = match.in_progress ? 1 : 0;
-
                     return (
-                      <div key={match.id} className="match-container" style={matchStyle}>
+                      <div key={match.id} className="match-container">
                         <p>{player1} vs {player2}</p>
                         <p>Winner: {matchWinner}</p>
-                        {match.in_progress && <p>Currently in progress! ({playersInGame}/2 players connected)</p>}
-                        {canPlay && (
-                          <button className="play-button" onClick={() => handlePlayMatch(match.id)}>
-                            Play
-                          </button>
+
+                        {/* Show how many are connected if you like */}
+                        {match.in_progress && (
+                          <p>Currently in progress! ({match.connected_count}/2 players connected)</p>
                         )}
+
+                        <button
+                          className="play-button"
+                          onClick={() => handlePlayMatch(match.id)}
+                          disabled={!canPlay}
+                          style={{
+                            opacity: canPlay ? 1.0 : 0.5,
+                            cursor: canPlay ? 'pointer' : 'not-allowed',
+                          }}
+                        >
+                          Play
+                        </button>
                       </div>
                     );
                   })}
