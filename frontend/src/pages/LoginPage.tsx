@@ -103,7 +103,7 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   };
 
   const handleAuthentication = () => {
-    window.location.href = "http://localhost:8000/users/42_login/";
+    window.location.href = "/api/users/42_login/";
   };
 
   return (

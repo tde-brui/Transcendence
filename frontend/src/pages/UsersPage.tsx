@@ -40,7 +40,7 @@ const UsersPage: React.FC = () => {
         if (!user.avatar) return; // Skip if no avatar
 
         try {
-          const response = await fetch(`http://localhost:8000${user.avatar}`);
+          const response = await fetch(`/api${user.avatar}`);
           if (!response.ok) {
             throw new Error(`Failed to fetch avatar for user ${user.id}`);
           }

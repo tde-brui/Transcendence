@@ -25,6 +25,7 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
       try {
         const response = await axiosInstance.get<User>(`/users/${userId}`);
         setUser(response.data);
+        console.warn("response", response.data);
         setUsername(response.data.username);
       } catch (error) {
         console.error("Failed to fetch user data", error);
@@ -38,6 +39,9 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   //   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!user) return <SpinningLogo />;
 
+  console.info("User", user);
+  if (!user)
+    console.warn("User not found. Please check the user ID and try again.");
   return (
     <div className="container">
       <div className="d-flex flex-column align-items-center justify-content-center vh-100">

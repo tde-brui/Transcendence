@@ -21,7 +21,7 @@ interface User {
  */
 const getUsername = async (username: string): Promise<string | null> => {
   try {
-    const response = await axios.get<User[]>("http://localhost:8000/users/");
+    const response = await axios.get<User[]>("/api/users/");
     const userList = response.data;
 
     const user = userList.find((user) => user.username === username);

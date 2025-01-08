@@ -5,7 +5,7 @@ import axiosInstance from "../components/utils/AxiosInstance";
 const Authenticate42: React.FC = () => {
   const handleAuthentication = () => {
     // Redirect the browser to the backend endpoint
-    window.location.href = "http://localhost:8000/users/42_login/";
+    window.location.href = "/api/users/42_login/";
   };
 
   return (

@@ -80,7 +80,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
       if (!user || !user.avatar) return; // Skip if no avatar is available
 
       try {
-        const response = await fetch(`http://localhost:8000${user.avatar}`);
+        const response = await fetch(`/api${user.avatar}`);
         if (!response.ok) {
           throw new Error("Failed to fetch user avatar");
         }
