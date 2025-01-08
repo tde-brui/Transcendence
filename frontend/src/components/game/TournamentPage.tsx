@@ -200,47 +200,57 @@ const TournamentPage: React.FC = () => {
                 <div className="matches-container">
                   <h3>Matches</h3>
                   {tournament.matches.map((match) => {
-                    const matchIndex = tournament.matches.findIndex(m => m.id === match.id);
-                    const allPreviousMatchesHaveWinners = tournament.matches
-                      .filter(m => m.id < match.id)
-                      .every(m => m.winner !== null);
+  const matchIndex = tournament.matches.findIndex((m) => m.id === match.id);
+  const allPreviousMatchesHaveWinners = tournament.matches
+    .filter((m) => m.id < match.id)
+    .every((m) => m.winner !== null);
 
-                    const canPlay =
-                      match.players.includes(username) &&
-                      !match.winner &&
-                      allPreviousMatchesHaveWinners;
+  // Only players in the match see a "Play" button
+  const isPlayerInThisMatch = match.players.includes(username);
 
-                    const matchWinner = match.winner
-                      ? tournament.display_names?.[match.winner] || match.winner
-                      : "Undecided";
+  // A match is playable if:
+  //  1) The user is in the match
+  //  2) The match doesn’t have a winner yet
+  //  3) All previous matches have a winner
+  const canPlay =
+    isPlayerInThisMatch &&
+    !match.winner &&
+    allPreviousMatchesHaveWinners;
 
-                    const player1 = tournament.display_names?.[match.players[0]] || match.players[0];
-                    const player2 = tournament.display_names?.[match.players[1]] || match.players[1];
+  const matchWinner = match.winner
+    ? tournament.display_names?.[match.winner] || match.winner
+    : "Undecided";
 
-                    return (
-                      <div key={match.id} className="match-container">
-                        <p>{player1} vs {player2}</p>
-                        <p>Winner: {matchWinner}</p>
+  const player1 = tournament.display_names?.[match.players[0]] || match.players[0];
+  const player2 = tournament.display_names?.[match.players[1]] || match.players[1];
 
-                        {/* Show how many are connected if you like */}
-                        {match.in_progress && (
-                          <p>Currently in progress! ({match.connected_count}/2 players connected)</p>
-                        )}
+  return (
+    <div key={match.id} className="match-container">
+      <p>{player1} vs {player2}</p>
+      <p>Winner: {matchWinner}</p>
 
-                        <button
-                          className="play-button"
-                          onClick={() => handlePlayMatch(match.id)}
-                          disabled={!canPlay}
-                          style={{
-                            opacity: canPlay ? 1.0 : 0.5,
-                            cursor: canPlay ? 'pointer' : 'not-allowed',
-                          }}
-                        >
-                          Play
-                        </button>
-                      </div>
-                    );
-                  })}
+      {match.in_progress && (
+        <p>Currently in progress! ({match.connected_count || 0}/2 players connected)</p>
+      )}
+
+      {/* Render the Play button only if the match has no winner yet */}
+      {isPlayerInThisMatch && !match.winner && (
+        <button
+          className="play-button"
+          onClick={() => handlePlayMatch(match.id)}
+          disabled={!canPlay}
+          style={{
+            opacity: canPlay ? 1.0 : 0.5,
+            cursor: canPlay ? "pointer" : "not-allowed",
+          }}
+        >
+          Play
+        </button>
+      )}
+    </div>
+  );
+})}
+
                 </div>
               )}
 
