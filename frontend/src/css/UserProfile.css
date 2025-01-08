@@ -80,6 +80,14 @@
   color: #dc3545;
 }
 
+.result.win {
+	color: #28a745;
+  }
+
+.result.loss {
+	color: #dc3545;
+  }
+
 .status-profile {
   text-transform: capitalize;
   font-size: 0.9rem;
@@ -216,7 +224,7 @@ ul {
 }
 
 .userpage{
-  height: 400px;
+  height: 40vh;
   overflow-y: auto;
   scroll-behavior: smooth;
 }
@@ -260,3 +268,28 @@ border-radius: 15px;
   max-width: 500px;
   width: 100%;
 }
+
+.scrollable-content {
+    max-height: 200px; /* Adjust height as necessary */
+    overflow-y: auto;
+}
+
+.link-item {
+  text-decoration: none;
+  color: #333;
+}
+
+.link-item:hover {
+  background-color: #e2e2e2;
+}
+
+.friends-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.friends-list-requests {
+  max-height: 250px;
+  overflow-y: auto;
+}
+

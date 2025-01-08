@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navbar, Nav } from "react-bootstrap";
-import { returnName } from "../components/utils/userService";
 import { NotLoggedIn } from "../components/login/notLoggedin";
 import { User } from "../components/utils/api";
-import { Link } from "react-router-dom";
 import axiosInstance from "../components/utils/AxiosInstance";
 import "../index.css";
 import SpinningLogo from "../components/SpinningLogo";
@@ -17,7 +15,6 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   NotLoggedIn(userId, isAuthChecked);
 
   const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,14 +25,12 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
         setUsername(response.data.username);
       } catch (error) {
         console.error("Failed to fetch user data", error);
-        setError((error as Error).message);
       }
     };
 
     fetchUser();
   }, [userId]);
 
-  //   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!user) return <SpinningLogo />;
 
   return (
@@ -51,16 +46,19 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
         >
           <Nav className="mx-auto text-center glass-nav">
             <Nav.Link href="play" className="glass-nav-item">
-              PLAY
+              Play
             </Nav.Link>
             <Nav.Link href="chat" className="glass-nav-item">
-              CHAT
+              Messages
+            </Nav.Link>
+			<Nav.Link href="/friends" className="glass-nav-item">
+			  Friends
+			</Nav.Link>
+            <Nav.Link href="/users" className="glass-nav-item">
+              Browse users
             </Nav.Link>
             <Nav.Link href={`/users/${username}`} className="glass-nav-item">
-              ACCOUNT
-            </Nav.Link>
-            <Nav.Link href="/users" className="glass-nav-item">
-              USERS
+              Profile
             </Nav.Link>
           </Nav>
         </Navbar>

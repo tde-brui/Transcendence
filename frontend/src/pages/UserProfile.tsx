@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { User } from "../components/utils/api";
-import { returnName } from "../components/utils/userService";
+import { MatchHistory, User } from "../components/utils/api";
 import "../css/UserProfile.css";
 import axiosInstance from "../components/utils/AxiosInstance";
 import { useAuth } from "../components/utils/AuthContext";
 import { useNavigate } from "react-router-dom";
-import ChangeDetails from "../components/users/ChangeDetails";
 import SpinningLogo from "../components/SpinningLogo";
 import { Link } from "react-router-dom";
 
@@ -23,18 +21,17 @@ const getCurrentUser = async (): Promise<number | null> => {
   }
 };
 
+
+
 const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   const navigate = useNavigate();
   const logout = useAuth().logout;
 
   const [user, setUser] = useState<User | null>(null);
+  const [matchHistory, setMatchHistory] = useState<MatchHistory[]>([]);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [opponentNames, setOpponentNames] = useState<{ [key: number]: string }>(
-    {}
-  );
   const [currentUser, setCurrentUser] = useState<number | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -58,22 +55,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     fetchUser();
   }, [userId]);
 
-  useEffect(() => {
-    const fetchOpponentNames = async () => {
-      if (!user?.matchHistory) return;
-
-      const opponentNamesMap: { [key: number]: string } = {};
-      for (const match of user.matchHistory) {
-        if (!opponentNames[match.opponentId]) {
-          const username = await returnName(match.opponentId);
-          opponentNamesMap[match.opponentId] = username;
-        }
-      }
-      setOpponentNames((prev) => ({ ...prev, ...opponentNamesMap }));
-    };
-
-    fetchOpponentNames();
-  }, [user]);
 
   useEffect(() => {
     const fetchAvatar = async () => {
@@ -104,6 +85,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     };
   }, [user]);
 
+  useEffect(() => {
+	const fetchMatchHistory = async () => {
+	  try {
+		const response = await axiosInstance.get<MatchHistory[]>(`/users/match_history/${userId}/`);	
+		if (response.status === 200 && response.data)
+			setMatchHistory(response.data);
+	  } catch (error) {
+		setError((error as Error).message);
+	  }
+	};
+
+	fetchMatchHistory();
+  }, [userId]);
+
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!user) return <SpinningLogo />;
   //   if (currentUser === null) return <div className="text-center mt-5">Currentuser not loaded</div>;
@@ -114,13 +109,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     return <div>Logging out......</div>;
   };
 
-  const changeDetails = () => {
-    setShowDetails(true);
+  const returnWins = (matchHistory: { result: string }[]): number => {
+	return matchHistory.filter((match) => match.result.toLowerCase() === 'win').length;
   };
 
-  const handleReturnToProfile = () => {
-	setShowDetails(false);
-};
+
+  const returnLoss = (matchHistory: { result: string }[]): number => {
+	return matchHistory.filter((match) => match.result.toLowerCase() === 'loss').length;
+  };
 
   return (
     <div className="container d-flex align-items-center justify-content-center">
@@ -147,21 +143,40 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
               </div>
             </div>
           </div>
-          {/* <div className="card-footer profile-footer">
-          <h5 className="match-history-title">Match History</h5>
-          <ul className="list-group match-history-list">
-            {user.matchHistory.length > 0 ? (
-              user.matchHistory.map((match, index) => (
+		  <div className="card-footer profile-footer">
+			<h5 className="match-history-title mb-1">Stats</h5>
+			<ul className="list-group match-history-list">
+				<li className="list-group-item d-flex justify-content-between">
+					<span>Total Matches</span>
+					<span className="fw-bold">{matchHistory.length}</span>
+				</li>
+				<li className="list-group-item d-flex justify-content-between">
+					<span>Wins</span>
+					<span className="fw-bold">{returnWins(matchHistory)}</span>
+				</li>
+				<li className="list-group-item d-flex justify-content-between">
+					<span>Losses</span>
+					<span className="fw-bold">{returnLoss(matchHistory)}</span>
+				</li>
+			</ul>
+			</div>
+          <div className="card-footer profile-footer">
+		
+          <h5 className="match-history-title mb-1">Match History</h5>
+		  <h6 className=""> Last 10 matches </h6>
+          <ul className="list-group match-history-list scrollable-content">
+            {matchHistory.length > 0 ? (
+              matchHistory.slice(0, 10).map((match, index) => (
                 <li key={index} className="list-group-item d-flex justify-content-between">
-                  <span>Opponent: {opponentNames[match.opponentId] || "Loading..."}</span>
-                  <span>{match.result} on {new Date(match.date).toLocaleDateString()}</span>
+                  <span>Opponent: {match.opponent_username}</span>
+                  <span> <span className={`result ${match.result}`}>{match.result[0].toUpperCase() + match.result.slice(1)}</span> on {new Date(match.date_played).toLocaleString()}</span>
                 </li>
               ))
             ) : (
               <li className="list-group-item text-center">No matches yet</li>
             )}
           </ul>
-        </div> */}
+        </div>
           {currentUser === userId && (
             <div className="card-footer profile-footer d-flex justify-content-between">
               <Link to="/users/edit" className="btn btn-primary"> Change details</Link>
@@ -171,7 +186,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
             </div>
           )}
         </div>
-    </div>
+		</div>
   );
 };
 
