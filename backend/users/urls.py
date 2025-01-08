@@ -13,5 +13,6 @@ urlpatterns = [
 	path('auth/verify/', views.verify_user.as_view()),
 	path('42_login/', views.user_42_login),
 	path('42_callback/', views.user_42_callback),
-	path('auth/logout/', views.logout.as_view())
+	path('auth/logout/', views.logout.as_view()),
+	path('match_history/', views.get_match_history.as_view())
 ]

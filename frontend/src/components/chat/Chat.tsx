@@ -12,8 +12,9 @@ interface Message {
   id: string;
   sender: string;
   message: string;
-  isAnnouncement?: boolean;
   isDM?: boolean;
+  isAnnouncement?: boolean;
+  recipient: string; // Ensure recipient is always defined
 }
 
 interface NotificationItem {
@@ -30,8 +31,23 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
   const ws = useRef<WebSocket | null>(null);
 
+  useEffect(() => {
+    const fetchBlockedUsers = async () => {
+      try {
+        const response = await fetch(`/api/blocked-users/${username}`);
+        const data = await response.json();
+        setBlockedUsers(data.blockedUsers || []);
+      } catch (error) {
+        console.error("Failed to fetch blocked users:", error);
+      }
+    };
+  
+    fetchBlockedUsers();
+  }, [username, onlineUsers]); // Re-fetch blocked users when online users change
+  
   useEffect(() => {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const wsUrl = `${wsProtocol}://localhost:8000/ws/chat/?username=${username}`;
@@ -59,34 +75,73 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   }, []);
 
   interface IncomingData {
+    recipient: string | undefined;
+    blocked_users: any;
     type: string;
     sender?: string;
     message?: string;
+    messages?: {
+      recipient: any;
+      is_dm: any; sender: string; text: string; is_announcement?: boolean 
+}[]; // Add messages here
     users?: string[];
     target_user?: string;
     url?: string;
-  }
+  }  
 
   const handleMessage = (data: IncomingData) => {
     switch (data.type) {
-      case 'chat':
-        if (data.sender && data.message) {
-          addMessage({ sender: data.sender, message: data.message, isAnnouncement: false });
-        }
-        break;
-      case 'direct':
-        if (data.sender && data.message) {
-          addDMMessage(data.sender, data.message);
-        }
-        break;
-      case 'update_users':
+      case "update_users":
         if (data.users) {
           setOnlineUsers(data.users);
         }
+        if (data.blocked_users) {
+          setBlockedUsers(data.blocked_users);
+        }
+        break;
+        case "chat_history":
+          if (data.messages) {
+            setMessages(
+              data.messages.map((msg) => ({
+                id: uuidv4(),
+                sender: msg.sender,
+                recipient: msg.recipient || '', // Ensure recipient is included
+                message: msg.text,
+                isDM: msg.is_dm,
+                isAnnouncement: msg.is_announcement,
+              }))
+            );
+          }
+          break;               
+          case 'chat':
+            if (data.sender && data.message && !blockedUsers.includes(data.sender)) {
+              addMessage({
+                sender: data.sender, 
+                message: data.message, 
+                isAnnouncement: false,
+                recipient: ''
+              });
+            }
+            break;
+      case 'direct':
+        if (data.sender && data.message && data.recipient) {
+          addMessage({
+            sender: data.sender,
+            recipient: data.recipient,
+            message: data.message,
+            isDM: true,
+          });
+        }
         break;
       case 'error':
-      case 'block_success':
-      case 'unblock_success':
+      case "block_success":
+        setBlockedUsers((prev) => [...prev, data.target_user!]);
+        addNotification(data.message!);
+        break;
+      case "unblock_success":
+        setBlockedUsers((prev) => prev.filter((user) => user !== data.target_user));
+        addNotification(data.message!);
+        break;
       case 'dm_sent':
         if (data.message) {
           addNotification(data.message);
@@ -100,7 +155,10 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
         break;
       case 'announcement':
         if (data.sender && data.message) {
-          addMessage({ sender: data.sender, message: data.message, isAnnouncement: true });
+          addMessage({
+            sender: data.sender, message: data.message, isAnnouncement: true,
+            recipient: ''
+          });
         }
         break;
       case 'view_profile':
@@ -111,14 +169,17 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
       default:
         console.log('Unknown message type:', data.type);
     }
-  };
+  };  
 
   const addMessage = (msg: Omit<Message, 'id'>) => {
     setMessages((prev) => [...prev, { id: uuidv4(), ...msg }]);
   };
 
   const addDMMessage = (sender: string, message: string) => {
-    addMessage({ sender: `DM from ${sender}`, message, isDM: true });
+    addMessage({
+      sender: `DM from ${sender}`, message, isDM: true,
+      recipient: ''
+    });
     addNotification(`New DM from '${sender}'.`);
   };
 
@@ -131,12 +192,34 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   };
 
   const sendMessage = (message: string) => {
+    if (message.length > 200) {
+      addNotification("Message too long. Maximum length is 200 characters.");
+      return;
+    }
+  
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ message }));
     } else {
       addNotification('WebSocket is not connected.');
     }
-  };
+  };  
+
+  const blockUser = (action: "block" | "unblock", user: string) => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ command: action, target_user: user }));
+  
+      if (action === "block") {
+        setBlockedUsers((prev) => [...prev, user]);
+      } else {
+        setBlockedUsers((prev) => prev.filter((blockedUser) => blockedUser !== user));
+  
+        // Fetch complete chat history after unblocking
+        ws.current.send(JSON.stringify({ command: "fetch_chat_history", include_blocked: true }));
+      }
+    } else {
+      addNotification("WebSocket is not connected.");
+    }
+  };  
 
   const sendCommand = (command: string, target_user: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
@@ -148,8 +231,21 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
 
   const sendDirectMessage = (recipient: string, message: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ recipient, message }));
-      addMessage({ sender: `DM to ${recipient}`, message, isDM: true });
+      const newMessage = {
+        sender: username,
+        recipient: recipient,
+        message: message,
+        isDM: true,
+        isAnnouncement: false,
+      };
+  
+      ws.current.send(JSON.stringify(newMessage));
+  
+      // Add the DM instantly to the local state
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { ...newMessage, id: uuidv4() },
+      ]);
     } else {
       addNotification('WebSocket is not connected.');
     }
@@ -194,9 +290,10 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
                 users={onlineUsers}
                 currentUser={username}
                 sendDirectMessage={sendDirectMessage}
-                blockUser={(action, user) => sendCommand(action, user)}
+                blockUser={blockUser}
                 inviteToGame={inviteToGame}
                 viewProfile={viewProfile}
+                blockedUsers={blockedUsers} // Pass the blocked users
               />
             </div>
             {/* <div className="profile-header">
@@ -215,7 +312,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
           </div>
           <div className="card main-chat-card">
             <div className="main-chat-messages">
-              <MessageList messages={messages} currentUser={username} />
+            <MessageList messages={messages} currentUser={username} blockedUsers={blockedUsers} />
             </div>
             <div className="main-chat-input">
               <MessageInput sendMessage={sendMessage} />

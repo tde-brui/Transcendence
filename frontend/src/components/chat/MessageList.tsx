@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import '../../css/chat/MessageList.css';
 
 interface Message {
+  recipient: string;
   id: string;
   sender: string;
   message: string;
@@ -12,9 +13,10 @@ interface Message {
 interface MessageListProps {
   messages: Message[];
   currentUser: string;
+  blockedUsers: string[];
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages, currentUser }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, currentUser, blockedUsers }) => {
   const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
@@ -27,31 +29,27 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUser }) => {
     scrollToBottom();
   }, [messages]);
 
+  // Filter messages dynamically
+  const filteredMessages = messages.filter(
+    (msg) =>
+      (!blockedUsers.includes(msg.sender) &&
+      (!msg.isDM || msg.sender === currentUser || msg.recipient === currentUser))
+  );
+
   return (
     <div className="list-container">
-      {/* <div className="message-list-header">
-        Messages
-      </div> */}
-      {messages.map((msg) => {
-        // Determine classes based on message properties
-        let isOwn = msg.sender === currentUser;
-		if (msg.isDM)
-		{
-			if (msg.sender.includes("DM to"))
-				isOwn = true;
-			else
-				isOwn = false;
-		}
-        let bubbleClass = isOwn ? 'message-own' : 'message-other';
-		if (msg.isAnnouncement) { bubbleClass = 'message-announcement'; }
-		if (msg.isDM && isOwn) { bubbleClass = 'message-dm-own'; }
-		if (msg.isDM && !isOwn) { bubbleClass = 'message-dm-other'; }
-        let senderClass = isOwn ? 'sender-own' : 'sender-other';
+      {filteredMessages.map((msg) => {
+        const isOwn = msg.sender === currentUser;
+        const bubbleClass = isOwn ? 'message-own' : 'message-other';
+
+        const senderText = msg.isDM
+          ? `DM ${isOwn ? "to" : "from"} ${isOwn ? msg.recipient : msg.sender}`
+          : msg.sender;
 
         return (
           <div key={msg.id} className="message-item-container">
             <div className={`message-bubble ${bubbleClass}`}>{msg.message}</div>
-            <div className={`${senderClass}`}>{msg.sender}</div>
+            <div className={isOwn ? 'sender-own' : 'sender-other'}>{senderText}</div>
           </div>
         );
       })}
