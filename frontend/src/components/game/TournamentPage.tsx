@@ -6,7 +6,12 @@ interface Match {
   id: number;
   players: string[];
   winner: string | null;
-  score: [number, number];
+  game_id?: string;
+}
+
+interface FinalResult {
+  type: "winner" | "draw";
+  usernames: string[];
 }
 
 interface Tournament {
@@ -15,6 +20,7 @@ interface Tournament {
   timer: number | null;
   is_started: boolean;
   matches: Match[];
+  final_result?: FinalResult | null;
 }
 
 const TournamentPage: React.FC = () => {
@@ -28,8 +34,8 @@ const TournamentPage: React.FC = () => {
     const socket = new WebSocket("ws://localhost:8000/ws/tournament/");
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setTournament(data.timer !== undefined ? data : null); // If there's no timer, data = null
-    };    
+      setTournament(data.timer !== undefined ? data : null);
+    };
 
     return () => {
       socket.close();
@@ -80,24 +86,28 @@ const TournamentPage: React.FC = () => {
     }
   };
   
-  // Handle match result updates
-  const updateMatchResult = async (matchId: number, winner: string, score: [number, number]) => {
+  const handleCloseTournament = async () => {
     try {
-      await axiosInstance.post("/api/update-match-result/", { match_id: matchId, winner, score });
+      await axiosInstance.post("/api/tournament/close/");
     } catch (error) {
-      console.error("Failed to update match result:", error);
+      console.error("Failed to close tournament:", error);
     }
-  };  
-
-  const handleGameOver = async (matchId: number, winner: string, score: [number, number]) => {
-    try {
-      await axiosInstance.post("/api/update-match-result/", { match_id: matchId, winner, score });
-    } catch (error) {
-      console.error("Failed to update match result:", error);
-    }
-  };  
+  };
 
   const isSignedIn = tournament && tournament.players.includes(username);
+  const isOrganizer = tournament && (tournament.organizer === username);
+
+  const renderFinalResult = () => {
+    if (!tournament || !tournament.final_result) return null;
+    const { type, usernames } = tournament.final_result;
+    if (type === "winner") {
+      return <h2>Winner: {usernames.join(", ")}</h2>;
+    } else if (type === "draw") {
+      return <h2>Draw: {usernames.join(", ")}</h2>;
+    }
+    return null;
+  };
+
   console.log("Tournament data after game:", tournament);
 
   return (
@@ -120,39 +130,54 @@ const TournamentPage: React.FC = () => {
           ) : (
             <>
               <h3>Organizer: {tournament.organizer}</h3>
-              <p>
-                Players ({tournament.players.length}):{" "}
-                {tournament.players.length > 0
-                  ? tournament.players.join(", ")
-                  : "None"}
-              </p>
+              <p>Players ({tournament.players.length}): {tournament.players.join(", ") || "None"}</p>
               {tournament.timer !== null && !tournament.is_started && (
                 <p>Starting in: {tournament.timer}s</p>
               )}
-              {!tournament.is_started ? (
+
+              {}
+              {renderFinalResult()}
+
+              {}
+              {!tournament.is_started && (
                 <button className="glass-button" onClick={toggleSignIn}>
                   {isSignedIn ? "Sign Out" : "Sign In"}
                 </button>
-              ) : (
-<div className="matches-container">
-  <h3>Matches</h3>
-  {tournament.matches.map((match) => (
-    <div key={match.id} className="match-container">
-  <p>
-    {match.players[0]} vs {match.players[1]}
-  </p>
-  <p>Winner: {match.winner || "Undecided"}</p>
-  <p>
-    Score: {match.score[0]} - {match.score[1]}
-  </p>
-  {match.winner === null && (
-    <button className="play-button" onClick={() => handlePlayMatch(match.id)}>
-      Play
-    </button>
-  )}
-</div>
-  ))}
-</div>
+              )}
+
+              {}
+              {tournament.is_started && !tournament.final_result && (
+                <div className="matches-container">
+                  <h3>Matches</h3>
+                  {tournament.matches.map((match) => {
+                    const matchWinner = match.winner || "Undecided";
+                    const canPlay = match.players.includes(username) && !match.winner;
+                    return (
+                      <div key={match.id} className="match-container">
+                        <p>{match.players[0]} vs {match.players[1]}</p>
+                        <p>Winner: {matchWinner}</p>
+                        {}
+                        {canPlay && (
+                          <button
+                            className="play-button"
+                            onClick={() => handlePlayMatch(match.id)}
+                          >
+                            Play
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {}
+              {isOrganizer && (
+                <div style={{ marginTop: "20px" }}>
+                  <button onClick={handleCloseTournament}>
+                    Close Tournament
+                  </button>
+                </div>
               )}
             </>
           )}

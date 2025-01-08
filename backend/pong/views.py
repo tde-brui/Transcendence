@@ -109,19 +109,42 @@ def assign_game(request):
         return Response({"error": "Match not found"}, status=400)
 
     if "game_id" not in match:
-        match["game_id"] = f"game_{match_id}"
+        result = manager.assign_game_to_match(match_id)
+        if "error" in result:
+            return Response({"error": result["error"]}, status=400)
+        game_id = result["game_id"]
+    else:
+        game_id = match["game_id"]
 
     manager.broadcast_update()
 
-    return Response({"message": "Game assigned", "game_id": match["game_id"], "match_id": match_id})
+    return Response({
+        "message": "Game assigned",
+        "game_id": game_id,
+        "match_id": match_id
+    })
 
 @api_view(['POST'])
 def update_match_result(request):
     match_id = request.data.get("match_id")
     winner = request.data.get("winner")
-    score = request.data.get("score")
+
     manager = TournamentManager.get_instance()
-    result = manager.update_match_result(match_id, winner, score)
+    result = manager.update_match_result(match_id, winner)
     if "error" in result:
         return Response({"error": result["error"]}, status=400)
+    return Response(result)
+
+@api_view(["POST"])
+def close_tournament(request):
+    manager = TournamentManager.get_instance()
+    tournament = manager.get_tournament()
+
+    if not tournament:
+        return Response({"error": "No active tournament"}, status=400)
+
+    if tournament["organizer"] != request.user.username:
+        return Response({"error": "Only the organizer can close the tournament"}, status=403)
+
+    result = manager.close_tournament()
     return Response(result)

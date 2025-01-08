@@ -1,8 +1,10 @@
 import itertools
 import threading
 import time
+import uuid
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+import asyncio
 
 class TournamentManager:
     _instance = None
@@ -25,6 +27,9 @@ class TournamentManager:
             self.lock = threading.Lock()
             self.initialized = True
 
+    def _generate_game_id(self) -> str:
+        return f"game_{uuid.uuid4().hex[:12]}"
+
     def create_tournament(self, organizer):
         with self.lock:
             if self.tournament:
@@ -35,9 +40,10 @@ class TournamentManager:
                 "timer": 30,
                 "is_started": False,
                 "matches": [],
+                "final_result": None,
             }
-            self.broadcast_update()
-            self.start_timer()
+            async_to_sync(self._broadcast_update_async)()
+            self._start_timer_in_thread()
         return self.tournament
 
     def sign_in_player(self, username):
@@ -47,7 +53,7 @@ class TournamentManager:
             if username in self.tournament["players"]:
                 return {"error": "Player already signed in"}
             self.tournament["players"].append(username)
-            self.broadcast_update()
+            async_to_sync(self._broadcast_update_async)()
         return self.tournament
 
     def unsign_player(self, username):
@@ -57,10 +63,10 @@ class TournamentManager:
             if username not in self.tournament["players"]:
                 return {"error": "Player not signed in"}
             self.tournament["players"].remove(username)
-            self.broadcast_update()
+            async_to_sync(self._broadcast_update_async)()
         return self.tournament
 
-    def start_timer(self):
+    def _start_timer_in_thread(self):
         def countdown():
             while True:
                 time.sleep(1)
@@ -68,33 +74,29 @@ class TournamentManager:
                     if not self.tournament:
                         break
                     self.tournament["timer"] -= 1
-                    self.broadcast_update()
+                    async_to_sync(self._broadcast_update_async)()
                     if self.tournament["timer"] <= 0:
                         if len(self.tournament["players"]) < 2:
                             self.tournament = None
                         else:
-                            self.start_tournament()
-                        self.broadcast_update()
+                            self._start_tournament_locked()
+                        async_to_sync(self._broadcast_update_async)()
                         break
 
         self.timer_thread = threading.Thread(target=countdown, daemon=True)
         self.timer_thread.start()
 
-    def start_tournament(self):
+    def _start_tournament_locked(self):
         self.tournament["is_started"] = True
         players = self.tournament["players"]
         matches = []
         for i, pair in enumerate(itertools.combinations(players, 2)):
-            matches.append({"id": i, "players": list(pair), "winner": None, "score": [0, 0]})
+            matches.append({
+                "id": i,
+                "players": list(pair),
+                "winner": None,
+            })
         self.tournament["matches"] = matches
-        self.broadcast_update()
-
-    def broadcast_update(self):
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            "tournament_updates",
-            {"type": "tournament_update", "message": self.tournament or {}},
-        )
 
     def get_tournament(self):
         with self.lock:
@@ -109,18 +111,75 @@ class TournamentManager:
                 return {"error": "Match not found"}
             if "game_id" in match:
                 return {"error": "Match already has an assigned game"}
-            match["game_id"] = f"game_{match_id}"
-            self.broadcast_update()
-        return match
 
-    def update_match_result(self, match_id, winner, score):
+            match["game_id"] = self._generate_game_id()
+            async_to_sync(self._broadcast_update_async)()
+            return match
+
+    def _all_matches_completed(self):
+        if not self.tournament or not self.tournament.get("matches"):
+            return False
+        for m in self.tournament["matches"]:
+            if m["winner"] is None:
+                return False
+        return True
+
+    def _compute_final_result(self):
+        win_count = {}
+        for m in self.tournament["matches"]:
+            w = m["winner"]
+            if w:
+                win_count[w] = win_count.get(w, 0) + 1
+
+        if not win_count:
+            return None
+
+        max_wins = max(win_count.values())
+        winners = [p for p, cnt in win_count.items() if cnt == max_wins]
+
+        if len(winners) == 1:
+            return {"type": "winner", "usernames": winners}
+        else:
+            return {"type": "draw", "usernames": winners}
+
+    def close_tournament(self):
+        with self.lock:
+            self.tournament = None
+            async_to_sync(self._broadcast_update_async)()
+        return {"message": "Tournament closed"}
+
+    async def update_match_result_by_game_id_async(self, game_id, winner):
         with self.lock:
             if not self.tournament:
                 return {"error": "No active tournament"}
-            match = next((m for m in self.tournament["matches"] if m["id"] == match_id), None)
+            match = next((m for m in self.tournament["matches"] if m.get("game_id") == game_id), None)
             if not match:
-                return {"error": "Match not found"}
+                return {"error": "Match not found for game_id"}
             match["winner"] = winner
-            match["score"] = score
-            self.broadcast_update()
-        return match
+
+            if self._all_matches_completed():
+                final_result = self._compute_final_result()
+                self.tournament["final_result"] = final_result
+
+        await self._broadcast_update_async()
+        return {"success": True, "match": match}
+
+    async def _broadcast_update_async(self):
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            "tournament_updates",
+            {
+                "type": "tournament_update",
+                "message": self.tournament or {},
+            },
+        )
+
+    def broadcast_update(self):
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "tournament_updates",
+            {
+                "type": "tournament_update",
+                "message": self.tournament or {},
+            },
+        )

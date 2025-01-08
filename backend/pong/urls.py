@@ -9,4 +9,5 @@ urlpatterns = [
     path("api/match/play/", views.play_match, name="play_match"),
     path('api/user/me/', views.get_username, name='get_username'),
     path('api/assign-game/', views.assign_game, name='assign_game'),
+    path('api/tournament/close/', views.close_tournament, name='close_tournament'),
 ]
