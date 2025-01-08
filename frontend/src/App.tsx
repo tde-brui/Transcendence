@@ -14,6 +14,7 @@ import UserProfileWrapper from "./components/users/UserProfileWrapper";
 import CallBack from "./pages/CallBack";
 import UsersPage from "./pages/UsersPage";
 import NavBar from "./components/NavBar";
+import FriendsPage from "./pages/FriendsPage";
 import SpinningLogo from "./components/SpinningLogo";
 import GameMainPage from "./pages/GameMainPage";
 import RemoteLobbyList from "./components/game/RemoteLobbyList";
@@ -56,6 +57,7 @@ function App() {
             <Route path="/users/edit" element={<ChangeDetailsWrapper />} />
           	<Route path="/users/:username" element={<UserProfileWrapper />} />
 		  	<Route path="/chat" element={<ChatPage userId={userId} />} />
+			<Route path="/friends" element={<FriendsPage />} />
 		  <Route path="/play" element={<GameMainPage />} />
 		  <Route path="/play/remote" element={<RemoteLobbyList />} />
 		  <Route path="/play/remote/:lobbyId" element={<RemotePongCanvas />} />

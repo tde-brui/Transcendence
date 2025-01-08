@@ -3,9 +3,11 @@
 // src/api.ts
 
 export type MatchHistory = {
-	opponentId: number;
-	date: string;
+	id: number;
+	opponent: number;
+	opponent_username: string;
 	result: string;
+	date_played: string;
   };
   
   export type User = {
