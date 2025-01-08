@@ -281,7 +281,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
         <div className="sidebar-container">
           <div className="card mb-3 profile-card sidebar-card">
             <div className="sidebar-header">
-              <h3 className="text-white">Online Users</h3>
+              <h4 className="profile-title text-white">Online Users</h4>
             </div>
             <div className="card-body profile-body sidebar-body-scroll">
               <OnlineUsers
@@ -306,7 +306,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
         {/* Main Chat Area */}
         <div className="main-chat-container ms-4">
           <div className="main-chat-header">
-            <h1 className="text-white">Chat</h1>
+            <h4 className="profile-title text-white">Chat</h4>
           </div>
           <div className="card main-chat-card">
             <div className="main-chat-messages">
@@ -317,7 +317,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
             </div>
           </div>
         </div>
-		</div>
+        </div>
     </>
   );
 }

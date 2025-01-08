@@ -8,6 +8,7 @@ import {
   declineFriendRequest,
   getFriendRequests,
   removeFriend,
+  cancelFriendRequest,
 } from "../components/friends/friendRequestApi";
 
 interface FriendRequest {
@@ -30,6 +31,8 @@ const FriendPage: React.FC = () => {
 	const [currentUser, setCurrentUser] = useState<User | null>(null);
 	const [currentUserFriends, setCurrentUserFriends] = useState<number[]>([]);
 	const [users, setUsers] = useState<Record<number, User>>({});
+	const [avatarUsers, setAvatarUsers] = useState<User[]>([]);
+	const [avatars, setAvatars] = useState<Record<number, string>>({});
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
   
@@ -70,12 +73,55 @@ const FriendPage: React.FC = () => {
 		  console.error("Failed to load users.", err);
 		}
 	  };
+
+	  const fetchAvatarUsers = async () => {
+		try {
+		  const response = await axiosInstance.get<User[]>("/users/");
+		  setAvatarUsers(response.data);
+		} catch (err) {
+		  setError("Failed to load users.");
+		  console.error(err);
+		} finally {
+		  setLoading(false);
+		}
+	  };
   
 	  fetchCurrentUserId();
 	  fetchFriendRequests();
 	  fetchUsers();
+	  fetchAvatarUsers();
 	}, []);
 
+	useEffect(() => {
+		const fetchAvatars = async () => {
+		  const avatarPromises = avatarUsers.map(async (user) => {
+			if (!user.avatar) return;
+	
+			try {
+			  const response = await fetch(`http://localhost:8000${user.avatar}`);
+			  if (!response.ok) {
+				throw new Error(`Failed to fetch avatar for user ${user.id}`);
+			  }
+			  const avatarData = await response.blob();
+			  const avatarUrl = URL.createObjectURL(avatarData);
+	
+			  setAvatars((prevAvatars) => ({
+				...prevAvatars,
+				[user.id]: avatarUrl,
+			  }));
+			} catch (err) {
+			  console.error(`Error fetching avatar for user ${user.id}:`, err);
+			}
+		  });
+	
+		  await Promise.all(avatarPromises);
+		};
+	
+		if (avatarUsers.length > 0) {
+		  fetchAvatars();
+		}
+	  }, [users]);
+	
 	useEffect(() => {
 		if (currentUserId) {
 		  const fetchCurrentUser = async () => {
@@ -110,6 +156,7 @@ const FriendPage: React.FC = () => {
 	  } catch (err) {
 		console.error("Failed to accept friend request.", err);
 	  }
+	  refreshFriends();
 	};
   
 	const handleDecline = async (requestId: number) => {
@@ -125,7 +172,7 @@ const FriendPage: React.FC = () => {
   
 	const handleCancel = async (requestId: number) => {
 	  try {
-		await declineFriendRequest(requestId);
+		await cancelFriendRequest(requestId);
 		setFriendRequests((prevRequests) =>
 		  prevRequests.filter((request) => request.id !== requestId)
 		);
@@ -143,7 +190,18 @@ const FriendPage: React.FC = () => {
 	  } catch (err) {
 		console.error("Failed to remove friend.", err);
 	  }
+	  refreshFriends();
 	};
+
+	const refreshFriends = async () => {
+		try {
+		  const response = await axiosInstance.get<User>(`/users/${currentUserId}/`);
+		  setCurrentUser(response.data);
+		} catch (err) {
+		  console.error("Failed to refresh friends.", err);
+		}
+	  };
+
   
 	if (loading) {
 	  return <SpinningLogo />;
@@ -170,38 +228,45 @@ const FriendPage: React.FC = () => {
 			<h4 className="profile-title text-white">Friends</h4>
 		  </div>
 		  <div className="card-body profile-body">
-			<h5>Friends</h5>
-			<ul className="d-flex flex-column align-items-center justify-content-center">
+		  <h5>{friendsList.length} {friendsList.length === 1 ? 'Friend' : 'Friends'}</h5>
+
+			<ul className="d-flex flex-column align-items-center justify-content-center friends-list">
 			  {friendsList.length > 0 ? (
 				friendsList.map((user) => (
-				  <li
+				  <Link to={`/users/${user.username}`}
 					key={user.id}
-					className="d-flex mt-2 users-list-body align-items-center justify-content-between"
+					className="d-flex mt-2 users-list-body align-items-center justify-content-between link-item"
 				  >
 					<div className="d-flex align-items-center">
 					  <img
-						src={user.avatar}
+						src={avatars[user.id] || "/images/default_avatar.jpg"}
 						alt="User Avatar"
-						className="avatar me-2"
+						className="users-avatar"
 					  />
-					  <Link to={`/users/${user.id}`}>{user.username}</Link>
+					   <div className="d-flex flex-column align-items-start ms-3">
+                        <strong>{user.firstName}</strong>@{user.username}
+                        <br />
+                      </div>
 					</div>
 					<div>
 					  <button
 						className="btn btn-danger"
-						onClick={() => handleRemoveFriend(user.id)}
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							handleRemoveFriend(user.id)}}
 					  >
 						Remove friend
 					  </button>
 					</div>
-				  </li>
+				  </Link>
 				))
 			  ) : (
-				<li className="text-center">You currently don't have any friends. Visit the users page to search for them!</li>
+				<li className="text-center">You currently don't have any friends. Visit the <Link to="/users">users page</Link> to search for them!</li>
 			  )}
 			</ul>
 		  </div>
-		  <div className="card-footer profile-footer">
+		  <div className="card-footer profile-footer friends-list-requests">
 			<h6>Incoming Requests</h6>
 			<ul className="d-flex flex-column align-items-center justify-content-center">
 			  {incomingRequests.length > 0 ? (
@@ -217,7 +282,7 @@ const FriendPage: React.FC = () => {
 					  </div>
 					  <div className="d-flex ms-3">
 						<button
-						  className="btn btn-success me-2"
+						  className="btn btn-primary me-2"
 						  onClick={() => handleAccept(request.id)}
 						>
 						  Accept
@@ -237,7 +302,7 @@ const FriendPage: React.FC = () => {
 			  )}
 			</ul>
   
-			<h6 className="mt-4">Sent Requests</h6>
+			<h6 className="mt-4 friends-list-outgoing-container">Sent Requests</h6>
 			<ul className="d-flex flex-column align-items-center justify-content-center">
 			  {sentRequests.length > 0 ? (
 				sentRequests.map((request) => {
