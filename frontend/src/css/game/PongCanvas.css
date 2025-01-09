@@ -15,17 +15,6 @@
 	overflow: hidden;
 }
 
-.countdown {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	color: lightgreen;
-	text-align: center;
-	font-size: 48px;
-	z-index: 10;
-  }
-  
 .paddle-a,
 .paddle-b {
 	position: absolute;
@@ -140,6 +129,44 @@
 	font-size: 16px; /* Adjust font size as desired */
 	z-index: 10; /* Ensure it appears above other elements */
 }
+
+.countdown {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: white;
+	text-align: center;
+	font-size: 50px;
+	font-weight: bold;
+	z-index: 10;
+	text-shadow: 0px 0px 15px rgba(255, 255, 255, 0.8), 0px 0px 30px rgba(255, 255, 255, 0.5);
+	animation: pulse 1s infinite;
+	padding: 1.4rem;
+	background: radial-gradient(
+	  780px at 37.8% 100.3%,
+	  rgb(19, 55, 115) 2.2%,
+	  rgb(32, 7, 80) 20.2%,
+	  rgb(27, 88, 111) 58.6%,
+	  rgb(115, 88, 44) 75%,
+	  rgb(99, 19, 90) 89.6%,
+	  rgb(12, 51, 76) 96.1%
+	);
+	border-radius: 20px;
+	box-shadow: 0px 5px 20px rgba(19, 55, 115, 0.6);
+  }
+  
+  @keyframes pulse {
+	0% {
+	  transform: translate(-50%, -50%) scale(1);
+	}
+	50% {
+	  transform: translate(-50%, -50%) scale(1.1);
+	}
+	100% {
+	  transform: translate(-50%, -50%) scale(1);
+	}
+  }
   
 /* Responsive */
 @media (max-width: 960px) {

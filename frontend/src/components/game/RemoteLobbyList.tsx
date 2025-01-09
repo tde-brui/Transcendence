@@ -54,15 +54,20 @@ const RemoteLobbyList: React.FC = () => {
 		<div className="card-header profile-header text-center">
       	<h1 className="profile-title text-white">Available Lobbies</h1>
 		</div>
-      <div className="card-body profile-body">
-        <p> You are playing with username: {username} </p>
+		<div className="card-body profile-body">
+      <div className='mb-3'>
+        <h4 className='mb-3'>Create or join a new lobby:</h4>
+        <Link to={`game_${Math.floor(Math.random() * 1000)}?key=${encodeURIComponent(username)}`}>
+          <button className="reset-button btn btn-primary" disabled={!username}>Create Random Lobby</button>
+        </Link>
       </div>
-
+      
+		<div className='scrollable-content2'>
       {lobbies.map(lobby => {
         const isFull = lobby.players_count >= 2;
         return (
           <div key={lobby.game_id} style={{ margin: '20px', border: '1px solid white', padding: '10px' }}>
-            <h2>{lobby.game_id}</h2>
+            <h4><strong>{lobby.game_id.toUpperCase()}</strong></h4>
             <p>Players: {Object.values(lobby.players).length > 0 ? Object.values(lobby.players).join(', ') : 'No players yet'}</p>
             {!isFull ? (
               <Link to={`${lobby.game_id}?key=${encodeURIComponent(username)}`}>
@@ -74,14 +79,14 @@ const RemoteLobbyList: React.FC = () => {
           </div>
         );
       })}
+	  </div>
+	  </div>
+	  <div>
+		{lobbies.length === 0 && <p>No lobbies available</p>}
+		{lobbies.length >= 4 && <p>Scroll down to see more lobbies</p>}
+	  </div>
 
-      <div className='mb-3'>
-        <h3>Create or join a new lobby:</h3>
-        <Link to={`game_${Math.floor(Math.random() * 1000)}?key=${encodeURIComponent(username)}`}>
-          <button className="reset-button btn btn-primary" disabled={!username}>Create Random Lobby</button>
-        </Link>
-      </div>
-	  <div className='profile-footer'>
+	  <div className="card-footer profile-footer">
 	  		<Link to="/play" style={{ marginLeft: '10px' }}> Play local</Link>
 	  </div>
     </div>

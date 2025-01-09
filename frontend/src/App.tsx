@@ -3,7 +3,6 @@ import "./App.css";
 import LoginPage from "./pages/LoginPage";
 import LandingPage from "./pages/LandingPage";
 import Home from "./pages/HomePage";
-import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { useAuth } from "./components/utils/AuthContext";
 import NotFoundPage from "./error_pages/404NotFound";
@@ -13,7 +12,6 @@ import ChatPage from "./pages/ChatPage";
 import UserProfileWrapper from "./components/users/UserProfileWrapper";
 import CallBack from "./pages/CallBack";
 import UsersPage from "./pages/UsersPage";
-import NavBar from "./components/NavBar";
 import FriendsPage from "./pages/FriendsPage";
 import SpinningLogo from "./components/SpinningLogo";
 import GameMainPage from "./pages/GameMainPage";
@@ -28,9 +26,7 @@ function App() {
   const { isAuthChecked } = useAuth();
 
   return (
-    // <div className="App" style={{ backgroundImage: 'url(./BG.jpg)'}}>
     <div className="App">
-	{/* <NavBar username="exampleUser" /> */}
       <Router>
         <Routes>
           <Route path="/hello" element={<LandingPage />} />
@@ -53,17 +49,20 @@ function App() {
             path="/"
             element={<Home userId={userId} isAuthChecked={isAuthChecked} />}
           />
-          <Route element={<ProtectedRoute userId={userId}/>} >
-          	<Route path="/users" element={<UsersPage />} />
+          <Route element={<ProtectedRoute userId={userId} />}>
+            <Route path="/users" element={<UsersPage />} />
             <Route path="/users/edit" element={<ChangeDetailsWrapper />} />
-          	<Route path="/users/:username" element={<UserProfileWrapper />} />
-		  	<Route path="/chat" element={<ChatPage userId={userId} />} />
-			<Route path="/friends" element={<FriendsPage />} />
-		  <Route path="/play" element={<GameMainPage />} />
-		  <Route path="/play/remote" element={<RemoteLobbyList />} />
-		  <Route path="/play/remote/:lobbyId" element={<RemotePongCanvas />} />
-		  <Route path="/play/local" element={<LocalPongCanvas />} />
-      	<Route path="/play/tournaments" element={<TournamentPage />} />
+            <Route path="/users/:username" element={<UserProfileWrapper />} />
+            <Route path="/chat" element={<ChatPage userId={userId} />} />
+            <Route path="/friends" element={<FriendsPage />} />
+            <Route path="/play" element={<GameMainPage />} />
+            <Route path="/play/remote" element={<RemoteLobbyList />} />
+            <Route
+              path="/play/remote/:lobbyId"
+              element={<RemotePongCanvas />}
+            />
+            <Route path="/play/local" element={<LocalPongCanvas />} />
+            <Route path="/play/tournaments" element={<TournamentPage />} />
           </Route>
         </Routes>
       </Router>
