@@ -92,15 +92,14 @@ const FriendPage: React.FC = () => {
     fetchUsers();
     fetchAvatarUsers();
 
-	const interval = setInterval(() => {
-		refreshFriendRequests();
-		refreshUsers();
-		refreshFriends();
-	  }, 5000);
-	
-	  // Clear interval on component unmount
-	  return () => clearInterval(interval);
-  
+    const interval = setInterval(() => {
+      refreshFriendRequests();
+      refreshUsers();
+      refreshFriends();
+    }, 5000);
+
+    // Clear interval on component unmount
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

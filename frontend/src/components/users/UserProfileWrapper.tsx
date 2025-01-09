@@ -44,7 +44,6 @@ const UserProfileWrapper = () => {
         try {
           const id = await getUsername(username);
           if (id !== null) {
-
             setTimeout(() => setUserId(Number(id)), 100);
           } else {
             setTimeout(() => setUserId(null), 200);
@@ -68,7 +67,7 @@ const UserProfileWrapper = () => {
   }
 
   if (!userId) {
-	return <SpinningLogo />;
+    return <SpinningLogo />;
   }
 
   return <UserProfile userId={userId} />;

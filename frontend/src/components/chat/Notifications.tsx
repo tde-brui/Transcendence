@@ -1,6 +1,6 @@
 // src/components/Notifications.tsx
 
-import React from 'react';
+import React from "react";
 
 interface NotificationItem {
   id: string;
@@ -13,12 +13,14 @@ interface NotificationsProps {
 
 const Notifications: React.FC<NotificationsProps> = ({ notifications }) => {
   return (
-    <div className='notification-container'>
+    <div className="notification-container">
       {notifications.map((note) => (
-        <div className='notification' key={note.id}>{note.message}</div>
+        <div className="notification" key={note.id}>
+          {note.message}
+        </div>
       ))}
     </div>
   );
-}
+};
 
 export default Notifications;

@@ -6,14 +6,13 @@ import axiosInstance from "./AxiosInstance";
 import SpinningLogo from "../SpinningLogo";
 
 type ProtectedRouteProps = {
-	userId: number;
+  userId: number;
 };
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({userId}) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ userId }) => {
   const { isAuthenticated } = useAuth();
 
   const [user, setUser] = useState<string | null>(null);
-
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,11 +27,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({userId}) => {
     fetchUser();
   }, [userId]);
 
-  if(!user) return <SpinningLogo />;
+  if (!user) return <SpinningLogo />;
 
   return isAuthenticated ? (
     <>
-      <NavBar username={user}/>
+      <NavBar username={user} />
       <Outlet />
     </>
   ) : (

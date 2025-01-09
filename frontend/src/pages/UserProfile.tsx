@@ -52,11 +52,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
 
     fetchUser();
 
-	const interval = setInterval(() => {
-	  refreshUser();
-	}
-	, 5000);
-	return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      refreshUser();
+    }, 5000);
+    return () => clearInterval(interval);
   }, [userId]);
 
   useEffect(() => {
@@ -88,7 +87,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     };
   }, [user]);
 
-
   useEffect(() => {
     const fetchMatchHistory = async () => {
       try {
@@ -106,14 +104,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   }, [userId]);
 
   const refreshUser = async () => {
-	try {
-	  const response = await axiosInstance.get(`/users/${userId}/`);
-	  if (response.status === 200 && response.data) setUser(response.data);
-	} catch (error) {
-	  setError((error as Error).message);
-	}
-	  };
-
+    try {
+      const response = await axiosInstance.get(`/users/${userId}/`);
+      if (response.status === 200 && response.data) setUser(response.data);
+    } catch (error) {
+      setError((error as Error).message);
+    }
+  };
 
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!user) return <SpinningLogo />;
@@ -148,21 +145,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
         <div className="card-body profile-body">
           <h4 className="profile-title">{user.firstName}</h4>
           <p className="profile-username mb-1">@{user.username}</p>
-            <div className="list-group-item">
-              {" "}
-              <span
-                className={`status ${user.onlineStatus ? "true" : "false"}`}
-              >
-                {user.onlineStatus ? "Online" : "Offline"}
-              </span>
-            </div>
+          <div className="list-group-item">
+            {" "}
+            <span className={`status ${user.onlineStatus ? "true" : "false"}`}>
+              {user.onlineStatus ? "Online" : "Offline"}
+            </span>
+          </div>
           <div className="list-group profile-info">
             <div className="list-group-item">
               <strong>Email:</strong> {user.email}
             </div>
 
             <div className="list-group-item">
-              <strong>Friends:</strong> {user.friends.length} {user.friends.length === 1 ? 'Friend' : 'Friends'}
+              <strong>Friends:</strong> {user.friends.length}{" "}
+              {user.friends.length === 1 ? "Friend" : "Friends"}
             </div>
           </div>
         </div>

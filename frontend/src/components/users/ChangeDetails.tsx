@@ -78,15 +78,24 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (formErrors.username || formErrors.email || !formData.username || !formData.email) {
+    if (
+      formErrors.username ||
+      formErrors.email ||
+      !formData.username ||
+      !formData.email
+    ) {
       console.log("Please fix the errors before submitting.");
       return;
     }
 
     try {
-      const response = await axiosInstance.patch(`/users/${userId}/`, formData, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await axiosInstance.patch(
+        `/users/${userId}/`,
+        formData,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       if (response.status === 200) {
         navigate(`/users/${formData.username}`);
       }
@@ -118,7 +127,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
           <div className="popup-content">
             <ChangePassword
               userId={userId}
-			  username={username}
+              username={username}
               onClose={() => setIsChangingPassword(false)}
             />
           </div>

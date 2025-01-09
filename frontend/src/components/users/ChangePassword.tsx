@@ -8,7 +8,11 @@ interface ChangePasswordProps {
   onClose: () => void;
 }
 
-const ChangePassword: React.FC<ChangePasswordProps> = ({ userId, username, onClose }) => {
+const ChangePassword: React.FC<ChangePasswordProps> = ({
+  userId,
+  username,
+  onClose,
+}) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [formErrors, setFormErrors] = useState({
@@ -43,8 +47,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ userId, username, onClo
     setConfirmPassword(value);
     setFormErrors({
       ...formErrors,
-      confirmPassword:
-        value !== password ? "Passwords do not match." : "",
+      confirmPassword: value !== password ? "Passwords do not match." : "",
     });
   };
 
@@ -86,14 +89,18 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ userId, username, onClo
         {alertMessage && (
           <div
             className={`alert ${
-              alertMessage.includes("success") ? "alert-success" : "alert-danger"
+              alertMessage.includes("success")
+                ? "alert-success"
+                : "alert-danger"
             } text-center`}
           >
             {alertMessage}
           </div>
         )}
         <div className="d-flex flex-column form-group mt-4">
-          <label htmlFor="password" className="form-label">New Password</label>
+          <label htmlFor="password" className="form-label">
+            New Password
+          </label>
           <input
             type="password"
             id="password"
@@ -109,7 +116,9 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ userId, username, onClo
           )}
         </div>
         <div className="d-flex flex-column form-group mt-3">
-          <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+          <label htmlFor="confirmPassword" className="form-label">
+            Confirm Password
+          </label>
           <input
             type="password"
             id="confirmPassword"

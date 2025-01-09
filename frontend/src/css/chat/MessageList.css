@@ -1,16 +1,16 @@
 .list-container {
-    padding: 10px;
-    overflow-y: auto;
-    background-color: #f9f9f9;
-    scroll-behavior: smooth;
-    display: flex;
-    flex-direction: column;
+  padding: 10px;
+  overflow-y: auto;
+  background-color: #f9f9f9;
+  scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column;
 }
 
 .message-list-header {
-	font-size: 1.5rem;
-	margin-bottom: 10px;
-	background: radial-gradient(
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  background: radial-gradient(
     780px at 37.8% 100.3%,
     rgb(19, 55, 115) 2.2%,
     rgb(32, 7, 80) 20.2%,
@@ -26,53 +26,53 @@
 }
 
 .message-item-container {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
 }
 
 .message-bubble {
-    display: inline-block;
-    padding: 10px 15px;
-    border-radius: 20px;
-    max-width: 60%;
-    word-wrap: break-word;
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 20px;
+  max-width: 60%;
+  word-wrap: break-word;
 }
 
 .message-own {
-    background-color: #1a47dc;
-    color: white;
-    align-self: flex-end;
+  background-color: #1a47dc;
+  color: white;
+  align-self: flex-end;
 }
 
 .message-other {
-    background-color: #DCF8C6;
-    color: black;
-    align-self: flex-start;
+  background-color: #dcf8c6;
+  color: black;
+  align-self: flex-start;
 }
 
 .message-dm-other {
-	background-color: #c4c4c4;
-	color: black;
-	align-self: flex-start;
+  background-color: #c4c4c4;
+  color: black;
+  align-self: flex-start;
 }
 
 .message-dm-own {
-	background-color: #bae9ff;
-	color: black;
-	align-self: flex-end;
+  background-color: #bae9ff;
+  color: black;
+  align-self: flex-end;
 }
 
 .sender-own {
-    font-size: 12px;
-    color: #555;
-    margin-top: 5px;
-    align-self: flex-end;
+  font-size: 12px;
+  color: #555;
+  margin-top: 5px;
+  align-self: flex-end;
 }
 
 .sender-other {
-	font-size: 12px;
-	color: #555;
-	margin-top: 5px;
-	align-self: flex-start;
+  font-size: 12px;
+  color: #555;
+  margin-top: 5px;
+  align-self: flex-start;
 }

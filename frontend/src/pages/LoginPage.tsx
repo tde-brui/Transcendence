@@ -13,7 +13,7 @@ type UserProfileProps = {
 };
 
 const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
-    IsLoggedIn(userId, isAuthChecked);
+  IsLoggedIn(userId, isAuthChecked);
   const { login } = useAuth();
   const { setUserId } = useAuth();
   const navigate = useNavigate();

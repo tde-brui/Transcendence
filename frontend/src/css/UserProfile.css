@@ -81,12 +81,12 @@
 }
 
 .result.win {
-	color: #28a745;
-  }
+  color: #28a745;
+}
 
 .result.loss {
-	color: #dc3545;
-  }
+  color: #dc3545;
+}
 
 .status-profile {
   text-transform: capitalize;
@@ -215,15 +215,15 @@ ul {
   list-style: none;
 }
 
-.game-body{
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
+.game-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   height: 25vh;
 }
 
-.userpage{
+.userpage {
   height: 40vh;
   overflow-y: auto;
   scroll-behavior: smooth;
@@ -233,7 +233,7 @@ ul {
   height: 8px;
   width: 8px;
   background: #ffffff;
-border-radius: 15px;
+  border-radius: 15px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -270,13 +270,13 @@ border-radius: 15px;
 }
 
 .scrollable-content {
-    max-height: 200px; /* Adjust height as necessary */
-    overflow-y: auto;
+  max-height: 200px; /* Adjust height as necessary */
+  overflow-y: auto;
 }
 
 .scrollable-content2 {
-    max-height: 500px; /* Adjust height as necessary */
-    overflow-y: auto;
+  max-height: 500px; /* Adjust height as necessary */
+  overflow-y: auto;
 }
 
 .link-item {
@@ -297,4 +297,3 @@ border-radius: 15px;
   max-height: 250px;
   overflow-y: auto;
 }
-
