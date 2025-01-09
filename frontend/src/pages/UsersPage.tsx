@@ -16,6 +16,7 @@ interface User {
   username: string;
   avatar: string;
   friends?: number[];
+  onlineStatus: boolean;
 }
 
 interface FriendRequest {
@@ -37,7 +38,9 @@ const UsersPage: React.FC = () => {
   useEffect(() => {
     const fetchCurrentUserId = async () => {
       try {
-        const response = await axiosInstance.get<{ user_id: number }>("/users/me/");
+        const response = await axiosInstance.get<{ user_id: number }>(
+          "/users/me/"
+        );
         setCurrentUserId(response.data.user_id);
       } catch (err) {
         setError("Failed to load current user.");
@@ -72,6 +75,14 @@ const UsersPage: React.FC = () => {
     fetchCurrentUserId();
     fetchUsers();
     fetchFriendRequests();
+
+	const interval = setInterval(() => {
+		refreshFriendRequests();
+		refreshUsers();
+	  }, 10000); // Refresh every 10 seconds
+	
+	  // Clear interval on component unmount
+	  return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -179,6 +190,7 @@ const UsersPage: React.FC = () => {
       console.error("Failed to refresh users.", err);
     }
   };
+  
 
   if (loading) {
     return <SpinningLogo />;
@@ -229,76 +241,83 @@ const UsersPage: React.FC = () => {
 
                 return (
                   <Link
-                  to={`/users/${user.username}`}
-                  className="list-group-item list-group-item-action d-flex mt-2 users-list-body align-items-center justify-content-between link-item"
-                >
-                  <div className="d-flex align-items-center">
-                    <div>
-                      <div className="status-profile online online-profile">ONLINE</div>
-                      <img
-                        src={avatars[user.id] || ""}
-                        alt={`${user.username}'s avatar`}
-                        className="users-avatar mt-2"
-                      />
+                    to={`/users/${user.username}`}
+                    className="list-group-item list-group-item-action d-flex mt-2 users-list-body align-items-center justify-content-between link-item"
+                  >
+                    <div className="d-flex align-items-center">
+                      <div>
+                        <div className="status-profile online online-profile">
+                          <span
+                            className={`status ${
+                              user.onlineStatus ? "true" : "false"
+                            }`}
+                          >
+                            {user.onlineStatus ? "Online" : "Offline"}
+                          </span>
+                        </div>
+                        <img
+                          src={avatars[user.id] || ""}
+                          alt={`${user.username}'s avatar`}
+                          className="users-avatar mt-2"
+                        />
+                      </div>
+                      <div className="d-flex flex-column align-items-start ms-3">
+                        <strong>{user.firstName}</strong>@{user.username}
+                        <br />
+                      </div>
                     </div>
-                    <div className="d-flex flex-column align-items-start ms-3">
-                      <strong>{user.firstName}</strong>@{user.username}
-                      <br />
+                    <div className="d-flex ms-5">
+                      {user.id !== currentUserId && (
+                        <>
+                          {isFriend ? (
+                            <button
+                              className="btn btn-danger ms-2"
+                              onClick={(e) => {
+                                e.preventDefault(); // Prevent the default link behavior
+                                e.stopPropagation(); // Stop the event from bubbling to the Link
+                                handleRemoveFriend(user.id);
+                              }}
+                            >
+                              Remove Friend
+                            </button>
+                          ) : isPending ? (
+                            <button
+                              className="btn btn-secondary ms-2"
+                              disabled
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                            >
+                              Pending...
+                            </button>
+                          ) : isIncoming && requestID ? (
+                            <button
+                              className="btn btn-primary ms-2"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleAcceptFriend(requestID);
+                              }}
+                            >
+                              Accept
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-success ms-2"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleAddFriend(user.id);
+                              }}
+                            >
+                              Add Friend
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
-                  </div>
-                  <div className="d-flex ms-5">
-                    {user.id !== currentUserId && (
-                      <>
-                        {isFriend ? (
-                          <button
-                            className="btn btn-danger ms-2"
-                            onClick={(e) => {
-                              e.preventDefault(); // Prevent the default link behavior
-                              e.stopPropagation(); // Stop the event from bubbling to the Link
-                              handleRemoveFriend(user.id);
-                            }}
-                          >
-                            Remove Friend
-                          </button>
-                        ) : isPending ? (
-                          <button
-                            className="btn btn-secondary ms-2"
-                            disabled
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                          >
-                            Pending...
-                          </button>
-                        ) : isIncoming && requestID ? (
-                          <button
-                            className="btn btn-primary ms-2"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleAcceptFriend(requestID);
-                            }}
-                          >
-                            Accept
-                          </button>
-                        ) : (
-                          <button
-                            className="btn btn-success ms-2"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleAddFriend(user.id);
-                            }}
-                          >
-                            Add Friend
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </Link>
-                
+                  </Link>
                 );
               })}
             </ul>

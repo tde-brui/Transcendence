@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 	'channels',
 	'chat',
 	'pong',
+	'status',
 	'users',
 	'friends',
 	'rest_framework',
@@ -194,3 +195,4 @@ AUTH_USER_MODEL = 'users.PongUser'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 ASGI_APPLICATION = 'backend.asgi.application'
+SESSION_COOKIE_HTTPONLY = True

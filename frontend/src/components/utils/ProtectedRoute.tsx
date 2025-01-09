@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { User } from "./api";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import NavBar from "../NavBar";
@@ -22,7 +21,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({userId}) => {
         const response = await axiosInstance.get(`/users/${userId}`);
         setUser(response.data.username);
       } catch (error) {
-        console.error("Failed to fetch user data", error);
+        // console.error("Failed to fetch user data", error);
       }
     };
 

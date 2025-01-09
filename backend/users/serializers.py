@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = PongUser
-		fields = ['id', 'username', 'email', 'password', 'twoFactorEnabled', 'firstName', 'friends', 'avatar']
+		fields = ['id', 'username', 'email', 'password', 'twoFactorEnabled', 'firstName', 'friends', 'avatar', 'onlineStatus']
 	
 	def validate_username(self, value):
 		# Max length and allowed characters
