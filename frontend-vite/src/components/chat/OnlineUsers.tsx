@@ -1,22 +1,10 @@
 import React from "react";
-import styled from "styled-components";
 import "../../css/chat/OnlineUsers.css";
 import { useNavigate } from "react-router-dom";
 
 interface UsernameProps {
   isCurrent: boolean;
 }
-
-const UserItem = styled.div`
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const Username = styled.span<UsernameProps>`
-  font-weight: ${({ isCurrent }) => (isCurrent ? "bold" : "normal")};
-`;
 
 interface OnlineUsersProps {
   users: string[];
@@ -44,11 +32,16 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
   return (
     <div>
       {users.map((user) => (
-        <UserItem
+        <div 
           key={user}
-          className={`d-flex flex-column mt-3 user-card ${isBlocked(user) ? "blocked-user" : ""}`}
+          className={`d-flex user-item flex-column mt-3 user-card ${isBlocked(user) ? "blocked-user" : ""}`}
         >
-          <Username isCurrent={user === currentUser}>{user}</Username>
+         <span
+  className={`font-weight-${user === currentUser ? "bold" : "normal"}`}
+>
+  {user}
+</span>
+
           {user !== currentUser && (
             <div className="d-flex mt-2 user-card-item">
               <button
@@ -98,7 +91,7 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
               )}
             </div>
           )}
-        </UserItem>
+        </div>
       ))}
     </div>
   );

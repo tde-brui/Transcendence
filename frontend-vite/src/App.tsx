@@ -63,7 +63,7 @@ function App() {
 		  <Route path="/play/remote" element={<RemoteLobbyList />} />
 		  <Route path="/play/remote/:lobbyId" element={<RemotePongCanvas />} />
 		  <Route path="/play/local" element={<LocalPongCanvas />} />
-      <Route path="/play/tournaments" element={<TournamentPage />} />
+      	<Route path="/play/tournaments" element={<TournamentPage />} />
           </Route>
         </Routes>
       </Router>

@@ -1,14 +1,7 @@
 // src/components/MessageInput.tsx
 
 import React, { useState, FormEvent, ChangeEvent } from 'react';
-import styled from 'styled-components';
 import '../../css/chat/MessageInput.css';
-
-const InputContainer = styled.form`
-  display: flex;
-  padding: 10px;
-  border-top: 1px solid #ddd;
-`;
 
 interface MessageInputProps {
   sendMessage: (message: string) => void;
@@ -35,7 +28,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ sendMessage }) => {
   };
 
   return (
-    <InputContainer onSubmit={handleSubmit}>
+    <form className='input-container' onSubmit={handleSubmit}>
       <input className='message-input'
         type="text"
         placeholder="Type your message..."
@@ -46,7 +39,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ sendMessage }) => {
       />
       <small>{charCount}/200</small>
       <button className="btn btn-primary send-button" type="submit">Send</button>
-    </InputContainer>
+    </form>
   );
 }
 
