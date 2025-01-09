@@ -16,7 +16,7 @@ export type MatchHistory = {
 	email: string;
 	firstName: string;
 	avatar?: string;
-	onlineStatus: string;
+	onlineStatus: boolean;
 	friends: number[];
 	matchHistory: MatchHistory[];
 	twoFactorEnabled: boolean;
