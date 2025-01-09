@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 	'channels',
 	'chat',
 	'pong',
+	'status',
 	'users',
 	'friends',
 	'rest_framework',

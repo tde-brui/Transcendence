@@ -1,7 +1,7 @@
 import os
 import django
 import chat.routing
-
+import status.routing
 import pong.routing
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
@@ -14,7 +14,7 @@ application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            chat.routing.websocket_urlpatterns + pong.routing.websocket_urlpatterns
+            chat.routing.websocket_urlpatterns + pong.routing.websocket_urlpatterns + status.routing.websocket_urlpatterns
         ),
     ),
 })
