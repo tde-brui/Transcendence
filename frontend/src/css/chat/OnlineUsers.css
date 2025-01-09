@@ -9,3 +9,10 @@ background-color: #f1f1f1;
 .user-card-item{
 	padding: 0;
 }
+
+.actions-button {
+    margin-left: 5px;
+    padding: 5px;
+    font-size: 12px;
+    cursor: pointer;
+  }

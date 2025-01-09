@@ -23,8 +23,18 @@ const SpinningLogo: React.FC = () => {
                 <div className="card-header profile-header text-center">
                     <h4 className="profile-title text-white">Loading... </h4>
                 </div>
-                <div className="card-body profile-body">
-                    <div className="spinner"></div>
+                <div className="card-body profile-body d-flex justify-content-center main-con">
+                    {/* <div className="spinner"></div> */}
+                    {/* <div className="loader"></div> */}
+                    {/* <div className="ping"></div> */}
+                    <section className="dots-container">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                    </section>
+
                 </div>
             </div>
         </div>
