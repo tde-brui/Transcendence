@@ -76,12 +76,12 @@ const UsersPage: React.FC = () => {
     fetchUsers();
     fetchFriendRequests();
 
-	const interval = setInterval(() => {
-		refreshFriendRequests();
-		refreshUsers();
-	  }, 5000);
-	
-	  return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      refreshFriendRequests();
+      refreshUsers();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -189,7 +189,6 @@ const UsersPage: React.FC = () => {
       console.error("Failed to refresh users.", err);
     }
   };
-  
 
   if (loading) {
     return <SpinningLogo />;

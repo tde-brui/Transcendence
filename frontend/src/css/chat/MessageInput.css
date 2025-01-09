@@ -1,5 +1,5 @@
 .send-button {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 80px;
@@ -22,5 +22,4 @@
 .message-input:focus {
   outline: none;
   border-color: #686868;
-  
 }

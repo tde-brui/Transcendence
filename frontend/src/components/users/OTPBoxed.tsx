@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState,  useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import axiosInstance from "../utils/AxiosInstance";
 import { useAuth } from "../utils/AuthContext";
 
@@ -47,14 +46,13 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
   const handleResendCode = async () => {
     try {
       const response = await axiosInstance.get(`/users/resend_otp/`);
-	  if(response.status === 202)
-	  {
-     	setAlertMessage("A new OTP has been sent!");
-	    setAlertType("success");
-	  }
+      if (response.status === 202) {
+        setAlertMessage("A new OTP has been sent!");
+        setAlertType("success");
+      }
     } catch (err) {
       setAlertMessage("Error resending OTP. Please try again later.");
-	  setAlertType("error");
+      setAlertType("error");
     }
   };
 

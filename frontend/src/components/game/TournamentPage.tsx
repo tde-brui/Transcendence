@@ -10,7 +10,7 @@ interface Match {
   players: string[];
   winner: string | null;
   game_id?: string;
-  in_progress?: boolean;  // If your backend sets this when someone joins
+  in_progress?: boolean; // If your backend sets this when someone joins
   connected_count?: number;
 }
 
@@ -21,8 +21,9 @@ interface FinalResult {
 
 interface Tournament {
   organizer: string;
-  players: string[];          // List of user *identifiers* (ex: real usernames)
-  display_names?: {           // If storing display names in the tournament
+  players: string[]; // List of user *identifiers* (ex: real usernames)
+  display_names?: {
+    // If storing display names in the tournament
     [username: string]: string;
   };
   timer: number | null;
@@ -82,7 +83,7 @@ const TournamentPage: React.FC = () => {
     if (!tournament) return;
 
     const isSignedIn = tournament.players.includes(username);
-    
+
     // If user is not signed in, we require a displayName
     if (!isSignedIn) {
       if (!displayName.trim()) {
@@ -90,7 +91,9 @@ const TournamentPage: React.FC = () => {
         return;
       }
       try {
-        await axiosInstance.post("/api/tournament/sign-in/", { display_name: displayName });
+        await axiosInstance.post("/api/tournament/sign-in/", {
+          display_name: displayName,
+        });
         // Clear local input (optional)
         setDisplayName("");
       } catch (error) {
@@ -109,7 +112,9 @@ const TournamentPage: React.FC = () => {
   const handlePlayMatch = async (matchId: number) => {
     try {
       // Hit your "assign-game" endpoint or "play-match" endpoint
-      const response = await axiosInstance.post("/api/assign-game/", { match_id: matchId });
+      const response = await axiosInstance.post("/api/assign-game/", {
+        match_id: matchId,
+      });
       const { game_id } = response.data;
       window.location.href = `/play/remote/${game_id}?key=${username}`;
     } catch (error) {
@@ -126,7 +131,7 @@ const TournamentPage: React.FC = () => {
   };
 
   const isSignedIn = tournament && tournament.players.includes(username);
-  const isOrganizer = tournament && (tournament.organizer === username);
+  const isOrganizer = tournament && tournament.organizer === username;
 
   const renderFinalResult = () => {
     if (!tournament || !tournament.final_result) return null;
@@ -134,14 +139,14 @@ const TournamentPage: React.FC = () => {
     const displayUsernames = usernames.map(
       (uname) => tournament.display_names?.[uname] || uname
     );
-  
+
     if (type === "winner") {
       return <h2>Winner: {displayUsernames.join(", ")}</h2>;
     } else if (type === "draw") {
       return <h2>Draw: {displayUsernames.join(", ")}</h2>;
     }
     return null;
-  };  
+  };
 
   return (
     <div className="container d-flex flex-column align-items-center justify-content-center">
@@ -164,7 +169,11 @@ const TournamentPage: React.FC = () => {
           ) : (
             <>
               {/* Basic Info */}
-              <h3><strong>Tournament organized by: </strong>{tournament.display_names?.[tournament.organizer] || tournament.organizer} </h3>
+              <h3>
+                <strong>Tournament organized by: </strong>
+                {tournament.display_names?.[tournament.organizer] ||
+                  tournament.organizer}{" "}
+              </h3>
               <p>
                 Players ({tournament.players.length}):{" "}
                 {tournament.players
@@ -185,7 +194,7 @@ const TournamentPage: React.FC = () => {
                     <input
                       type="text"
                       placeholder="Enter unique display name"
-					  className="form-control input-display-name"
+                      className="form-control input-display-name"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       style={{ marginRight: "8px" }}
@@ -203,64 +212,79 @@ const TournamentPage: React.FC = () => {
                 <div className="matches-container">
                   <h3>Matches</h3>
                   {tournament.matches.map((match) => {
-  const matchIndex = tournament.matches.findIndex((m) => m.id === match.id);
-  const allPreviousMatchesHaveWinners = tournament.matches
-    .filter((m) => m.id < match.id)
-    .every((m) => m.winner !== null);
+                    const matchIndex = tournament.matches.findIndex(
+                      (m) => m.id === match.id
+                    );
+                    const allPreviousMatchesHaveWinners = tournament.matches
+                      .filter((m) => m.id < match.id)
+                      .every((m) => m.winner !== null);
 
-  // Only players in the match see a "Play" button
-  const isPlayerInThisMatch = match.players.includes(username);
+                    // Only players in the match see a "Play" button
+                    const isPlayerInThisMatch =
+                      match.players.includes(username);
 
-  // A match is playable if:
-  //  1) The user is in the match
-  //  2) The match doesn’t have a winner yet
-  //  3) All previous matches have a winner
-  const canPlay =
-    isPlayerInThisMatch &&
-    !match.winner &&
-    allPreviousMatchesHaveWinners;
+                    // A match is playable if:
+                    //  1) The user is in the match
+                    //  2) The match doesn’t have a winner yet
+                    //  3) All previous matches have a winner
+                    const canPlay =
+                      isPlayerInThisMatch &&
+                      !match.winner &&
+                      allPreviousMatchesHaveWinners;
 
-  const matchWinner = match.winner
-    ? tournament.display_names?.[match.winner] || match.winner
-    : "Undecided";
+                    const matchWinner = match.winner
+                      ? tournament.display_names?.[match.winner] || match.winner
+                      : "Undecided";
 
-  const player1 = tournament.display_names?.[match.players[0]] || match.players[0];
-  const player2 = tournament.display_names?.[match.players[1]] || match.players[1];
+                    const player1 =
+                      tournament.display_names?.[match.players[0]] ||
+                      match.players[0];
+                    const player2 =
+                      tournament.display_names?.[match.players[1]] ||
+                      match.players[1];
 
-  return (
-    <div key={match.id} className="match-container">
-      <p><strong>{player1.toUpperCase()}</strong> vs <strong>{player2.toUpperCase()}</strong></p>
-      <p>Winner: {matchWinner}</p>
+                    return (
+                      <div key={match.id} className="match-container">
+                        <p>
+                          <strong>{player1.toUpperCase()}</strong> vs{" "}
+                          <strong>{player2.toUpperCase()}</strong>
+                        </p>
+                        <p>Winner: {matchWinner}</p>
 
-      {match.in_progress && (
-        <p>Currently in progress! ({match.connected_count || 0}/2 players connected)</p>
-      )}
+                        {match.in_progress && (
+                          <p>
+                            Currently in progress! ({match.connected_count || 0}
+                            /2 players connected)
+                          </p>
+                        )}
 
-      {/* Render the Play button only if the match has no winner yet */}
-      {isPlayerInThisMatch && !match.winner && (
-        <button
-          className="btn btn-primary"
-          onClick={() => handlePlayMatch(match.id)}
-          disabled={!canPlay}
-          style={{
-            opacity: canPlay ? 1.0 : 0.5,
-            cursor: canPlay ? "pointer" : "not-allowed",
-          }}
-        >
-          Play
-        </button>
-      )}
-    </div>
-  );
-})}
-
+                        {/* Render the Play button only if the match has no winner yet */}
+                        {isPlayerInThisMatch && !match.winner && (
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => handlePlayMatch(match.id)}
+                            disabled={!canPlay}
+                            style={{
+                              opacity: canPlay ? 1.0 : 0.5,
+                              cursor: canPlay ? "pointer" : "not-allowed",
+                            }}
+                          >
+                            Play
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
               {/* If user is the organizer, let them close the tournament */}
               {isOrganizer && (
                 <div style={{ marginTop: "20px" }}>
-                  <button onClick={handleCloseTournament} className="btn btn-danger">
+                  <button
+                    onClick={handleCloseTournament}
+                    className="btn btn-danger"
+                  >
                     Close Tournament
                   </button>
                 </div>
@@ -268,10 +292,12 @@ const TournamentPage: React.FC = () => {
             </>
           )}
         </div>
-	  <div className="card-footer profile-footer d-flex justify-content-center">
-		<Link to="/play/remote">Play remote</Link>
-		<Link to="/play/local" className="ms-4">Play local</Link>
-	  </div>
+        <div className="card-footer profile-footer d-flex justify-content-center">
+          <Link to="/play/remote">Play remote</Link>
+          <Link to="/play/local" className="ms-4">
+            Play local
+          </Link>
+        </div>
       </div>
     </div>
   );

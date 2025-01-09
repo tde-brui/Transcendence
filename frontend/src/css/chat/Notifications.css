@@ -1,5 +1,5 @@
 .notification-container {
-    background-color: #323232;
+  background-color: #323232;
   color: #fff;
   padding: 10px 20px;
   margin-bottom: 10px;
@@ -7,11 +7,11 @@
   animation: 0.5s ease-out;
 }
 
-.notification{
-    background-color: #323232;
-    color: #fff;
-    padding: 10px 20px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    animation: 0.5s ease-out;
+.notification {
+  background-color: #323232;
+  color: #fff;
+  padding: 10px 20px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  animation: 0.5s ease-out;
 }

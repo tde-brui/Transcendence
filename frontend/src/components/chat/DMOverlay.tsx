@@ -1,8 +1,8 @@
 // src/components/DMOverlay.tsx
 
-import React, { useState, FormEvent, ChangeEvent } from 'react';
-import styled from 'styled-components';
-import '../../css/chat/DMOverlay.css';
+import React, { useState, FormEvent, ChangeEvent } from "react";
+import styled from "styled-components";
+import "../../css/chat/DMOverlay.css";
 
 interface DMMessage {
   id: string;
@@ -43,7 +43,7 @@ const OverlayContainer = styled.div`
 `;
 
 const Header = styled.div`
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   padding: 10px;
   border-top-left-radius: 8px;
@@ -62,9 +62,9 @@ const MessagesContainer = styled.div`
 const MessageItem = styled.div<MessageItemProps>`
   margin-bottom: 8px;
   padding: 6px 10px;
-  background-color: ${({ isOwn }) => (isOwn ? '#dcf8c6' : '#f1f0f0')};
+  background-color: ${({ isOwn }) => (isOwn ? "#dcf8c6" : "#f1f0f0")};
   border-radius: 4px;
-  align-self: ${({ isOwn }) => (isOwn ? 'flex-end' : 'flex-start')};
+  align-self: ${({ isOwn }) => (isOwn ? "flex-end" : "flex-start")};
   max-width: 80%;
 `;
 
@@ -95,14 +95,19 @@ const CloseButton = styled.button`
   cursor: pointer;
 `;
 
-const DMOverlay: React.FC<DMOverlayProps> = ({ dm, sendDirectMessage, closeDM, currentUser }) => {
-  const [message, setMessage] = useState('');
+const DMOverlay: React.FC<DMOverlayProps> = ({
+  dm,
+  sendDirectMessage,
+  closeDM,
+  currentUser,
+}) => {
+  const [message, setMessage] = useState("");
 
   const handleSend = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (message.trim() !== '') {
+    if (message.trim() !== "") {
       sendDirectMessage(dm.sender, message);
-      setMessage('');
+      setMessage("");
     }
   };
 
@@ -117,21 +122,23 @@ const DMOverlay: React.FC<DMOverlayProps> = ({ dm, sendDirectMessage, closeDM, c
         <CloseButton onClick={() => closeDM(dm.id)}>×</CloseButton>
       </Header>
       <MessagesContainer>
-	  {dm.messages.map((msg) => {
-        // Determine classes based on message properties
-        const isOwn = msg.sender === currentUser;
-        let bubbleClass = isOwn ? 'message-own' : 'message-other';
-        let senderClass = isOwn ? 'sender-own' : 'sender-other';
+        {dm.messages.map((msg) => {
+          // Determine classes based on message properties
+          const isOwn = msg.sender === currentUser;
+          let bubbleClass = isOwn ? "message-own" : "message-other";
+          let senderClass = isOwn ? "sender-own" : "sender-other";
 
-        return (
-          <div key={msg.id} className="message-item-container">
-            {/* Text bubble for the message */}
-            <div className={`message-bubble ${bubbleClass}`}>{msg.message}</div>
-            {/* Sender below the text bubble */}
-            <div className={`${senderClass}`}>{msg.sender}</div>
-          </div>
-        );
-      })}
+          return (
+            <div key={msg.id} className="message-item-container">
+              {/* Text bubble for the message */}
+              <div className={`message-bubble ${bubbleClass}`}>
+                {msg.message}
+              </div>
+              {/* Sender below the text bubble */}
+              <div className={`${senderClass}`}>{msg.sender}</div>
+            </div>
+          );
+        })}
       </MessagesContainer>
       <InputContainer onSubmit={handleSend}>
         <Input
@@ -141,10 +148,12 @@ const DMOverlay: React.FC<DMOverlayProps> = ({ dm, sendDirectMessage, closeDM, c
           onChange={handleChange}
           required
         />
-        <Button type="submit" className="btn btn-primary">Send</Button>
+        <Button type="submit" className="btn btn-primary">
+          Send
+        </Button>
       </InputContainer>
     </OverlayContainer>
   );
-}
+};
 
 export default DMOverlay;

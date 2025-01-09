@@ -32,15 +32,19 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
   return (
     <div>
       {users.map((user) => (
-        <div 
+        <div
           key={user}
-          className={`d-flex user-item flex-column mt-3 user-card ${isBlocked(user) ? "blocked-user" : ""}`}
+          className={`d-flex user-item flex-column mt-3 user-card ${
+            isBlocked(user) ? "blocked-user" : ""
+          }`}
         >
-         <span
-  className={`font-weight-${user === currentUser ? "bold" : "normal"}`}
->
-  {user}
-</span>
+          <span
+            className={`font-weight-${
+              user === currentUser ? "bold" : "normal"
+            }`}
+          >
+            {user}
+          </span>
 
           {user !== currentUser && (
             <div className="d-flex mt-2 user-card-item">
@@ -96,6 +100,5 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
     </div>
   );
 };
-
 
 export default OnlineUsers;
