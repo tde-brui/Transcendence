@@ -46,7 +46,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserId(-1);
       } finally {
         setIsAuthChecked(true);
-        setIsSocketReady(true); // Ready the socket only after auth is checked
+        setIsSocketReady((prev) => {
+			if (!prev && isAuthenticated) {
+			  console.log("Socket is now ready");
+			  return true;
+			}
+			return prev; // Maintain the current state if nothing changes
+		  });
       }
     };
 
