@@ -7,7 +7,6 @@ import React, {
   } from "react";
   import axios from "./AxiosInstance";
   
-  // Define AuthContext types
   interface AuthContextType {
 	isAuthenticated: boolean;
 	userId: number;
@@ -15,58 +14,26 @@ import React, {
 	logout: () => void;
 	setUserId: (id: number) => void;
 	isAuthChecked: boolean;
+	socket: WebSocket | null;
   }
   
   interface AuthProviderProps {
-	children: ReactNode; // Allow any valid React children
+	children: ReactNode;
   }
   
-  // Create the context
   const AuthContext = createContext<AuthContextType | undefined>(undefined);
   
-  let socket: WebSocket | null = null; // WebSocket instance
-  
-  // Provider component
   export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+
+	console.warn("AuthProvider is running");
+
 	const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 	const [userId, setUserId] = useState<number>(-1);
 	const [isAuthChecked, setIsAuthChecked] = useState(false);
+	const [socket, setSocket] = useState<WebSocket | null>(null);
   
-	// Function to establish WebSocket connection
-	const connectWebSocket = () => {
-	  if (socket || !isAuthenticated) return; // Avoid reconnecting if already connected
+	const socketUrl = "ws://localhost:8000/ws/online_status/";
   
-	  const wsUrl = "ws://localhost:8000/ws/online_status/"; // Use wss:// for production
-	  socket = new WebSocket(wsUrl);
-  
-	  socket.onopen = () => {
-		console.log("WebSocket connection established");
-	  };
-  
-	  socket.onmessage = (event) => {
-		console.log("Message received:", event.data);
-	  };
-  
-	  socket.onclose = (event) => {
-		console.log("WebSocket connection closed:", event.reason || "No reason provided");
-		socket = null;
-	  };
-  
-	  socket.onerror = (error) => {
-		console.error("WebSocket error:", error);
-	  };
-	};
-  
-	// Function to close WebSocket connection
-	const disconnectWebSocket = () => {
-	  if (socket) {
-		socket.close();
-		socket = null;
-		console.log("WebSocket connection closed manually");
-	  }
-	};
-  
-	// Check authentication status on app load
 	useEffect(() => {
 	  const checkAuthStatus = async () => {
 		try {
@@ -79,6 +46,9 @@ import React, {
 			  console.info("User authenticated:", userResponse);
 			  console.info("Setting user ID to:", userResponse.data.user_id);
 			  setUserId(userResponse.data.user_id);
+  
+			  // Connect WebSocket with username in query
+			  connectSocket(userResponse.data.username);
 			}
 		  }
 		} catch (error) {
@@ -90,34 +60,61 @@ import React, {
 	  };
   
 	  checkAuthStatus();
+  
+	  // Cleanup WebSocket on unmount
+	  return () => {
+		if (socket) {
+		  console.log("Closing WebSocket connection...");
+		  socket.close();
+		}
+	  };
 	}, []);
   
-	// Manage WebSocket connection on authentication state change
-	useEffect(() => {
-	  if (isAuthenticated) {
-		connectWebSocket();
-	  } else {
-		disconnectWebSocket();
+	const connectSocket = (username: string) => {
+	  if (username) {
+		console.log(`Connecting WebSocket with username: ${username}`);
+		const ws = new WebSocket(`${socketUrl}?username=${username}`);
+  
+		ws.onopen = () => {
+		  console.log("WebSocket connected");
+		};
+  
+		ws.onmessage = (event) => {
+		  console.log("Message received:", event.data);
+		};
+  
+		ws.onclose = () => {
+		  console.warn("WebSocket closed");
+		  setSocket(null);
+		};
+  
+		ws.onerror = (error) => {
+		  console.error("WebSocket error:", error);
+		  ws.close();
+		};
+  
+		setSocket(ws);
 	  }
+	};
   
-	  // Cleanup on component unmount
-	  return () => disconnectWebSocket();
-	}, [isAuthenticated]);
-  
-	// Login function
 	const login = (token: string) => {
 	  setIsAuthenticated(true);
 	  console.info("Login successful and token set:", token);
 	  // The server should handle setting cookies during login
 	};
   
-	// Logout function
 	const logout = async () => {
 	  try {
 		const response = await axios.delete("users/auth/logout/");
 		if (response.status === 200) {
 		  setIsAuthenticated(false);
 		  setUserId(-1);
+  
+		  // Close WebSocket on logout
+		  if (socket) {
+			console.log("Closing WebSocket connection on logout...");
+			socket.close();
+		  }
 		}
 		console.log("Logout successful");
 	  } catch (error) {
@@ -134,6 +131,7 @@ import React, {
 		  logout,
 		  setUserId,
 		  isAuthChecked,
+		  socket,
 		}}
 	  >
 		{children}
@@ -141,7 +139,6 @@ import React, {
 	);
   };
   
-  // Custom hook for accessing AuthContext
   export const useAuth = () => {
 	const context = useContext(AuthContext);
 	if (!context) {
