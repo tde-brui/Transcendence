@@ -55,7 +55,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
 	const interval = setInterval(() => {
 	  refreshUser();
 	}
-	, 10000);
+	, 5000);
 	return () => clearInterval(interval);
   }, [userId]);
 

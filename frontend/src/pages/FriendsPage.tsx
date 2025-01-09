@@ -96,7 +96,7 @@ const FriendPage: React.FC = () => {
 		refreshFriendRequests();
 		refreshUsers();
 		refreshFriends();
-	  }, 50000); // Refresh every 5 seconds
+	  }, 5000);
 	
 	  // Clear interval on component unmount
 	  return () => clearInterval(interval);

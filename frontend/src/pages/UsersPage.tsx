@@ -79,9 +79,8 @@ const UsersPage: React.FC = () => {
 	const interval = setInterval(() => {
 		refreshFriendRequests();
 		refreshUsers();
-	  }, 10000); // Refresh every 10 seconds
+	  }, 5000);
 	
-	  // Clear interval on component unmount
 	  return () => clearInterval(interval);
   }, []);
 
