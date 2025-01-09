@@ -51,6 +51,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     };
 
     fetchUser();
+
+	const interval = setInterval(() => {
+	  refreshUser();
+	}
+	, 10000);
+	return () => clearInterval(interval);
   }, [userId]);
 
   useEffect(() => {
@@ -82,6 +88,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     };
   }, [user]);
 
+
   useEffect(() => {
     const fetchMatchHistory = async () => {
       try {
@@ -97,6 +104,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
 
     fetchMatchHistory();
   }, [userId]);
+
+  const refreshUser = async () => {
+	try {
+	  const response = await axiosInstance.get(`/users/${userId}/`);
+	  if (response.status === 200 && response.data) setUser(response.data);
+	} catch (error) {
+	  setError((error as Error).message);
+	}
+	  };
+
 
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!user) return <SpinningLogo />;

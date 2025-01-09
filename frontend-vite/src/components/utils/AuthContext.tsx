@@ -24,6 +24,9 @@ import React, {
   const AuthContext = createContext<AuthContextType | undefined>(undefined);
   
   export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+
+	console.warn("AuthProvider is running");
+
 	const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 	const [userId, setUserId] = useState<number>(-1);
 	const [isAuthChecked, setIsAuthChecked] = useState(false);

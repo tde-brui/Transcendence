@@ -91,6 +91,16 @@ const FriendPage: React.FC = () => {
     fetchFriendRequests();
     fetchUsers();
     fetchAvatarUsers();
+
+	const interval = setInterval(() => {
+		refreshFriendRequests();
+		refreshUsers();
+		refreshFriends();
+	  }, 50000); // Refresh every 5 seconds
+	
+	  // Clear interval on component unmount
+	  return () => clearInterval(interval);
+  
   }, []);
 
   useEffect(() => {
@@ -201,6 +211,24 @@ const FriendPage: React.FC = () => {
       setCurrentUser(response.data);
     } catch (err) {
       console.error("Failed to refresh friends.", err);
+    }
+  };
+
+  const refreshFriendRequests = async () => {
+    try {
+      const response = await getFriendRequests();
+      setFriendRequests(response.data);
+    } catch (err) {
+      console.error("Failed to refresh friend requests.", err);
+    }
+  };
+
+  const refreshUsers = async () => {
+    try {
+      const response = await axiosInstance.get<User[]>("/users/");
+      setUsers(response.data);
+    } catch (err) {
+      console.error("Failed to refresh users.", err);
     }
   };
 
