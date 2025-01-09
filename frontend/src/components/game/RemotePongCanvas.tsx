@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import '../../css/game/PongCanvas.css';
+import '../../css/UserProfile.css';
+import { Link } from 'react-router-dom';
 
 const WS_URL = 'ws://localhost:8000/ws/pong/';
 
@@ -72,13 +74,13 @@ const RemotePongCanvas: React.FC = () => {
             setGamePaused(true);
           }
 
-          if (data.type === "redirectToTournament") {
-            window.location.href = "/play/tournaments";
-          }
+        //   if (data.type === "redirectToTournament") {
+        //     window.location.href = "/play/tournaments";
+        //   }
 
-          if (data.type === "redirectToPlay") {
-            window.location.href = "/play";
-          }
+        //   if (data.type === "redirectToPlay") {
+        //     window.location.href = "/play";
+        //   }
 
           if (data.type === 'countdownEnd') {
             setCountdown(false);
@@ -153,24 +155,25 @@ const RemotePongCanvas: React.FC = () => {
 
         {gameOver && (
           <div className="game-over">
-            <h2>{winner ? `${winner} wins!` : 'No one wins!'}</h2>
+            <h2 className='winner-text'>{winner ? `${winner.toUpperCase()} WINS!` : 'No one wins!'}</h2>
+			<Link to="/play" className='btn btn-primary mt-4'> Back to lobby</Link>
           </div>
         )}
 
         {gamePaused && !gameOver && !countdown && ( // Hide this section during countdown
           <div className="game-paused">
             {playersConnected < 2 ? (
-              <h2>Waiting for another player...</h2>
+              <h3 className='text'>Waiting for another player...</h3>
             ) : (
-              <h2>Waiting for players to ready up...</h2>
+              <h3 className='text-white'> Waiting for players to ready up...</h3>
             )}
-            <p>Players connected: {playersConnected}/2</p>
+            <p className='fst-italic'>Players connected: {playersConnected}/2</p>
             {assignedPaddle && (
               <>
-                <p>Player A Ready: {readyStates.a ? 'Yes' : 'No'}<br />
-                Player B Ready: {readyStates.b ? 'Yes' : 'No'}</p>
+                <p>{playerKeys.a ? playerKeys.a : 'Unknown'} ready: <strong>{readyStates.a ? 'Yes' : 'No'}</strong><br />
+                {playerKeys.b ? playerKeys.b : 'Unknown'} ready: <strong>{readyStates.b ? 'Yes' : 'No'}</strong></p>
                 {!readyStates[assignedPaddle] && (
-                  <button className="glass-button" onClick={handleReadyUp}>
+                  <button className="glass-button-ready" onClick={handleReadyUp}>
                     Ready Up
                   </button>
                 )}
@@ -181,13 +184,13 @@ const RemotePongCanvas: React.FC = () => {
 
         {countdown && ( // Show countdown message
           <div className="countdown">
-            <h2>{countdownValue}</h2>
+        	{countdownValue}
           </div>
         )}
 
         {assignedPaddle && (
           <div className="player-info">
-            <h5>You are controlling the {assignedPaddle === 'a' ? 'left' : 'right'} paddle</h5>
+            <h5 className='instruction'>YOU ARE CONTROLLING THE {assignedPaddle === 'a' ? 'LEFT' : 'RIGHT'} PADDLE | USE "W"/"S" OR "<span className='arrow-char'>↑</span>"/"<span className='arrow-char'>↓</span>"</h5>
           </div>
         )}
       </div>

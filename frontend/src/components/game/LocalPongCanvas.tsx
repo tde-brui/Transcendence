@@ -93,7 +93,7 @@ const LocalPongCanvas: React.FC = () => {
     if (showWinnerScreen) {
       const timer = setTimeout(() => {
         handleFullReset();
-      }, 3000);
+      }, 6000);
       return () => clearTimeout(timer);
     }
   }, [showWinnerScreen]);
@@ -280,7 +280,7 @@ const LocalPongCanvas: React.FC = () => {
         {/* Winner screen */}
         {showWinnerScreen && winner && (
           <div className="game-over">
-            <h2>Player {winner} Won!</h2>
+            <h2 className='winner-text'>Player {winner} Won!</h2>
           </div>
         )}
 
@@ -288,12 +288,16 @@ const LocalPongCanvas: React.FC = () => {
         {countingDown && countdown > 0 && (
           <div className="countdown">{countdown}</div>
         )}
+		<div className="player-info d-flex justify-space-between">
+            <h5 className='instruction'>PLAYER A USES THE LEFT PADDLE AND USES THE "W"/"S KEYS </h5>
+			<h5 className='instruction'>PLAYER B USES THE RIGHT PADDLE AND USES THE ARROW KEYS </h5>
+          </div>
 
         {/* Start button */}
         {!game.gameStarted && !countingDown && !showWinnerScreen && (
           <div className="game-paused">
-            <h2>Press "Start Game" to begin</h2>
-            <button className="glass-button" onClick={startGame}>
+            <h3 className='mb-5'><strong>Press START GAME to play</strong></h3>
+            <button className="glass-button-ready" onClick={startGame}>
               Start Game
             </button>
           </div>
