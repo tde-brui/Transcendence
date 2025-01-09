@@ -22,7 +22,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({userId}) => {
         const response = await axiosInstance.get(`/users/${userId}`);
         setUser(response.data.username);
       } catch (error) {
-        console.error("Failed to fetch user data", error);
+        // console.error("Failed to fetch user data", error);
       }
     };
 

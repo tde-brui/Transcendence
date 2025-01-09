@@ -1,65 +1,70 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import React, { createContext, useEffect, useState, useContext, ReactNode } from "react";
 
 interface SocketContextType {
   socket: WebSocket | null;
-  connectSocket: () => void;
-  disconnectSocket: () => void;
-}
-
-interface SocketProviderProps {
-  children: ReactNode;
+  isConnected: boolean;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
-export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
+interface SocketProviderProps {
+  children: ReactNode;
+  socketUrl: string;
+}
+
+export const SocketProvider: React.FC<SocketProviderProps> = ({ children, socketUrl }) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
-  // Function to establish a socket connection
-  const connectSocket = () => {
-    if (!socket) {
-      const newSocket = new WebSocket("ws://localhost:8000/ws/online_status/");
-      newSocket.onopen = () => {
-        console.log("WebSocket connected");
-      };
-      newSocket.onclose = () => {
-        console.log("WebSocket disconnected");
-        setSocket(null);
-      };
-      newSocket.onerror = (error) => {
-        console.error("WebSocket error:", error);
-      };
-
-      setSocket(newSocket);
-    }
-  };
-
-  // Function to disconnect the socket
-  const disconnectSocket = () => {
-    if (socket) {
-      socket.close();
-      setSocket(null);
-    }
-  };
-
-  // Cleanup socket on component unmount
   useEffect(() => {
-    return () => {
-      if (socket) {
-        socket.close();
-        console.log("WebSocket cleanup on unmount");
-      }
+    const connectSocket = () => {
+      console.log("Connecting WebSocket...");
+      const ws = new WebSocket(socketUrl);
+
+      ws.onopen = () => {
+        console.log("WebSocket connected");
+        setSocket(ws);
+        setIsConnected(true);
+      };
+
+      ws.onmessage = (event) => {
+        console.log("Message received:", event.data);
+        // Handle any incoming messages from the server here
+      };
+
+      ws.onclose = () => {
+        console.warn("WebSocket closed");
+        setIsConnected(false);
+        setSocket(null);
+
+        // Attempt to reconnect after a delay
+        setTimeout(() => connectSocket(), 5000);
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        ws.close(); // Close on error
+      };
     };
-  }, [socket]);
+
+    // Establish the WebSocket connection when the provider mounts
+    connectSocket();
+
+    // Clean up the WebSocket connection when the provider unmounts
+    return () => {
+      console.log("Cleaning up WebSocket connection...");
+      if (socket) socket.close();
+    };
+  }, [socketUrl]);
 
   return (
-    <SocketContext.Provider value={{ socket, connectSocket, disconnectSocket }}>
+    <SocketContext.Provider value={{ socket, isConnected }}>
       {children}
     </SocketContext.Provider>
   );
 };
 
-// Custom hook to use the SocketContext
+// Custom hook to access the WebSocket context
 export const useSocket = () => {
   const context = useContext(SocketContext);
   if (!context) {
