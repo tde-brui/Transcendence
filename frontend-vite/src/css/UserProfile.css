@@ -274,6 +274,11 @@ border-radius: 15px;
     overflow-y: auto;
 }
 
+.scrollable-content2 {
+    max-height: 500px; /* Adjust height as necessary */
+    overflow-y: auto;
+}
+
 .link-item {
   text-decoration: none;
   color: #333;
