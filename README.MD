@@ -1,6 +1,6 @@
 
 # [New Subject!](https://cdn.intra.42.fr/pdf/pdf/133398/en.subject.pdf)
-https://fortnite-archive.fandom.com/wiki/Jonesy_%28Battle_Royale%29
+
 # Transcendence
 
 **Transcendence** is an online multiplayer Pong game combined with a social networking platform. Developed as part of the École 42 curriculum, it offers a modern twist on the classic game while incorporating user management, customization, and advanced multiplayer capabilities.
