@@ -72,11 +72,11 @@
   text-transform: capitalize;
 }
 
-.status.online {
+.status.true {
   color: #28a745;
 }
 
-.status.offline {
+.status.false {
   color: #dc3545;
 }
 
