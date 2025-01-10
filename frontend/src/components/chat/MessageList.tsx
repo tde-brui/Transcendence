@@ -33,7 +33,6 @@ const MessageList: React.FC<MessageListProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  // Filter messages dynamically
   const filteredMessages = messages.filter(
     (msg) =>
       !blockedUsers.includes(msg.sender) &&
@@ -44,18 +43,26 @@ const MessageList: React.FC<MessageListProps> = ({
     <div className="list-container">
       {filteredMessages.map((msg) => {
         const isOwn = msg.sender === currentUser;
-        const bubbleClass = isOwn ? "message-own" : "message-other";
+        const bubbleClass = msg.isAnnouncement
+          ? "announcement-bubble"
+          : isOwn
+          ? "message-own"
+          : "message-other";
 
-        const senderText = msg.isDM
+        const senderText = msg.isAnnouncement
+          ? "Server Announcement"
+          : msg.isDM
           ? `DM ${isOwn ? "to" : "from"} ${isOwn ? msg.recipient : msg.sender}`
           : msg.sender;
 
         return (
           <div key={msg.id} className="message-item-container">
             <div className={`message-bubble ${bubbleClass}`}>{msg.message}</div>
-            <div className={isOwn ? "sender-own" : "sender-other"}>
-              {senderText}
-            </div>
+            {!msg.isAnnouncement && (
+              <div className={isOwn ? "sender-own" : "sender-other"}>
+                {senderText}
+              </div>
+            )}
           </div>
         );
       })}

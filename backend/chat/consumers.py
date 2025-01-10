@@ -35,12 +35,10 @@ from django.db.models import Q
 @database_sync_to_async
 def get_last_messages(user, limit=50, include_blocked=False):
     if include_blocked:
-        # Fetch all messages (public and DMs) involving the user
         messages = Message.objects.filter(
             Q(recipient=None) | Q(recipient=user) | Q(sender=user)
         ).order_by('-timestamp')[:limit]
     else:
-        # Exclude messages from blocked users
         blocked_users = user.blocked_users.all()
         messages = Message.objects.filter(
             (Q(recipient=None) | Q(recipient=user) | Q(sender=user)) &
@@ -50,7 +48,7 @@ def get_last_messages(user, limit=50, include_blocked=False):
     # Reverse messages to have the most recent at the bottom
     return [
         {
-            "sender": msg.sender.username,
+            "sender": msg.sender.username if msg.sender else "Server",  # Handle None sender
             "recipient": msg.recipient.username if msg.recipient else None,
             "text": msg.text,
             "is_dm": bool(msg.recipient),
