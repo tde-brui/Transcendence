@@ -2,10 +2,6 @@ import React from "react";
 import "../../css/chat/OnlineUsers.css";
 import { useNavigate } from "react-router-dom";
 
-interface UsernameProps {
-  isCurrent: boolean;
-}
-
 interface OnlineUsersProps {
   users: string[];
   currentUser: string;
@@ -22,7 +18,6 @@ const OnlineUsers: React.FC<OnlineUsersProps> = ({
   sendDirectMessage,
   blockUser,
   inviteToGame,
-  viewProfile,
   blockedUsers,
 }) => {
   const navigate = useNavigate();

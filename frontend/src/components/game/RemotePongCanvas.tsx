@@ -3,8 +3,9 @@ import { useParams, useLocation } from "react-router-dom";
 import "../../css/game/PongCanvas.css";
 import "../../css/UserProfile.css";
 import { Link } from "react-router-dom";
+const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
 
-const WS_URL = "ws://localhost:8000/ws/pong/";
+const WS_URL = `${wsBaseUrl}/ws/pong/`;
 
 const RemotePongCanvas: React.FC = () => {
   const [paddleAPosition, setPaddleAPosition] = useState<number>(250);

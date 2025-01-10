@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import axios from "./AxiosInstance";
+const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -31,7 +32,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
-  const socketUrl = "ws://localhost:8000/ws/online_status/";
+  const socketUrl = `${wsBaseUrl}/ws/online_status/`;
 
   useEffect(() => {
     const checkAuthStatus = async () => {

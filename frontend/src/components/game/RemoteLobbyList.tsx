@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axiosInstance from "../utils/AxiosInstance";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 interface Lobby {
   game_id: string;
@@ -28,7 +29,7 @@ const RemoteLobbyList: React.FC = () => {
 
   useEffect(() => {
     // Make sure that this URL returns a valid JSON response listing the lobbies
-    fetch("http://localhost:8000/api/lobbies")
+    fetch(`${apiBaseUrl}/api/lobbies/`)
       .then((res) => res.json())
       .then((data) => setLobbies(data))
       .catch((err) => console.error("Error fetching lobbies:", err));

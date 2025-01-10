@@ -10,6 +10,7 @@ import {
   removeFriend,
   cancelFriendRequest,
 } from "../components/friends/friendRequestApi";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 interface FriendRequest {
   id: number;
@@ -108,7 +109,7 @@ const FriendPage: React.FC = () => {
         if (!user.avatar) return;
 
         try {
-          const response = await fetch(`http://localhost:8000${user.avatar}`);
+          const response = await fetch(`${apiBaseUrl.slice(0, -1)}${user.avatar}`);
           if (!response.ok) {
             throw new Error(`Failed to fetch avatar for user ${user.id}`);
           }

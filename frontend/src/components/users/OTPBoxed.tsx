@@ -9,7 +9,6 @@ interface OTPBoxedProps {
 
 const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
-  const [error, setError] = useState<string | null>(null);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<"success" | "error" | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -87,10 +86,6 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
   };
 
   const maskedEmail = email.replace(/(.{2}).*(@.*)/, "$1***$2");
-
-  if (error) {
-    return <div className="alert alert-danger">{error}</div>;
-  }
 
   if (!email) {
     return <div className="text-center mt-5">Loading...</div>;

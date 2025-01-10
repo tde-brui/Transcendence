@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "../css/Utils.css";
-import axiosInstance from "../components/utils/AxiosInstance";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 const Authenticate42: React.FC = () => {
   const handleAuthentication = () => {
     // Redirect the browser to the backend endpoint
-    window.location.href = "http://localhost:8000/users/42_login/";
+    window.location.href = `${apiBaseUrl}/users/42_login`;
   };
 
   return (

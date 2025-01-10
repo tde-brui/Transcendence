@@ -20,7 +20,7 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axiosInstance.get<User>(`/users/${userId}`);
+        const response = await axiosInstance.get<User>(`/users/${userId}/`);
         setUser(response.data);
         setUsername(response.data.username);
       } catch (error) {
