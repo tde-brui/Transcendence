@@ -4,7 +4,7 @@ import { returnName } from "../components/utils/userService";
 import { NotLoggedIn } from "../components/login/notLoggedin";
 import { User } from "../components/utils/api";
 import { Link } from "react-router-dom";
-import axiosInstance from "../components/utils/AxiosInstance";
+import axios from "../components/utils/AxiosInstance";
 import "../index.css";
 import SpinningLogo from "../components/SpinningLogo";
 
@@ -23,7 +23,7 @@ const Home: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axiosInstance.get<User>(`/users/${userId}`);
+        const response = await axios.get(`users/${userId}/`);
         setUser(response.data);
         console.warn("response", response.data);
         setUsername(response.data.username);

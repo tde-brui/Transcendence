@@ -37,7 +37,7 @@ const RemoteLobbyList: React.FC = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axiosInstance.get(`/users/${userId}`);
+        const response = await axiosInstance.get(`/users/${userId}/`);
         setUsername(response.data.username);
       } catch (error) {
         console.error("Failed to fetch user data", error);
