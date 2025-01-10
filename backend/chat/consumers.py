@@ -112,8 +112,61 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
+    async def game_invitation(self, event):
+        sender = event["sender"]
+        recipient = event["recipient"]
+        game_url = event["game_url"]
+
+        # Send the game invitation message
+        await self.send(text_data=json.dumps({
+            "type": "game_invitation",
+            "sender": sender,
+            "recipient": recipient,
+            "message": f'User {sender} invited you to a match. <a href="{game_url}" target="_blank">Click here to join</a>',
+        }))
+
     async def receive(self, text_data):
         data = json.loads(text_data)
+        msg_type = data.get("type")
+
+        if msg_type == "invite_to_pong":
+            target_username = data.get("target_user")
+            game_id = data.get("game_id")  # Shared game ID
+            game_url = data.get("game_url")  # URL for the invited player
+
+            if not target_username or not game_id or not game_url:
+                await self.send(json.dumps({
+                    "type": "error",
+                    "message": "Invalid game invite request."
+                }))
+                return
+
+            if target_username in online_users:
+                target_channel = online_users[target_username]
+
+                # Send a new type of message for game invitations
+                await self.channel_layer.send(
+                    target_channel,
+                    {
+                        "type": "game_invitation",
+                        "sender": self.username,
+                        "recipient": target_username,
+                        "game_url": game_url,
+                    }
+                )
+
+                # Notify the inviter
+                await self.send(json.dumps({
+                    "type": "direct_message",
+                    "sender": self.username,
+                    "recipient": target_username,
+                    "message": "Invitation sent.",
+                }))
+            else:
+                await self.send(json.dumps({
+                    "type": "error",
+                    "message": f"User '{target_username}' is offline.",
+                }))
 
         if "command" in data:
             command = data["command"]

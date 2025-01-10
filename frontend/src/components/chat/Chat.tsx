@@ -78,6 +78,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
     blocked_users: any;
     type: string;
     sender?: string;
+    game_url?: string;
     message?: string;
     messages?: {
       recipient: any;
@@ -93,6 +94,17 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
 
   const handleMessage = (data: IncomingData) => {
     switch (data.type) {
+      case "game_invitation":
+        if (data.sender && data.message) {
+          addMessage({
+            sender: data.sender,
+            recipient: username,
+            message: data.message, // Already formatted on the backend
+            isDM: true,
+            isAnnouncement: false,
+          });
+        }
+        break;      
       case "update_users":
         if (data.users) {
           setOnlineUsers(data.users);
@@ -254,12 +266,29 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   };
 
   const inviteToGame = (target_user: string) => {
+    const gameId = uuidv4(); // Generate a single shared game ID
+    const inviterGameUrl = `http://localhost:3000/play/remote/${gameId}?key=${username}`; // URL for inviter
+    const inviteeGameUrl = `http://localhost:3000/play/remote/${gameId}?key=${target_user}`; // URL for invitee
+  
+    // Open the game locally for the inviter
+    window.open(inviterGameUrl, "_blank");
+  
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ invite_game: true, target_user }));
+      // Send the invite message with the invitee's URL
+      ws.current.send(
+        JSON.stringify({
+          type: "invite_to_pong",
+          target_user,
+          game_id: gameId, // Shared game ID
+          game_url: inviteeGameUrl, // Invitee's personalized URL
+        })
+      );
+      addNotification(`Game invitation sent to ${target_user}.`);
     } else {
       addNotification("WebSocket is not connected.");
     }
   };
+  
 
   const viewProfile = (target_user: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {

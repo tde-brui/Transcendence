@@ -39,17 +39,25 @@ const MessageList: React.FC<MessageListProps> = ({
       (!msg.isDM || msg.sender === currentUser || msg.recipient === currentUser)
   );
 
+  const renderMessageContent = (message: string) => {
+    return <span dangerouslySetInnerHTML={{ __html: message }} />;
+  };
+  
   return (
     <div className="list-container">
       {filteredMessages.map((msg) => {
         const isOwn = msg.sender === currentUser;
-        const bubbleClass = msg.isAnnouncement
+        const bubbleClass = msg.message.includes("invited you to a match")
+          ? "game-invitation-bubble"
+          : msg.isAnnouncement
           ? "announcement-bubble"
           : isOwn
           ? "message-own"
           : "message-other";
 
-        const senderText = msg.isAnnouncement
+        const senderText = msg.message.includes("invited you to a match")
+          ? `${msg.sender}`
+          : msg.isAnnouncement
           ? "Server Announcement"
           : msg.isDM
           ? `DM ${isOwn ? "to" : "from"} ${isOwn ? msg.recipient : msg.sender}`
@@ -57,7 +65,9 @@ const MessageList: React.FC<MessageListProps> = ({
 
         return (
           <div key={msg.id} className="message-item-container">
-            <div className={`message-bubble ${bubbleClass}`}>{msg.message}</div>
+            <div className={`message-bubble ${bubbleClass}`}>
+              {renderMessageContent(msg.message)}
+            </div>
             {!msg.isAnnouncement && (
               <div className={isOwn ? "sender-own" : "sender-other"}>
                 {senderText}

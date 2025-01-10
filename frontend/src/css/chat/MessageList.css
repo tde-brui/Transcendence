@@ -89,3 +89,19 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+.game-invitation-bubble {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: bold;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+.game-invitation-bubble a {
+  color: #fff;
+  text-decoration: underline;
+}
+
