@@ -122,7 +122,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "type": "game_invitation",
             "sender": sender,
             "recipient": recipient,
-            "message": f'User {sender} invited you to a match. <a href="{game_url}" target="_blank">Click here to join</a>',
+            "message": f'User {sender} invited you to a match. <a href="{game_url}">Click here to join</a>',
         }))
 
     async def receive(self, text_data):

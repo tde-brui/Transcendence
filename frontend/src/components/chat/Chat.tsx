@@ -267,11 +267,11 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
 
   const inviteToGame = (target_user: string) => {
     const gameId = uuidv4(); // Generate a single shared game ID
-    const inviterGameUrl = `http://localhost:3000/play/remote/${gameId}?key=${username}`; // URL for inviter
-    const inviteeGameUrl = `http://localhost:3000/play/remote/${gameId}?key=${target_user}`; // URL for invitee
+    const inviterGameUrl = `/play/remote/${gameId}?key=${username}`; // URL for inviter
+    const inviteeGameUrl = `/play/remote/${gameId}?key=${target_user}`; // URL for invitee
   
-    // Open the game locally for the inviter
-    window.open(inviterGameUrl, "_blank");
+    // Navigate the inviter to the game in the same page
+    window.location.href = inviterGameUrl;
   
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       // Send the invite message with the invitee's URL
@@ -287,7 +287,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
     } else {
       addNotification("WebSocket is not connected.");
     }
-  };
+  };  
   
 
   const viewProfile = (target_user: string) => {
