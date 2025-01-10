@@ -3,6 +3,7 @@ import NotFoundPage from "../../error_pages/404NotFound";
 import axiosInstance from "../utils/AxiosInstance";
 import SpinningLogo from "../SpinningLogo";
 import ChangeDetails from "./ChangeDetails";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 // Define your axios instance
 
@@ -27,20 +28,9 @@ const getUserId = async (): Promise<number | null> => {
   }
 };
 
-const getUser = async (userId: number): Promise<User | null> => {
-  try {
-    const response = await axiosInstance.get(`/users/${userId}/`);
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch user data", error);
-    return null;
-  }
-};
-
 const ChangeDetailWrapper = () => {
   const [user, setUser] = useState<User | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,7 +48,7 @@ const ChangeDetailWrapper = () => {
         const response = await axiosInstance.get(`/users/${userId}/`);
         if (response.status === 200 && response.data) setUser(response.data);
       } catch (error) {
-        setError((error as Error).message);
+        console.error("Failed to fetch user data", error);
       }
     };
 
@@ -70,7 +60,7 @@ const ChangeDetailWrapper = () => {
       if (!user || !user.avatar) return; // Skip if no avatar is available
 
       try {
-        const response = await fetch(`http://localhost:8000${user.avatar}`);
+        const response = await fetch(`${apiBaseUrl.slice(0, -1)}${user.avatar}`);
         if (!response.ok) {
           throw new Error("Failed to fetch user avatar");
         }
@@ -80,23 +70,18 @@ const ChangeDetailWrapper = () => {
 
         // Debugging: Log the URL
       } catch (error) {
-        setError((error as Error).message);
+        console.error("Failed to fetch user avatar", error);
       }
     };
 
     fetchAvatar();
 
-    // Cleanup: Revoke object URLs to prevent memory leaks
     return () => {
       if (avatar) {
         URL.revokeObjectURL(avatar);
       }
     };
   }, [user]);
-
-  //   if (error) {
-  //     return <div>Error: {error}</div>;
-  //   }
 
   if (userId === null) {
     return <NotFoundPage />;

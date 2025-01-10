@@ -6,6 +6,7 @@ import "../css/UserProfile.css";
 import "../css/Utils.css";
 import axiosInstance from "../components/utils/AxiosInstance";
 import { IsLoggedIn } from "../components/login/isLoggedIn";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 type UserProfileProps = {
   userId: number;
@@ -103,7 +104,7 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
   };
 
   const handleAuthentication = () => {
-    window.location.href = "http://localhost:8000/users/42_login/";
+    window.location.href = `${apiBaseUrl}/users/42_login/`;
   };
 
   return (

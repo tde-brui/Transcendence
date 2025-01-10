@@ -3,6 +3,7 @@ import "../../css/game/TournamentPage.css";
 import "../../css/UserProfile.css";
 import axiosInstance from "../utils/AxiosInstance";
 import { Link } from "react-router-dom";
+const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
 
 // Example: your match interface might also have `in_progress?: boolean;`
 interface Match {
@@ -42,7 +43,7 @@ const TournamentPage: React.FC = () => {
     fetchUsername();
 
     // Subscribe to your "tournament_updates" WebSocket
-    const socket = new WebSocket("ws://localhost:8000/ws/tournament/");
+    const socket = new WebSocket(`${wsBaseUrl}/ws/tournament/`);
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       // If data has "timer" => it's your tournament info, else null
@@ -212,9 +213,6 @@ const TournamentPage: React.FC = () => {
                 <div className="matches-container">
                   <h3>Matches</h3>
                   {tournament.matches.map((match) => {
-                    const matchIndex = tournament.matches.findIndex(
-                      (m) => m.id === match.id
-                    );
                     const allPreviousMatchesHaveWinners = tournament.matches
                       .filter((m) => m.id < match.id)
                       .every((m) => m.winner !== null);

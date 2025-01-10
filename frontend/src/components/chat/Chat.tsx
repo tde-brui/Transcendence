@@ -5,6 +5,7 @@ import OnlineUsers from "./OnlineUsers";
 import Notifications from "./Notifications";
 import { v4 as uuidv4 } from "uuid";
 import "../../css/chat/ChatPage.css";
+const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
 
 interface Message {
   id: string;
@@ -47,8 +48,8 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   }, [username, onlineUsers]); // Re-fetch blocked users when online users change
 
   useEffect(() => {
-    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = `${wsProtocol}://localhost:8000/ws/chat/?username=${username}`;
+
+    const wsUrl = `${wsBaseUrl}/ws/chat/?username=${username}`;
     ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
@@ -184,16 +185,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
     setMessages((prev) => [...prev, { id: uuidv4(), ...msg }]);
   };
 
-  const addDMMessage = (sender: string, message: string) => {
-    addMessage({
-      sender: `DM from ${sender}`,
-      message,
-      isDM: true,
-      recipient: "",
-    });
-    addNotification(`New DM from '${sender}'.`);
-  };
-
+  
   const addNotification = (note: string) => {
     const id = uuidv4();
     setNotifications((prev) => [...prev, { id, message: note }]);
@@ -239,14 +231,6 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
     }
   };
 
-  const sendCommand = (command: string, target_user: string) => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ command, target_user }));
-    } else {
-      addNotification("WebSocket is not connected.");
-    }
-  };
-
   const sendDirectMessage = (recipient: string, message: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       const newMessage = {
@@ -272,14 +256,6 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   const inviteToGame = (target_user: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ invite_game: true, target_user }));
-    } else {
-      addNotification("WebSocket is not connected.");
-    }
-  };
-
-  const sendAnnouncement = (announcement: string) => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ announce: announcement }));
     } else {
       addNotification("WebSocket is not connected.");
     }

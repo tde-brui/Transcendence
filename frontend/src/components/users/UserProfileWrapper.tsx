@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import UserProfile from "../../pages/UserProfile";
 import NotFoundPage from "../../error_pages/404NotFound";
-import axiosInstance from "../utils/AxiosInstance";
 import axios from "axios";
 import SpinningLogo from "../SpinningLogo";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 // Define your axios instance
 
@@ -21,7 +21,7 @@ interface User {
  */
 const getUsername = async (username: string): Promise<string | null> => {
   try {
-    const response = await axios.get<User[]>("http://localhost:8000/users/");
+    const response = await axios.get<User[]>(`${apiBaseUrl}/users/`);
     const userList = response.data;
 
     const user = userList.find((user) => user.username === username);

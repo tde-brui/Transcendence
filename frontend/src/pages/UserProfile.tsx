@@ -6,6 +6,7 @@ import { useAuth } from "../components/utils/AuthContext";
 import { useNavigate } from "react-router-dom";
 import SpinningLogo from "../components/SpinningLogo";
 import { Link } from "react-router-dom";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 type UserProfileProps = {
   userId: number;
@@ -63,7 +64,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
       if (!user || !user.avatar) return; // Skip if no avatar is available
 
       try {
-        const response = await fetch(`http://localhost:8000${user.avatar}`);
+        const response = await fetch(`${apiBaseUrl.slice(0, -1)}${user.avatar}`);
         if (!response.ok) {
           throw new Error("Failed to fetch user avatar");
         }
