@@ -29,7 +29,7 @@ const RemoteLobbyList: React.FC = () => {
 
   useEffect(() => {
     // Make sure that this URL returns a valid JSON response listing the lobbies
-    fetch(`${apiBaseUrl}/api/lobbies/`)
+    fetch(`${apiBaseUrl}/api/lobbies`)
       .then((res) => res.json())
       .then((data) => setLobbies(data))
       .catch((err) => console.error("Error fetching lobbies:", err));
