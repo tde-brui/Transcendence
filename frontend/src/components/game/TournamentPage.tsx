@@ -73,6 +73,11 @@ const TournamentPage: React.FC = () => {
       console.error("Failed to fetch username:", error);
       setUsername("");
     }
+
+	const interval = setInterval(() => {
+		refreshTournament();
+	}, 5000);
+	return () => clearInterval(interval);
   };
 
   /**
@@ -147,6 +152,10 @@ const TournamentPage: React.FC = () => {
       return <h2>Draw: {displayUsernames.join(", ")}</h2>;
     }
     return null;
+  };
+
+  const refreshTournament = () => {
+	fetchTournament();
   };
 
   return (

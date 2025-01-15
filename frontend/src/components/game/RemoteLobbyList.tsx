@@ -33,6 +33,11 @@ const RemoteLobbyList: React.FC = () => {
       .then((res) => res.json())
       .then((data) => setLobbies(data))
       .catch((err) => console.error("Error fetching lobbies:", err));
+
+	const interval = setInterval(() => {
+	  refreshLobbies();
+	}, 5000);
+	return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -47,6 +52,13 @@ const RemoteLobbyList: React.FC = () => {
 
     fetchUser();
   }, [userId]);
+
+  const refreshLobbies = () => {
+	fetch(`${apiBaseUrl}/api/lobbies`)
+	  .then((res) => res.json())
+	  .then((data) => setLobbies(data))
+	  .catch((err) => console.error("Error fetching lobbies:", err));
+  };
 
   return (
     <div className="container d-flex align-items-center justify-content-center">
@@ -106,7 +118,7 @@ const RemoteLobbyList: React.FC = () => {
                       </button>
                     </Link>
                   ) : (
-                    <button className="reset-button" disabled>
+                    <button className="reset-button btn btn-secondary" disabled>
                       Lobby is Full
                     </button>
                   )}
