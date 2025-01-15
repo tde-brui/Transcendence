@@ -5,7 +5,6 @@ import LandingPage from "./pages/LandingPage";
 import Home from "./pages/HomePage";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import NotFoundPage from "./error_pages/404NotFound";
-import Authenticate42 from "./pages/Authenticate42";
 import ProtectedRoute from "./components/utils/ProtectedRoute";
 import ChatPage from "./pages/ChatPage";
 import UserProfileWrapper from "./components/users/UserProfileWrapper";
@@ -35,7 +34,7 @@ const AppRoutes = () => {
   const { userId, isAuthChecked } = useAuth();
 
   if (!isAuthChecked) {
-    // Show loading spinner or placeholder until auth check is complete
+    // Show loading spinner until auth check is complete
     return <SpinningLogo />;
   }
 
@@ -50,10 +49,8 @@ const AppRoutes = () => {
         path="/register"
         element={<Register userId={userId} isAuthChecked={isAuthChecked} />}
       />
-      <Route path="/42-login" element={<Authenticate42 />} />
       <Route path="/42-callback" element={<CallBack />} />
       <Route path="*" element={<NotFoundPage />} />
-      <Route path="/test" element={<SpinningLogo />} />
       <Route
         path="/"
         element={<Home userId={userId} isAuthChecked={isAuthChecked} />}
