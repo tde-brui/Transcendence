@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import OnlineUsers from "./OnlineUsers";
-import Notifications from "./Notifications";
 import { v4 as uuidv4 } from "uuid";
 import "../../css/chat/ChatPage.css";
 const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
@@ -16,11 +15,6 @@ interface Message {
   recipient: string; // Ensure recipient is always defined
 }
 
-interface NotificationItem {
-  id: string;
-  message: string;
-}
-
 interface ChatProps {
   username: string;
 }
@@ -29,7 +23,6 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   console.info("Chat.tsx: username: ", username);
   const [messages, setMessages] = useState<Message[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
   const ws = useRef<WebSocket | null>(null);
 
@@ -54,12 +47,12 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
 
     ws.current.onopen = () => {
       console.log("WebSocket connected");
-      addNotification("Connected to the chat server.");
+      console.log("Connected to the chat server.");
     };
 
     ws.current.onclose = () => {
       console.log("WebSocket disconnected");
-      addNotification("Disconnected from the chat server.");
+      console.log("Disconnected from the chat server.");
     };
 
     ws.current.onmessage = (e) => {
@@ -154,22 +147,22 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
       case "error":
       case "block_success":
         setBlockedUsers((prev) => [...prev, data.target_user!]);
-        addNotification(data.message!);
+        console.log(data.message!);
         break;
       case "unblock_success":
         setBlockedUsers((prev) =>
           prev.filter((user) => user !== data.target_user)
         );
-        addNotification(data.message!);
+        console.log(data.message!);
         break;
       case "dm_sent":
         if (data.message) {
-          addNotification(data.message);
+          console.log(data.message);
         }
         break;
       case "invite_game":
         if (data.target_user && data.url) {
-          addNotification(`Game invitation sent to '${data.target_user}'.`);
+          console.log(`Game invitation sent to '${data.target_user}'.`);
           window.open(data.url, "_blank");
         }
         break;
@@ -197,25 +190,16 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
     setMessages((prev) => [...prev, { id: uuidv4(), ...msg }]);
   };
 
-  
-  const addNotification = (note: string) => {
-    const id = uuidv4();
-    setNotifications((prev) => [...prev, { id, message: note }]);
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    }, 5000);
-  };
-
   const sendMessage = (message: string) => {
     if (message.length > 200) {
-      addNotification("Message too long. Maximum length is 200 characters.");
+      console.log("Message too long. Maximum length is 200 characters.");
       return;
     }
 
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ message }));
     } else {
-      addNotification("WebSocket is not connected.");
+      console.log("WebSocket is not connected.");
     }
   };
 
@@ -239,7 +223,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
         );
       }
     } else {
-      addNotification("WebSocket is not connected.");
+      console.log("WebSocket is not connected.");
     }
   };
 
@@ -261,7 +245,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
         { ...newMessage, id: uuidv4() },
       ]);
     } else {
-      addNotification("WebSocket is not connected.");
+      console.log("WebSocket is not connected.");
     }
   };
 
@@ -283,9 +267,9 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
           game_url: inviteeGameUrl, // Invitee's personalized URL
         })
       );
-      addNotification(`Game invitation sent to ${target_user}.`);
+      console.log(`Game invitation sent to ${target_user}.`);
     } else {
-      addNotification("WebSocket is not connected.");
+      console.log("WebSocket is not connected.");
     }
   };  
   
@@ -294,7 +278,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ view_profile: true, target_user }));
     } else {
-      addNotification("WebSocket is not connected.");
+      console.log("WebSocket is not connected.");
     }
   };
 

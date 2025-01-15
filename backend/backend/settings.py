@@ -17,8 +17,6 @@ import sys
 
 load_dotenv()
 
-email_password = os.getenv('EMAIL_PASSWORD')
-
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 REDIRECT_URI = os.getenv('REDIRECT_URI')
@@ -40,7 +38,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-p6ocyhl809xv@xv*r*sm$!y85py(4$_-4bk#!p+ga51*!l0kd='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
 	'localhost',
@@ -187,7 +185,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'transcendence4000@gmail.com'
-EMAIL_HOST_PASSWORD = "skdo zrbx kvfz qpnn"
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
 AUTH_USER_MODEL = 'users.PongUser'
 
