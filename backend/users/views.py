@@ -91,7 +91,7 @@ def jwtCookie(user):
 				str(refresh.access_token),
 				max_age=3600, # 1 hour
 				httponly=True,
-				# secure=True,  # HTTPS only, doesnt work when testing locally
+				secure=True, 
 				samesite='Lax',
 			)
 
@@ -100,7 +100,7 @@ def jwtCookie(user):
 				str(refresh),
 				max_age=86400 , # 1 day
 				httponly=True,
-				# secure=True,  # HTTPS only, doesnt work when testing locally
+				secure=True,
 				samesite='Lax',
 			)
 			return response
@@ -127,7 +127,7 @@ class verify_user(APIView):
 					str(new_token.access_token),
 					max_age=3600, # 1 hour
 					httponly=True,
-					# secure=True,  # HTTPS only, doesnt work when testing locally
+					secure=True,  # HTTPS only, doesnt work when testing locally
 					samesite='Lax',
 				)
 				return response
@@ -193,7 +193,7 @@ def user_42_callback(request):
 			str(refresh.access_token),
 			max_age=3600, # 1 hour
 			httponly=True,
-			# secure=True,  # HTTPS only, doesnt work when testing locally
+			secure=True,  # HTTPS only, doesnt work when testing locally
 			samesite='Lax',
 		)
 		response.set_cookie(
@@ -201,7 +201,7 @@ def user_42_callback(request):
 			str(refresh),
 			max_age=86400 , # 1 day
 			httponly=True,
-			# secure=True,  # HTTPS only, doesnt work when testing locally
+			secure=True,  # HTTPS only, doesnt work when testing locally
 			samesite='Lax',
 		)
 		return response	
