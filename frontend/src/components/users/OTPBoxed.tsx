@@ -2,6 +2,7 @@ import React, { useState,  useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/AxiosInstance";
 import { useAuth } from "../utils/AuthContext";
+import { Link } from "react-router-dom";
 
 interface OTPBoxedProps {
   email: string;
@@ -141,6 +142,7 @@ const OTPBoxed: React.FC<OTPBoxedProps> = ({ email }) => {
           >
             Send New Code
           </button>
+		  <Link to="/login">Back to login</Link>
         </div>
       </div>
     </div>

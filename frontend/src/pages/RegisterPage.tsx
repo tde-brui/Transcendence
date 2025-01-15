@@ -42,111 +42,124 @@ const RegisterPage: React.FC<UserProfileProps> = ({
   const [alertType, setAlertType] = useState<"success" | "error" | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value, // Handle checkbox
-    });
-
-    if (name === "username") {
-      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-      setFormErrors({
-        ...formErrors,
-        username: usernameRegex.test(value)
-          ? ""
-          : "Username must be 3-20 characters long and can only contain letters, numbers, and underscores",
-      });
-    }
-
-    if (name === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      setFormErrors({
-        ...formErrors,
-        email: emailRegex.test(value) ? "" : "Invalid email address",
-      });
-    }
-
-    if (name === "password") {
-      const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-      setFormErrors({
-        ...formErrors,
-        password: passwordRegex.test(value)
-          ? ""
-          : "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character",
-      });
-    }
-
-    if (name === "confirmPassword") {
-      setFormErrors({
-        ...formErrors,
-        confirmPassword:
-          value !== formData.password ? "Passwords do not match" : "",
-      });
-    }
-
-    if (name === "firstName") {
-      const firstNameRegex = /^[A-Z][a-z]*$/; // First letter capital, rest lowercase
-      setFormErrors({
-        ...formErrors,
-        firstName: firstNameRegex.test(value)
-          ? ""
-          : "First name must start with a capital letter and only contain lowercase letters afterward",
-      });
-    }
+	const { name, value, type, checked } = e.target;
+	setFormData({
+	  ...formData,
+	  [name]: type === "checkbox" ? checked : value,
+	});
+  
+	if (name === "username") {
+	  const usernameRegex = /^[a-zA-Z0-9-]{1,20}$/; // Alphanumeric and '-' only, max 20 characters
+	  setFormErrors({
+		...formErrors,
+		username: usernameRegex.test(value)
+		  ? ""
+		  : "Username must be max 20 characters, alphanumeric or '-' only",
+	  });
+	}
+  
+	if (name === "email") {
+	  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Valid email format
+	  setFormErrors({
+		...formErrors,
+		email: emailRegex.test(value) ? "" : "Invalid email address",
+	  });
+	}
+  
+	if (name === "password") {
+	  const passwordRegex =
+		/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$/;
+	  setFormErrors({
+		...formErrors,
+		password: passwordRegex.test(value)
+		  ? ""
+		  : "Password must be 8-30 characters, include uppercase, lowercase, number, and a special character",
+	  });
+	}
+  
+	if (name === "confirmPassword") {
+	  setFormErrors({
+		...formErrors,
+		confirmPassword:
+		  value !== formData.password ? "Passwords do not match" : "",
+	  });
+	}
+  
+	if (name === "firstName") {
+		const firstNameRegex = /^[a-zA-Z]{1,15}$/; // Only alphanumeric, max 15 chars
+		setFormErrors({
+		  ...formErrors,
+		  firstName: firstNameRegex.test(value)
+			? ""
+			: "First name must only contain letters and be no longer than 15 characters",
+		});
+	  }
   };
+  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (
-      formErrors.email ||
-      formErrors.password ||
-      formErrors.confirmPassword ||
-      !formData.username ||
-      !formData.email ||
-      !formData.password
-    ) {
-      setAlertMessage("Please fix the errors before submitting.");
-      setAlertType("error");
-      return;
-    }
-
-    // Exclude confirmPassword from the data to be sent
-    const { confirmPassword, ...dataToSend } = formData;
-
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
-    try {
-      console.log(dataToSend);
-      const response = await axiosInstance.post(
-        "/users/register/",
-        dataToSend,
-        config
-      );
-      console.info(response);
-      if (response.status === 200 && response.data?.user_id) {
-        setUserId(response.data.user_id);
-        setAlertMessage("Registration successful!");
-        setAlertType("success");
-        setTimeout(() => navigate("/"), 1000);
-      } else if (response.status === 202 && response.data?.email) {
-        console.log(response.data.message);
-        const userEmail = response.data.email;
-        setAlertMessage("OTP sent to your email.");
-        setAlertType("success");
-        setOtpUserEmail(userEmail);
-        setIsOtpSent(true);
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      setAlertMessage("Failed to register. Please try again.");
-      setAlertType("error");
-    }
+	e.preventDefault();
+  
+	// Check for empty fields
+	const errors: { [key: string]: string } = {};
+	if (!formData.username) errors.username = "Username is required";
+	if (!formData.firstName) errors.firstName = "First name is required";
+	if (!formData.email) errors.email = "Email is required";
+	if (!formData.password) errors.password = "Password is required";
+	if (!formData.confirmPassword) {
+	  errors.confirmPassword = "Confirm password is required";
+	} else if (formData.password !== formData.confirmPassword) {
+	  errors.confirmPassword = "Passwords do not match";
+	}
+  
+	// Update form errors state
+	setFormErrors({ ...formErrors, ...errors });
+  
+	// Stop submission if there are errors
+	if (Object.keys(errors).length > 0) {
+	  setAlertMessage("Please fix the errors before submitting.");
+	  setAlertType("error");
+	  return;
+	}
+  
+	// Exclude confirmPassword from the data to be sent
+	const { confirmPassword, ...dataToSend } = formData;
+  
+	const config = {
+	  headers: {
+		"Content-Type": "application/json",
+	  },
+	};
+  
+	try {
+	  console.log(dataToSend);
+	  const response = await axiosInstance.post(
+		"/users/register/",
+		dataToSend,
+		config
+	  );
+	  console.info(response);
+  
+	  if (response.status === 200 && response.data?.user_id) {
+		setUserId(response.data.user_id);
+		setAlertMessage("Registration successful!");
+		setAlertType("success");
+		setTimeout(() => navigate("/"), 1000);
+	  } else if (response.status === 202 && response.data?.email) {
+		console.log(response.data.message);
+		const userEmail = response.data.email;
+		setAlertMessage("OTP sent to your email.");
+		setAlertType("success");
+		setOtpUserEmail(userEmail);
+		setIsOtpSent(true);
+	  }
+	} catch (error) {
+	  console.error("Error submitting form:", error);
+	  setAlertMessage("Failed to register. Please try again.");
+	  setAlertType("error");
+	}
   };
+  
 
   return (
     <div className="container d-flex align-items-center justify-content-center vh-100">
@@ -170,9 +183,6 @@ const RegisterPage: React.FC<UserProfileProps> = ({
               <div className="form-group">
                 <label htmlFor="username"></label>
                 <div className="input-group">
-                  <div className="input-group-prepend">
-                    <span className="input-group-text">@</span>
-                  </div>
                   <input
                     type="text"
                     className={`form-control ${

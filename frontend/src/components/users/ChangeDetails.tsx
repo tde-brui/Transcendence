@@ -44,12 +44,12 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     if (name === "username") {
-      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      const usernameRegex = /^[a-zA-Z0-9-]{1,20}$/;
       setFormErrors({
         ...formErrors,
         username: usernameRegex.test(value)
           ? ""
-          : "Username must be 3-20 characters long and can only contain letters, numbers, and underscores",
+          : "Username must be max 20 characters, alphanumeric or '-' only",
       });
     }
 
@@ -62,12 +62,12 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
     }
 
     if (name === "firstName") {
-      const firstNameRegex = /^[A-Z][a-z]*$/;
+      const firstNameRegex = /^[a-zA-Z]{1,15}$/;
       setFormErrors({
         ...formErrors,
         firstName: firstNameRegex.test(value)
           ? ""
-          : "First name must start with a capital letter and only contain lowercase letters afterward",
+          : "First name must only contain letters and be no longer than 15 characters",
       });
     }
   };

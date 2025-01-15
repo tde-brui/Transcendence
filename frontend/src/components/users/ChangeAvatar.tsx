@@ -67,10 +67,10 @@ const ChangeAvatar: React.FC<ChangeAvatarProps> = ({
     try {
       const response = await axiosInstance.patch(
         `/users/${userId}/`,
-        { avatar: "default_avatar.png" },
+        { avatar: "/media/avatars/default.png" },
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );

@@ -56,6 +56,17 @@ const LoginPage: React.FC<UserProfileProps> = ({ userId, isAuthChecked }) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+	const errors: { [key: string]: string } = {};
+	if (!formData.username) errors.username = "Username is required";
+	if (!formData.password) errors.password = "Password is required";
+	
+	setFormErrors({ ...formErrors, ...errors });
+	if (Object.keys(errors).length > 0){
+		setAlertMessage("Please fix the errors before submitting.");
+		setAlertType("error");
+		return;
+	}
     if (
       formErrors.username ||
       formErrors.password ||
