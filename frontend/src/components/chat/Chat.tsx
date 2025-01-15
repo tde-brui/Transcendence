@@ -300,7 +300,6 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
 
   return (
     <>
-      <Notifications notifications={notifications} />
       <div className="chat-page-container container-fluid">
         {/* Sidebar */}
         <div className="sidebar-container">
@@ -319,12 +318,6 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
                 blockedUsers={blockedUsers} // Pass the blocked users
               />
             </div>
-            {/* <div className="profile-header">
-              <h3 className="text-white">Server Announcements</h3>
-            </div>
-            <div className="card-body profile-footer">
-              <AnnouncementForm sendAnnouncement={sendAnnouncement} />
-            </div> */}
           </div>
         </div>
 
