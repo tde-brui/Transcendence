@@ -194,44 +194,61 @@ class TournamentManager:
         async_to_sync(send_server_announcement)(message)
 
     async def update_match_result_by_game_id_async(self, game_id, winner):
+        """
+        Updates the match result for a given game_id and announces it to all players.
+        """
+        announcements = []
         with self.lock:
             if not self.tournament:
                 return {"error": "No active tournament"}
+
             match = next((m for m in self.tournament["matches"] if m.get("game_id") == game_id), None)
             if not match:
                 return {"error": "Match not found for game_id"}
+
             match["winner"] = winner
 
-            # Announce match result
+            # Collect announcement about the match result
             player1 = self.tournament["display_names"].get(match["players"][0], match["players"][0])
             player2 = self.tournament["display_names"].get(match["players"][1], match["players"][1])
             winner_display = self.tournament["display_names"].get(winner, winner)
-            send_server_announcement(
+
+            announcements.append(
                 f"Match over: {player1} vs {player2}. Winner: {winner_display}!"
             )
 
+            # If all matches are completed, compute final results and collect relevant announcements
             if self._all_matches_completed():
                 final_result = self._compute_final_result()
                 self.tournament["final_result"] = final_result
 
-                # Announce tournament result
-                if final_result["type"] == "winner":
+                if final_result and final_result["type"] == "winner":
                     winners = [
                         self.tournament["display_names"].get(user, user)
                         for user in final_result["usernames"]
                     ]
-                    send_server_announcement(
+                    announcements.append(
                         f"Tournament finished! Winner(s): {', '.join(winners)}"
                     )
-                elif final_result["type"] == "draw":
+                elif final_result and final_result["type"] == "draw":
                     draw_players = [
                         self.tournament["display_names"].get(user, user)
                         for user in final_result["usernames"]
                     ]
-                    send_server_announcement(
-                        f"Tournament finished in a draw! Drawed players: {', '.join(draw_players)}"
+                    announcements.append(
+                        f"Tournament finished in a draw! Drawn players: {', '.join(draw_players)}"
                     )
 
+        # --------------------------
+        # Now we're outside the lock
+        # --------------------------
+
+        # Actually send the announcements (await the async call)
+        for ann in announcements:
+            print(ann)
+            await send_server_announcement(ann)
+
+        # Broadcast the updated tournament state
         await self._broadcast_update_async()
         return {"success": True, "match": match}
 

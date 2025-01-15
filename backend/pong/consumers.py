@@ -36,6 +36,7 @@ class Game:
         self.game_started = False
         self.paddle_directions = {"a": 0, "b": 0}
         self.ready_players = {"a": False, "b": False}
+        self.game_ended = False
 
     def reset_ball(self):
         # Flip direction so next serve is from the opposite side
@@ -476,6 +477,8 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({"type": "redirectToPlay"}))
 
     async def game_over(self, event):
+        if self.game.game_ended:
+            return
         winner_username = event.get('winner')
         loser_username = event.get('loser')
 
@@ -493,17 +496,21 @@ class PongConsumer(AsyncWebsocketConsumer):
             final_winner_label = winner_username
 
             if tournament:
-                # Update match result
-                result = await manager.update_match_result_by_game_id_async(self.game_id, winner_username)
-                if not result.get("error"):
-                    is_tournament_game = True
-
-                # Update final winner label if it's a tournament game
-                match = next(
+                match_for_this_game = next(
                     (m for m in tournament.get("matches", []) if m.get("game_id") == self.game_id),
                     None
                 )
-                if match:
+                if match_for_this_game:
+                    # If there's no winner yet, only then call update_match_result_by_game_id_async
+                    if match_for_this_game["winner"] is None:
+                        result = await manager.update_match_result_by_game_id_async(self.game_id, winner_username)
+                        if not result.get("error"):
+                            is_tournament_game = True
+                    else:
+                        # We already have a winner; no need to call the tournament manager again
+                        is_tournament_game = True
+
+                    # Use display name for the final winner label if we have it
                     winner_paddle = next((k for k, v in self.game.players.items() if v == winner_username), None)
                     if winner_paddle and winner_paddle in self.game.players_info:
                         display_name = self.game.players_info[winner_paddle].get("display_name")
@@ -533,7 +540,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                     self.game_group_name,
                     {"type": "redirect_play"}
                 )
-
+            self.game.game_ended = True
             # Clean up game resources
             GameManager.get_instance().delete_game(self.game_id)
 
