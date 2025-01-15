@@ -36,6 +36,7 @@ class Game:
         self.game_started = False
         self.paddle_directions = {"a": 0, "b": 0}
         self.ready_players = {"a": False, "b": False}
+        self.finished = False
 
     def reset_ball(self):
         # Flip direction so next serve is from the opposite side
@@ -491,9 +492,11 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({"type": "redirectToPlay"}))
 
     async def game_over(self, event):
+        if self.game.finished:
+            return
+        
         winner_username = event.get('winner')
         loser_username = event.get('loser')
-
         # Attempt to save in MatchHistory if we have valid PongUsers
         if winner_username == self.browser_key:
             await self.save_match_result(winner_username, loser_username, MatchHistory.WIN)
@@ -532,7 +535,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                     "type": "redirect_play"
                 }
             )
-
+        self.game.finished = True
         # --- Cleanly delete the game after the result
         GameManager.get_instance().delete_game(self.game_id)
 

@@ -18,7 +18,7 @@ const RemotePongCanvas: React.FC = () => {
   const [winner, setWinner] = useState<string | null>(null);
   const [readyStates, setReadyStates] = useState<{ a: boolean; b: boolean }>({ a: false, b: false });
   const [countdown, setCountdown] = useState<boolean>(false); // New state for countdown
-  const [countdownValue, setCountdownValue] = useState<number|string>('ggaaaaaa!!')
+  const [countdownValue, setCountdownValue] = useState<number|string>('')
 
   const websocketRef = useRef<WebSocket | null>(null);
 
@@ -93,7 +93,6 @@ const RemotePongCanvas: React.FC = () => {
         }
       };
     };
-
     connectWebSocket();
     return () => {
       if (websocketRef.current) websocketRef.current.close();
