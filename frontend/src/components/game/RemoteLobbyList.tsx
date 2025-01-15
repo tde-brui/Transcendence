@@ -29,7 +29,7 @@ const RemoteLobbyList: React.FC = () => {
 
   useEffect(() => {
     // Make sure that this URL returns a valid JSON response listing the lobbies
-    fetch(`${apiBaseUrl}/api/lobbies/`)
+    fetch(`${apiBaseUrl}/api/lobbies`)
       .then((res) => res.json())
       .then((data) => setLobbies(data))
       .catch((err) => console.error("Error fetching lobbies:", err));
@@ -38,7 +38,7 @@ const RemoteLobbyList: React.FC = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axiosInstance.get(`/users/${userId}`);
+        const response = await axiosInstance.get(`/users/${userId}/`);
         setUsername(response.data.username);
       } catch (error) {
         console.error("Failed to fetch user data", error);

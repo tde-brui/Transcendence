@@ -36,7 +36,7 @@ const Chat: React.FC<ChatProps> = ({ username }) => {
   useEffect(() => {
     const fetchBlockedUsers = async () => {
       try {
-        const response = await fetch(`/api/blocked-users/${username}`);
+        const response = await fetch(`/blocked-users/${username}/`);
         const data = await response.json();
         setBlockedUsers(data.blockedUsers || []);
       } catch (error) {

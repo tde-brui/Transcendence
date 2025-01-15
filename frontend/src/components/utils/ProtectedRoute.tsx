@@ -17,7 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ userId }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axiosInstance.get(`/users/${userId}`);
+        const response = await axiosInstance.get(`/users/${userId}/`);
         setUser(response.data.username);
       } catch (error) {
         // console.error("Failed to fetch user data", error);

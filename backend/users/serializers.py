@@ -17,8 +17,9 @@ class UserSerializer(serializers.ModelSerializer):
 			raise serializers.ValidationError("Username must be alphanumeric or include '-'.")
 		
 		# Unique check
-		if PongUser.objects.filter(username=value).exists():
-			raise serializers.ValidationError("Username must be unique.")
+		if 'username' in self.initial_data:
+			if PongUser.objects.filter(username=value).exclude(pk=self.instance.pk).exists():
+				raise serializers.ValidationError("Username must be unique.")
 		return value
 	
 	def validate_password(self, value):
@@ -39,8 +40,9 @@ class UserSerializer(serializers.ModelSerializer):
 	
 	def validate_email(self, value):
 		# Unique email
-		if PongUser.objects.filter(email=value).exists():
-			raise serializers.ValidationError("Email must be unique.")
+		if 'email' in self.initial_data:
+			if PongUser.objects.filter(email=value).exclude(pk=self.instance.pk).exists():
+				raise serializers.ValidationError("Email must be unique.")
 		return value
 
 	def validate_avatar(self, value):

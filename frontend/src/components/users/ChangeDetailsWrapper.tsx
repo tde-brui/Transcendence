@@ -60,7 +60,7 @@ const ChangeDetailWrapper = () => {
       if (!user || !user.avatar) return; // Skip if no avatar is available
 
       try {
-        const response = await fetch(`${apiBaseUrl.slice(0, -1)}${user.avatar}`);
+        const response = await fetch(`${apiBaseUrl}${user.avatar}`);
         if (!response.ok) {
           throw new Error("Failed to fetch user avatar");
         }
