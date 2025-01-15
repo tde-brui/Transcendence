@@ -66,7 +66,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
       try {
         const response = await fetch(`${apiBaseUrl}${user.avatar}`);
         if (!response.ok) {
-          throw new Error("Failed to fetch user avatar");
+          console.error("Failed to fetch avatar:", response.statusText);
+		  setAvatar("/images/default_avatar.jpg");
+		  return;
         }
         const avatarData = await response.blob();
         const avatarUrl = URL.createObjectURL(avatarData);

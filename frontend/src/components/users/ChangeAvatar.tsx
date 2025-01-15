@@ -62,28 +62,36 @@ const ChangeAvatar: React.FC<ChangeAvatarProps> = ({
   };
 
   const handleRemove = async () => {
-    setIsLoading(true);
-
-    try {
-      const response = await axiosInstance.patch(
-        `/users/${userId}/`,
-        { avatar: "/media/avatars/default.png" },
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        navigate(`/users/${username}`);
-      }
-    } catch (error) {
-      console.error("Error removing avatar:", error);
-      setUploadError("Failed to remove avatar. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+	setIsLoading(true);
+  
+	try {
+	  // Create a FormData object to handle the file upload
+	  const formData = new FormData();
+	  const filePath = "/images/default_avatar.jpg"; // Path in the public directory
+	  const file = await fetch(filePath).then((res) => res.blob()); // Fetch the file as a Blob
+  
+	  formData.append("avatar", file, "default_avatar.jpg"); // Append the file with a name
+  
+	  // Send the PATCH request
+	  const response = await axiosInstance.patch(
+		`/users/${userId}/`,
+		formData,
+		{
+		  headers: {
+			"Content-Type": "multipart/form-data",
+		  },
+		}
+	  );
+  
+	  if (response.status === 200) {
+		navigate(`/users/${username}`);
+	  }
+	} catch (error) {
+	  console.error("Error removing avatar:", error);
+	  setUploadError("Failed to remove avatar. Please try again.");
+	} finally {
+	  setIsLoading(false);
+	}
   };
 
   return (
