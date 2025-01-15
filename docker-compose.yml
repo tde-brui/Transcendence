@@ -11,9 +11,9 @@ services:
       - app-network
     
   nginx:
-    image: nginx:latest
+    build: ./nginx
     ports:
-      - "8080:80"
+      - "8080:443"
     depends_on:
       - frontend
       - backend
