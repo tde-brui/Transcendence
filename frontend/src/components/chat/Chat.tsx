@@ -4,6 +4,7 @@ import MessageInput from "./MessageInput";
 import OnlineUsers from "./OnlineUsers";
 import { v4 as uuidv4 } from "uuid";
 import "../../css/chat/ChatPage.css";
+import { Link } from "react-router-dom";
 const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
 
 interface Message {
