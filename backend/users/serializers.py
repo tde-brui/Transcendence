@@ -65,6 +65,9 @@ class UserSerializer(serializers.ModelSerializer):
 		return value
 
 	def update(self, instance, validated_data):
+		if 'password' in validated_data:
+			password = validated_data.pop('password')
+			instance.set_password(password)
 		# Save avatar
 		for attr, value in validated_data.items():
 			setattr(instance, attr, value)
