@@ -25,7 +25,7 @@ AUTHORIZATION_URL = os.getenv('AUTHORIZATION_URL')
 TOKEN_URL = "https://api.intra.42.fr/oauth/token"
 USER_URL = "https://api.intra.42.fr/v2/me"
 
-FRONTEND_URL = "https://localhost:8080"
+FRONTEND_URL = os.getenv('FRONTEND_URL')
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
