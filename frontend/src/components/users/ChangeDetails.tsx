@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axiosInstance from "../utils/AxiosInstance";
+import axios from "axios";
 import "../../css/UserProfile.css";
 import ChangeAvatar from "./ChangeAvatar";
 import ChangePassword from "./ChangePassword";
@@ -37,6 +38,8 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
 
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertType, setAlertType] = useState<"success" | "error" | null>(null);
 
   const navigate = useNavigate();
 
@@ -97,11 +100,35 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
         }
       );
       if (response.status === 200) {
+		setAlertMessage("Details updated successfully.");
+		setAlertType("success");
         navigate(`/users/${formData.username}`);
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
-    }
+		console.error("Error submitting form:", error);
+	  
+		if (axios.isAxiosError(error)) {
+		  if (error.response && error.response.data) {
+			const responseData = error.response.data;
+	  
+			// Check for specific fields: email and username
+			if (responseData.email) {
+			  setAlertMessage(`Email: ${responseData.email.join(", ")}`);
+			} else if (responseData.username) {
+			  setAlertMessage(`Username: ${responseData.username.join(", ")}`);
+			} else {
+			  setAlertMessage("An unknown error occurred.");
+			}
+		  } else if (error.request) {
+			setAlertMessage("No response from the server.");
+		  } else {
+			setAlertMessage("An unexpected error occurred.");
+		  }
+		} else {
+		  setAlertMessage("An unknown error occurred.");
+		}
+		setAlertType("error");
+	  }
   };
 
   const handleCancel = () => {
@@ -149,6 +176,15 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({
           </button>
         </div>
         <div className="profile-body p-4">
+		{alertMessage && (
+              <div
+                className={`alert ${
+                  alertType === "success" ? "alert-success" : "alert-danger"
+                } text-center`}
+              >
+                {alertMessage}
+              </div>
+            )}
           <h2 className="profile-title mb-4">Change Details</h2>
           <form onSubmit={handleSubmit}>
             <div className="d-flex flex-column mb-3">

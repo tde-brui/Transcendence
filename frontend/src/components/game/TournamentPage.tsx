@@ -37,7 +37,7 @@ const TournamentPage: React.FC = () => {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState(""); // local state for user’s unique name input
-
+  
   useEffect(() => {
     fetchTournament();
     fetchUsername();
