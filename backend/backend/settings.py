@@ -38,7 +38,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-p6ocyhl809xv@xv*r*sm$!y85py(4$_-4bk#!p+ga51*!l0kd='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
 	'localhost',
@@ -191,6 +191,6 @@ AUTH_USER_MODEL = 'users.PongUser'
 
 #settings for storing user pictures
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 ASGI_APPLICATION = 'backend.asgi.application'
 SESSION_COOKIE_HTTPONLY = True

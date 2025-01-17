@@ -25,4 +25,4 @@ urlpatterns = [
 	path('friends/', include("friends.urls")),
 	path('', include("pong.urls")),
 	path('chat/', include("chat.urls"))
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]

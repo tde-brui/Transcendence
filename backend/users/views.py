@@ -296,6 +296,7 @@ class user_detail(APIView):
 		if serializer.is_valid():
 			serializer.save()
 			return Response(serializer.data, status=status.HTTP_200_OK)
+		print(serializer.errors)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 	#temporary function, users can delete other users accounts
 	def delete(self, request, pk):
@@ -309,6 +310,7 @@ class get_match_history(APIView):
 		matchhistory_models = MatchHistory.objects.filter(player=player).order_by('-date_played')
 		matchhistory = MatchHistorySerializer(matchhistory_models, many=True)
 		return Response(matchhistory.data, status.HTTP_200_OK)
+
 	
 class logout(APIView):
 	def delete(self, request):

@@ -64,6 +64,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 		return value
 
+	def update(self, instance, validated_data):
+		# Save avatar
+		for attr, value in validated_data.items():
+			setattr(instance, attr, value)
+		instance.save()
+		return instance
+
+
 	def create(self, validated_data):
 			# Create a new user with hashed password
 			user = PongUser.objects.create_user(

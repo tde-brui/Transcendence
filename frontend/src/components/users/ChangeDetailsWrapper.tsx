@@ -3,7 +3,6 @@ import NotFoundPage from "../../error_pages/404NotFound";
 import axiosInstance from "../utils/AxiosInstance";
 import SpinningLogo from "../SpinningLogo";
 import ChangeDetails from "./ChangeDetails";
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 // Define your axios instance
 
@@ -60,7 +59,7 @@ const ChangeDetailWrapper = () => {
       if (!user || !user.avatar) return; // Skip if no avatar is available
 
       try {
-        const response = await fetch(`${apiBaseUrl}${user.avatar}`);
+        const response = await fetch(`${user.avatar}`);
         if (!response.ok) {
           throw new Error("Failed to fetch user avatar");
         }
