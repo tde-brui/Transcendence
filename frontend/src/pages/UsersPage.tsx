@@ -255,7 +255,7 @@ const UsersPage: React.FC = () => {
                           </span>
                         </div>
                         <img
-                          src={avatars[user.id] || ""}
+                          src={avatars[user.id] || "/images/default_avatar.jpg"}
                           alt={`${user.username}'s avatar`}
                           className="users-avatar mt-2"
                         />
