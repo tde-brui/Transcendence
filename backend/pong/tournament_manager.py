@@ -1,10 +1,10 @@
+import re
 import itertools
 import threading
 import time
 import uuid
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-import asyncio
 from chat.utils import send_server_announcement
 
 class TournamentManager:
@@ -49,6 +49,10 @@ class TournamentManager:
         return self.tournament
 
     def sign_in_player(self, username, display_name):
+        # Validate display_name
+        if len(display_name) > 12 or not re.match(r'^[a-zA-Z0-9]*$', display_name):
+            return {"error": "Display name must be alphanumeric and up to 12 characters."}
+
         with self.lock:
             if not self.tournament:
                 return {"error": "No active tournament"}
