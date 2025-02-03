@@ -33,7 +33,7 @@ The goal of Transcendence is to create a single-page web application where users
 ## Technologies Used
 - **Frontend**: React, Bootstrap (as an optional module).
 - **Backend**: Django with REST API.
-- **Database**: PostgreSQL.
+- **Database**: SQLite.
 - **Real-Time** Communication: Socket.IO.
 - **Authentication**: OAuth 2.0 with 42 API, JSON Web Tokens (JWT), and optional 2FA.
 - **DevOps**: Docker for containerization.
